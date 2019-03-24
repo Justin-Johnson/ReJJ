@@ -13,10 +13,9 @@ desc: ReEQ
  * 
  * Standing on the shoulders of giants for this one.
  *
- * Thanks to:
- *  Joep Vanlier for the AGC initial idea.  Modified since
- *  his version to be more applicable to this application.
- *  ...
+ * TODO:
+ *  - Move RBJ filters from SVF.  They're only used for drawing and @slider and @gfx are clashing.
+ *      Process only in @gfx
  */
 
 slider1:Stereo_Mode=<0,1,1{Mid/Side,Left/Right}>-Stereo Mode
@@ -48,7 +47,7 @@ slider24:Node1_Slope=0<0,15,1>-Filter1 Slope
 
 slider25:Node2_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter2 Mode
 slider26:Node2_Group=0<0,2,1{Stereo,Mid/Left,Side/Right}>-Filter2 Group
-slider27:Node1_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter2 Type
+slider27:Node2_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter2 Type
 slider28:Node2_Frequency=30<0,100,0.01>-Filter2 Frequency
 slider29:Node2_Gain=0.0<-18.0,18.0,0.01>-Filter2 Gain
 slider30:Node2_Q=0.707<0.10,40.0,0. 01>-Filter2 Q
@@ -56,7 +55,7 @@ slider31:Node2_Slope=0<0,15,1>-Filter2 Slope
 
 slider32:Node3_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter3 Mode
 slider33:Node3_Group=0<0,2,1{Stereo,Mid/Left,Side/Right}>-Filter3 Group
-slider34:Node1_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter3 Type
+slider34:Node3_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter3 Type
 slider35:Node3_Frequency=40<0,100,0.01>-Filter3 Frequency
 slider36:Node3_Gain=0.0<-18.0,18.0,0.01>-Filter3 Gain
 slider37:Node3_Q=0.707<0.10,40.0,0.01>-Filter3 Q
@@ -64,7 +63,7 @@ slider38:Node3_Slope=0<0,15,1>-Filter3 Slope
 
 slider39:Node4_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter4 Mode
 slider40:Node4_Group=0<0,2,1{Stereo,Mid/Left,Side/Right}>-Filter4 Group
-slider41:Node1_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter4 Type
+slider41:Node4_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter4 Type
 slider42:Node4_Frequency=70<0,100,0.01>-Filter4 Frequency
 slider43:Node4_Gain=0.0<-18.0,18.0,0.01>-Filter4 Gain
 slider44:Node4_Q=0.707<0.10,40.0,0.01>-Filter4 Q
@@ -72,7 +71,7 @@ slider45:Node4_Slope=0<0,15,1>-Filter4 Slope
 
 slider46:Node5_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter5 Mode
 slider47:Node5_Group=0<0,2,1{Stereo,Mid/Left,Side/Right}>-Filter5 Group
-slider48:Node1_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter5 Type
+slider48:Node5_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter5 Type
 slider49:Node5_Frequency=70<0,100,0.01>-Filter5 Frequency
 slider50:Node5_Gain=0.0<-18.0,18.0,0.01>-Filter5 Gain
 slider51:Node5_Q=0.707<0.10,40.0,0.01>-Filter5 Q
@@ -345,12 +344,12 @@ function band_set_filter(t, f, g, qval, slope)
           type == 3 ? filter.zdf_ls(frequency, q, db_to_gain(gain)) :
             type == 4 ? filter.zdf_hs(frequency, q, db_to_gain(gain)) :
               type == 5 ? filter.zdf_lp(frequency, q, slope) :
-               type == 6 ? filter.zdf_lpb(frequency, slope) :
-                 type == 7 ? filter.zdf_bs(frequency, q) :
-                  type == 8 ? filter.zdf_bp2(frequency, q) :
-                    type == 9 ? filter.zdf_st(frequency, q, gain) :
-                      type == 10 ? filter.zdf_pultecls(frequency, q, gain) :
-                        type == 11 ? filter.zdf_ap(frequency, q);
+                type == 6 ? filter.zdf_lpb(frequency, slope) :
+                  type == 7 ? filter.zdf_bs(frequency, q) :
+                    type == 8 ? filter.zdf_bp2(frequency, q) :
+                      type == 9 ? filter.zdf_st(frequency, q, gain) :
+                        type == 10 ? filter.zdf_pultecls(frequency, q, gain) :
+                          type == 11 ? filter.zdf_ap(frequency, q);
 );
 
 /*
@@ -586,8 +585,8 @@ gainDb = 2 ^ (Gain/6);
 gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
-sliders_to_filters();
-update_filter_eqs();
+// Signal for the @gfx section to update the slider coefficients
+CALCULATE_FILTERS_FROM_SLIDERS = 1;
 
 // Ensure unallocated bands are in bypass
 // (mainly so that when they get allocated the coefficients can interpolate
@@ -1181,7 +1180,7 @@ function draw_filter_bands()
  */
 function draw_filter_response(group, red, green, blue)
   local(xf, step, xo1, yo1, freq, m, scy, midp, tx0, lx0, x0, y0, x1, y1, delta, bottom)
-( 
+(
   // Go across the screen in these steps
   step = gfx_w / 1000;
   gfx_x = 0;
@@ -2346,6 +2345,13 @@ gfx_ext_retina != last_gfx_ext_retina ? (
   //gfx_ext_retina > 1 ? gfx_setfont(1,"Verdana",18,'b') : gfx_setfont(0);
   gfx_ext_retina > 1 ? gfx_setfont(1,"Arial",20,'b') : 
     gfx_setfont(1,"Arial",12,'b');
+);
+
+// Have the sliders (automation) changed?
+CALCULATE_FILTERS_FROM_SLIDERS == 1 ? (
+  CALCULATE_FILTERS_FROM_SLIDERS = 0;
+  sliders_to_filters();
+  update_filter_eqs();
 );
 
 // Draw everything
