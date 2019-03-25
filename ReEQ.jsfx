@@ -585,8 +585,9 @@ gainDb = 2 ^ (Gain/6);
 gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
-// Signal for the @gfx section to update the slider coefficients
-CALCULATE_FILTERS_FROM_SLIDERS = 1;
+// Update any automation
+sliders_to_filters();
+update_filter_eqs();
 
 // Ensure unallocated bands are in bypass
 // (mainly so that when they get allocated the coefficients can interpolate
@@ -2345,13 +2346,6 @@ gfx_ext_retina != last_gfx_ext_retina ? (
   //gfx_ext_retina > 1 ? gfx_setfont(1,"Verdana",18,'b') : gfx_setfont(0);
   gfx_ext_retina > 1 ? gfx_setfont(1,"Arial",20,'b') : 
     gfx_setfont(1,"Arial",12,'b');
-);
-
-// Have the sliders (automation) changed?
-CALCULATE_FILTERS_FROM_SLIDERS == 1 ? (
-  CALCULATE_FILTERS_FROM_SLIDERS = 0;
-  sliders_to_filters();
-  update_filter_eqs();
 );
 
 // Draw everything
