@@ -24,61 +24,49 @@ import rbj_filter.jsfx-inc
 
 SAMPLE_RATE = srate;
 
-SMOOTHING_TIME_MS = 20;
-
-TWO_PI = 6.283185307179586476925286766559;
+SMOOTHING_TIME_MS = 30;
 
 /*
- * Set low pass interpolator
+ * Check if all our interpolating coefficients at rest
  */
-function zdf_ilerp() instance(a, b, z) (
-  a = exp(-TWO_PI / (SMOOTHING_TIME_MS * 0.001 * SAMPLE_RATE));
-  b = 1.0 - a;
-  z = 0.0;
-);
-
-/*
- * Do low pass interpolation
- */
-function zdf_ilerp_do(in) instance(a, b, z) (
-  z = (in * b) + (z * a);
-  z;
-);
-
-/*
- * Check if all our interpolating coefficients are within epsilon of targets
- */
-function zdf_is_resting()
-  instance(t_a1, t_a2, t_a3, t_m0, t_m1, t_m2, i_a1, i_a2, i_a3, i_m0, i_m1, i_m2)
-  local (eps, count)
-(
-  // TODO: do we need to consider cascading this?
-  eps = 0.0001;
-  count = 0;
-  abs(t_a1 - i_a1.z) < eps ? ( count += 1 );
-  abs(t_a2 - i_a2.z) < eps ? ( count += 1 );
-  abs(t_a3 - i_a3.z) < eps ? ( count += 1 );
-
-  abs(t_m0 - i_m0.z) < eps ? ( count += 1 );
-  abs(t_m1 - i_m1.z) < eps ? ( count += 1 );
-  abs(t_m2 - i_m2.z) < eps ? ( count += 1 );
-
-  count == 6 ? 1 : 0;
+function zdf_is_resting() local(resting)
+( 
+  resting = this.iter_t == 1.0;
+  nlp > 2 ? (
+    resting |= cas1.iter_t == 1.0;
+    nlp > 4 ? (
+      resting |= cas2.iter_t == 1.0;
+      nlp > 6 ? (
+        resting |= cas3.iter_t == 1.0;
+        nlp > 8 ? (
+          resting |= cas4.iter_t == 1.0;
+          nlp > 10 ? (
+            resting |= cas5.iter_t == 1.0;
+            nlp > 12 ? (
+              resting |= cas6.iter_t == 1.0;
+              nlp > 14 ? (
+                resting |= cas7.iter_t == 1.0;
+              );
+            );
+          );
+        );
+      );
+    );
+  );
+  resting;
 );
 
 /*
  * Set the sample rate.  Adjusts the low pass interpolators
  */
 function zdf_set_sample_rate_single(rate)
-  instance(rbj, i_a1, i_a2, i_a3, i_m0, i_m1, i_m2)
+  instance(rbj, iter_step)
 (
   SAMPLE_RATE = rate;
-  i_a1.zdf_ilerp();
-  i_a2.zdf_ilerp();
-  i_a3.zdf_ilerp();
-  i_m0.zdf_ilerp();
-  i_m1.zdf_ilerp();
-  i_m2.zdf_ilerp();
+
+  // Assumption: using 'srate' here on the basis that we'll
+  // only call tick() once per @sample
+  iter_step = 1.0 / (SMOOTHING_TIME_MS * 0.001 * srate);
 
   rbj.rbj_set_sample_rate(rate);
 );
@@ -102,30 +90,55 @@ function zdf_set_sample_rate(rate)
 /*
  * Set the target values for coefficient interpolation
  */
-function zdf_set_coeffs(a1, a2, a3, m0, m1, m2)
-  instance(t_a1, t_a2, t_a3, t_m0, t_m1, t_m2, i_a1, i_a2, i_a3, i_m0, i_m1, i_m2)
+function zdf_set_coeffs(ta1, ta2, ta3, tm0, tm1, tm2)
+  instance(a1, a2, a3, m0, m1, m2, t_a1, t_a2, t_a3, t_m0, t_m1, t_m2, s_a1, s_a2, s_a3, s_m0, s_m1, s_m2, iter_t)
 (
-  t_a1 = a1; t_a2 = a2; t_a3 = a3;
-  t_m0 = m0; t_m1 = m1; t_m2 = m2;
+  iter_t = 0.0;
+
+  // Start coefficients
+  s_a1 = a1;
+  s_a2 = a2;
+  s_a3 = a3;
+  s_m0 = m0;
+  s_m1 = m1;
+  s_m2 = m2;
+
+  // Target coefficients
+  t_a1 = ta1;
+  t_a2 = ta2;
+  t_a3 = ta3;
+  t_m0 = tm0;
+  t_m1 = tm1;
+  t_m2 = tm2;
 );
 
 /*
  * Interpolate coefficients
  */
 function zdf_single_interpolate()
-  instance (a1, a2, a3, m0, m1, m2, t_a1, t_a2, t_a3, t_m0, t_m1, t_m2, i_a1, i_a2, i_a3, i_m0, i_m1, i_m2)
+  instance (a1, a2, a3, m0, m1, m2, t_a1, t_a2, t_a3, t_m0, t_m1, t_m2, s_a1, s_a2, s_a3, s_m0, s_m1, s_m2, iter_step, iter_t)
 (
-  a1 = i_a1.zdf_ilerp_do(t_a1);
-  a2 = i_a2.zdf_ilerp_do(t_a2);
-  a3 = i_a3.zdf_ilerp_do(t_a3);
-  m0 = i_m0.zdf_ilerp_do(t_m0);
-  m1 = i_m1.zdf_ilerp_do(t_m1);
-  m2 = i_m2.zdf_ilerp_do(t_m2);
+  iter_t < 1.0 ? (
+    a1 = s_a1 + iter_t * (t_a1 - s_a1);
+    a2 = s_a2 + iter_t * (t_a2 - s_a2);
+    a3 = s_a3 + iter_t * (t_a3 - s_a3);
+    m0 = s_m0 + iter_t * (t_m0 - s_m0);
+    m1 = s_m1 + iter_t * (t_m1 - s_m1);
+    m2 = s_m2 + iter_t * (t_m2 - s_m2);
+    iter_t = min(1.0, iter_t + iter_step);
+  ) : ( 
+    a1 = t_a1;
+    a2 = t_a2;
+    a3 = t_a3;
+    m0 = t_m0;
+    m1 = t_m1;
+    m2 = t_m2;
+  );
 );
 
 /*
  * Filter tick
- * Hande interpolation etc.
+ * Hande interpolation.
  */
 function zdf_tick()
   instance (nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7)
@@ -653,13 +666,13 @@ function zdf_bypass()
   rbj.rbj_bypass();
 
   this.zdf_set_coeffs(0, 0, 0, 1, 0, 0);
-  cas1.zdf_set_coeffs(0, 0, 0, 1, 0, 0);
-  cas2.zdf_set_coeffs(0, 0, 0, 1, 0, 0);
-  cas3.zdf_set_coeffs(0, 0, 0, 1, 0, 0);
-  cas4.zdf_set_coeffs(0, 0, 0, 1, 0, 0);
-  cas5.zdf_set_coeffs(0, 0, 0, 1, 0, 0);
-  cas6.zdf_set_coeffs(0, 0, 0, 1, 0, 0);
-  cas7.zdf_set_coeffs(0, 0, 0, 1, 0, 0);
+  cas1.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
+  cas2.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
+  cas3.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
+  cas4.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
+  cas5.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
+  cas6.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
+  cas7.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
 );
 
 /*

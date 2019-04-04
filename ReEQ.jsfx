@@ -14,8 +14,8 @@ desc: ReEQ
  * Standing on the shoulders of giants for this one.
  *
  * TODO:
- *  - Move RBJ filters from SVF.  They're only used for drawing and @slider and @gfx are clashing.
- *      Process only in @gfx
+ *  - Listen toggle is a bit clicky.  Fix at some point by only setting filter coefficients
+ *    in same places that band coefficients are set.
  */
 
 slider1:Stereo_Mode=<0,1,1{Mid/Side,Left/Right}>-Stereo Mode
@@ -322,6 +322,18 @@ function band_init()
   filter.zdf_set_sample_rate(SAMPLE_RATE);
   filter.zdf_bypass();
   color.create_color(0,0,0);
+
+
+
+
+  filter.a1 = filter.t_a1;
+  filter.a2 = filter.t_a2;
+  filter.a3 = filter.t_a3;
+
+  filter.m0 = filter.t_m0;
+  filter.m1 = filter.t_m1;
+  filter.m2 = filter.t_m2;
+  filter.iter_t = 1.0;
 );
 
 /*
@@ -384,6 +396,7 @@ function filters_to_sliders() (
   Node2_Frequency = freq_to_per(Band_Frequency[1], 100);
   Node2_Gain = Band_Gain[1];
   Node2_Q = Band_Q[1];
+  Node2_Slope = Band_Slope[1];
 
   Node3_Enabled = Band_Enabled[2];
   Node3_Group = Band_Group[2];
@@ -391,6 +404,7 @@ function filters_to_sliders() (
   Node3_Frequency = freq_to_per(Band_Frequency[2], 100);
   Node3_Gain = Band_Gain[2];
   Node3_Q = Band_Q[2];
+  Node3_Slope = Band_Slope[2];
 
   Node4_Enabled = Band_Enabled[3];
   Node4_Group = Band_Group[3];
@@ -398,6 +412,7 @@ function filters_to_sliders() (
   Node4_Frequency = freq_to_per(Band_Frequency[3], 100);
   Node4_Gain = Band_Gain[3];
   Node4_Q = Band_Q[3];
+  Node4_Slope = Band_Slope[3];
 
   Node5_Enabled = Band_Enabled[4];
   Node5_Group = Band_Group[4];
@@ -405,6 +420,7 @@ function filters_to_sliders() (
   Node5_Frequency = freq_to_per(Band_Frequency[4], 100);
   Node5_Gain = Band_Gain[4];
   Node5_Q = Band_Q[4];
+  Node5_Slope = Band_Slope[4];
 );
 
 /*
@@ -425,6 +441,7 @@ function sliders_to_filters() (
   Band_Frequency[1] = per_to_freq(Node2_Frequency, 100);
   Band_Gain[1] = Node2_Gain;
   Band_Q[1] = Node2_Q;
+  Band_Slope[1] = Node2_Slope;
 
   Band_Enabled[2] = Node3_Enabled;
   Band_Group[2] = Node3_Group;
@@ -432,6 +449,7 @@ function sliders_to_filters() (
   Band_Frequency[2] = per_to_freq(Node3_Frequency, 100);;
   Band_Gain[2] = Node3_Gain;
   Band_Q[2] = Node3_Q;
+  Band_Slope[2] = Node3_Slope;
 
   Band_Enabled[3] = Node4_Enabled;
   Band_Group[3] = Node4_Group;
@@ -439,6 +457,7 @@ function sliders_to_filters() (
   Band_Frequency[3] = per_to_freq(Node4_Frequency, 100);;
   Band_Gain[3] = Node4_Gain;
   Band_Q[3] = Node4_Q;
+  Band_Slope[3] = Node4_Slope;
 
   Band_Enabled[4] = Node5_Enabled;
   Band_Group[4] = Node5_Group;
@@ -446,7 +465,27 @@ function sliders_to_filters() (
   Band_Frequency[4] = per_to_freq(Node5_Frequency, 100);;
   Band_Gain[4] = Node5_Gain;
   Band_Q[4] = Node5_Q;
+  Band_Slope[4] = Node5_Slope;
 );
+
+/*
+ * Flag filter to update for both audio and graphics
+ */
+function flag_filter_update(band) ( 
+  Band_Update[band] = 1;
+  Band_GfxUpdate[band] = 1;
+ );
+
+function flag_filter_update_all() ( 
+  Band_Update[0] = 1; Band_GfxUpdate[0] = 1;
+  Band_Update[1] = 1; Band_GfxUpdate[1] = 1;
+  Band_Update[2] = 1; Band_GfxUpdate[2] = 1;
+  Band_Update[3] = 1; Band_GfxUpdate[3] = 1;
+  Band_Update[4] = 1; Band_GfxUpdate[4] = 1;
+  Band_Update[5] = 1; Band_GfxUpdate[5] = 1;
+  Band_Update[6] = 1; Band_GfxUpdate[6] = 1;
+  Band_Update[7] = 1; Band_GfxUpdate[7] = 1;
+ );
 
 /*
  * Update the filter parameters
@@ -454,14 +493,27 @@ function sliders_to_filters() (
 function update_filter_eqs() local (band_scalar) (
   band_scalar = Scale / 100.0;
 
-  Band_Enabled[0] == BAND_STATE_DISABLED ? band1.filter.zdf_bypass() : band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]);
-  Band_Enabled[1] == BAND_STATE_DISABLED ? band2.filter.zdf_bypass() : band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]);
-  Band_Enabled[2] == BAND_STATE_DISABLED ? band3.filter.zdf_bypass() : band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]);
-  Band_Enabled[3] == BAND_STATE_DISABLED ? band4.filter.zdf_bypass() : band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]);
-  Band_Enabled[4] == BAND_STATE_DISABLED ? band5.filter.zdf_bypass() : band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]);
-  Band_Enabled[5] == BAND_STATE_DISABLED ? band6.filter.zdf_bypass() : band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]);
-  Band_Enabled[6] == BAND_STATE_DISABLED ? band7.filter.zdf_bypass() : band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]);
-  Band_Enabled[7] == BAND_STATE_DISABLED ? band8.filter.zdf_bypass() : band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]);
+  Band_GfxUpdate[0] ? (Band_GfxUpdate[0] = 0; Band_Enabled[0] != BAND_STATE_ENABLED ? gfx_band1.filter.zdf_bypass() : gfx_band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
+  Band_GfxUpdate[1] ? (Band_GfxUpdate[1] = 0; Band_Enabled[1] != BAND_STATE_ENABLED ? gfx_band2.filter.zdf_bypass() : gfx_band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); );
+  Band_GfxUpdate[2] ? (Band_GfxUpdate[2] = 0; Band_Enabled[2] != BAND_STATE_ENABLED ? gfx_band3.filter.zdf_bypass() : gfx_band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); );
+  Band_GfxUpdate[3] ? (Band_GfxUpdate[3] = 0; Band_Enabled[3] != BAND_STATE_ENABLED ? gfx_band4.filter.zdf_bypass() : gfx_band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); );
+  Band_GfxUpdate[4] ? (Band_GfxUpdate[4] = 0; Band_Enabled[4] != BAND_STATE_ENABLED ? gfx_band5.filter.zdf_bypass() : gfx_band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); );
+  Band_GfxUpdate[5] ? (Band_GfxUpdate[5] = 0; Band_Enabled[5] != BAND_STATE_ENABLED ? gfx_band6.filter.zdf_bypass() : gfx_band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); );
+  Band_GfxUpdate[6] ? (Band_GfxUpdate[6] = 0; Band_Enabled[6] != BAND_STATE_ENABLED ? gfx_band7.filter.zdf_bypass() : gfx_band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); );
+  Band_GfxUpdate[7] ? (Band_GfxUpdate[7] = 0; Band_Enabled[7] != BAND_STATE_ENABLED ? gfx_band8.filter.zdf_bypass() : gfx_band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); );
+);
+
+function update_filter_eqs2() local (band_scalar) (
+  band_scalar = Scale / 100.0;
+
+  Band_Update[0] ? (Band_Update[0] = 0; Band_Enabled[0] != BAND_STATE_ENABLED ? band1.filter.zdf_bypass() : band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
+  Band_Update[1] ? (Band_Update[1] = 0; Band_Enabled[1] != BAND_STATE_ENABLED ? band2.filter.zdf_bypass() : band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); );
+  Band_Update[2] ? (Band_Update[2] = 0; Band_Enabled[2] != BAND_STATE_ENABLED ? band3.filter.zdf_bypass() : band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); );
+  Band_Update[3] ? (Band_Update[3] = 0; Band_Enabled[3] != BAND_STATE_ENABLED ? band4.filter.zdf_bypass() : band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); );
+  Band_Update[4] ? (Band_Update[4] = 0; Band_Enabled[4] != BAND_STATE_ENABLED ? band5.filter.zdf_bypass() : band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); );
+  Band_Update[5] ? (Band_Update[5] = 0; Band_Enabled[5] != BAND_STATE_ENABLED ? band6.filter.zdf_bypass() : band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); );
+  Band_Update[6] ? (Band_Update[6] = 0; Band_Enabled[6] != BAND_STATE_ENABLED ? band7.filter.zdf_bypass() : band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); );
+  Band_Update[7] ? (Band_Update[7] = 0; Band_Enabled[7] != BAND_STATE_ENABLED ? band8.filter.zdf_bypass() : band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); );
 );
 
 init_rate != srate ? (
@@ -478,10 +530,13 @@ init_rate != srate ? (
   BAND_STATE_OFF = 0;
   BAND_STATE_DISABLED = 1;
   BAND_STATE_ENABLED = 2;
+  BAND_STATE_INFORM_DISABLE = 3;
 
   // Allocate and init filter bands
   NUM_BANDS = 8;
 
+  Band_Update = MEMORY.alloc_memory(NUM_BANDS);
+  Band_GfxUpdate = MEMORY.alloc_memory(NUM_BANDS);
   Band_Enabled = MEMORY.alloc_memory(NUM_BANDS);
   Band_Group = MEMORY.alloc_memory(NUM_BANDS);
   Band_Type = MEMORY.alloc_memory(NUM_BANDS);
@@ -493,6 +548,7 @@ init_rate != srate ? (
   Band_Green = MEMORY.alloc_memory(NUM_BANDS);
   Band_Blue = MEMORY.alloc_memory(NUM_BANDS);
 
+  // Filters for @slider, @block and @sample
   band1.band_init();
   band2.band_init();
   band3.band_init();
@@ -501,6 +557,16 @@ init_rate != srate ? (
   band6.band_init();
   band7.band_init();
   band8.band_init();
+
+  // Filters for @gfx
+  gfx_band1.band_init();
+  gfx_band2.band_init();
+  gfx_band3.band_init();
+  gfx_band4.band_init();
+  gfx_band5.band_init();
+  gfx_band6.band_init();
+  gfx_band7.band_init();
+  gfx_band8.band_init();
 
   color_band0.create_color(231, 33, 75);
   color_band1.create_color(241, 111, 50);
@@ -568,10 +634,21 @@ init_rate != srate ? (
   listen_filter.zdf_set_sample_rate(srate);
   listen_filter.zdf_bypass();
 
+  listen_filter.a1 = listen_filter.t_a1;
+  listen_filter.a2 = listen_filter.t_a2;
+  listen_filter.a3 = listen_filter.t_a3;
+
+  listen_filter.m0 = listen_filter.t_m0;
+  listen_filter.m1 = listen_filter.t_m1;
+  listen_filter.m2 = listen_filter.t_m2;
+  listen_filter.iter_t = 1.0;
+
+
+
+
   // Automatic Gain Control
   agcControl = 0;
   agcOverride = 0;
-  agc_corr = .1;
 );
 
 @slider
@@ -585,21 +662,17 @@ gainDb = 2 ^ (Gain/6);
 gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
+// Mark filters for update if sliders have changed
+Band_Enabled[0] != Node1_Enabled || Band_Type[0] != Node1_Type || Band_Gain[0] != Node1_Gain || Band_Frequency[0] != per_to_freq(Node1_Frequency,100) || Band_Q[0] != Node1_Q || Band_Slope[0] != Node1_Slope ? flag_filter_update(0);
+Band_Enabled[1] != Node2_Enabled || Band_Type[1] != Node2_Type || Band_Gain[1] != Node2_Gain || Band_Frequency[1] != per_to_freq(Node2_Frequency,100) || Band_Q[1] != Node2_Q || Band_Slope[1] != Node2_Slope ? flag_filter_update(1);
+Band_Enabled[2] != Node3_Enabled || Band_Type[2] != Node3_Type || Band_Gain[2] != Node3_Gain || Band_Frequency[2] != per_to_freq(Node3_Frequency,100) || Band_Q[2] != Node3_Q || Band_Slope[2] != Node3_Slope ? flag_filter_update(2);
+Band_Enabled[3] != Node4_Enabled || Band_Type[3] != Node4_Type || Band_Gain[3] != Node4_Gain || Band_Frequency[3] != per_to_freq(Node4_Frequency,100) || Band_Q[3] != Node4_Q || Band_Slope[3] != Node4_Slope ? flag_filter_update(3);
+Band_Enabled[4] != Node5_Enabled || Band_Type[4] != Node5_Type || Band_Gain[4] != Node5_Gain || Band_Frequency[4] != per_to_freq(Node5_Frequency,100) || Band_Q[4] != Node5_Q || Band_Slope[4] != Node5_Slope ? flag_filter_update(4);
+
 // Update any automation
 sliders_to_filters();
-update_filter_eqs();
 
-// Ensure unallocated bands are in bypass
-// (mainly so that when they get allocated the coefficients can interpolate
-// from a 'quiet' state)
-Band_Enabled[0] == BAND_STATE_OFF ? band1.filter.zdf_bypass();
-Band_Enabled[1] == BAND_STATE_OFF ? band2.filter.zdf_bypass();
-Band_Enabled[2] == BAND_STATE_OFF ? band3.filter.zdf_bypass();
-Band_Enabled[3] == BAND_STATE_OFF ? band4.filter.zdf_bypass();
-Band_Enabled[4] == BAND_STATE_OFF ? band5.filter.zdf_bypass();
-Band_Enabled[5] == BAND_STATE_OFF ? band6.filter.zdf_bypass();
-Band_Enabled[6] == BAND_STATE_OFF ? band7.filter.zdf_bypass();
-Band_Enabled[7] == BAND_STATE_OFF ? band8.filter.zdf_bypass();
+
 
 update_state();
 
@@ -625,14 +698,16 @@ update_filter_eqs();
 // Get array accessed variables per block to make access faster
 // in @sample section
 
-Band_Enabled0 = (Band_Enabled[0] == BAND_STATE_ENABLED) || !band1.filter.zdf_is_resting();
-Band_Enabled1 = (Band_Enabled[1] == BAND_STATE_ENABLED) || !band2.filter.zdf_is_resting();
-Band_Enabled2 = (Band_Enabled[2] == BAND_STATE_ENABLED) || !band3.filter.zdf_is_resting();
-Band_Enabled3 = (Band_Enabled[3] == BAND_STATE_ENABLED) || !band4.filter.zdf_is_resting();
-Band_Enabled4 = (Band_Enabled[4] == BAND_STATE_ENABLED) || !band5.filter.zdf_is_resting();
-Band_Enabled5 = (Band_Enabled[5] == BAND_STATE_ENABLED) || !band6.filter.zdf_is_resting();
-Band_Enabled6 = (Band_Enabled[6] == BAND_STATE_ENABLED) || !band7.filter.zdf_is_resting();
-Band_Enabled7 = (Band_Enabled[7] == BAND_STATE_ENABLED) || !band8.filter.zdf_is_resting();
+update_filter_eqs2();
+
+Band_Process0 = (Band_Enabled[0] == BAND_STATE_ENABLED) || !band1.filter.zdf_is_resting();
+Band_Process1 = (Band_Enabled[1] == BAND_STATE_ENABLED) || !band2.filter.zdf_is_resting();
+Band_Process2 = (Band_Enabled[2] == BAND_STATE_ENABLED) || !band3.filter.zdf_is_resting();
+Band_Process3 = (Band_Enabled[3] == BAND_STATE_ENABLED) || !band4.filter.zdf_is_resting();
+Band_Process4 = (Band_Enabled[4] == BAND_STATE_ENABLED) || !band5.filter.zdf_is_resting();
+Band_Process5 = (Band_Enabled[5] == BAND_STATE_ENABLED) || !band6.filter.zdf_is_resting();
+Band_Process6 = (Band_Enabled[6] == BAND_STATE_ENABLED) || !band7.filter.zdf_is_resting();
+Band_Process7 = (Band_Enabled[7] == BAND_STATE_ENABLED) || !band8.filter.zdf_is_resting();
 
 Band_Group0 = Band_Group[0];
 Band_Group1 = Band_Group[1];
@@ -643,9 +718,8 @@ Band_Group5 = Band_Group[5];
 Band_Group6 = Band_Group[6];
 Band_Group7 = Band_Group[7];
 
-Listen_Enabled = do_listen || !listen_filter.zdf_is_resting();
+Listen_Process = do_listen || !listen_filter.zdf_is_resting();
 
-agc_corr == 0 ? agc_corr = 1;
 agcControl = AGCEnabled;
 
 @sample
@@ -671,32 +745,33 @@ Stereo_Mode == 0 ? (
 );
 
 // Interpolate filter coefficients
-Band_Enabled0 ? band1.filter.zdf_tick();
-Band_Enabled1 ? band2.filter.zdf_tick();
-Band_Enabled2 ? band3.filter.zdf_tick();
-Band_Enabled3 ? band4.filter.zdf_tick();
-Band_Enabled4 ? band5.filter.zdf_tick();
-Band_Enabled5 ? band6.filter.zdf_tick();
-Band_Enabled6 ? band7.filter.zdf_tick();
-Band_Enabled7 ? band8.filter.zdf_tick();
 
-Listen_Enabled ? listen_filter.zdf_tick();
+Band_Process0 ? band1.filter.zdf_tick();
+Band_Process1 ? band2.filter.zdf_tick();
+Band_Process2 ? band3.filter.zdf_tick();
+Band_Process3 ? band4.filter.zdf_tick();
+Band_Process4 ? band5.filter.zdf_tick();
+Band_Process5 ? band6.filter.zdf_tick();
+Band_Process6 ? band7.filter.zdf_tick();
+Band_Process7 ? band8.filter.zdf_tick();
+
+Listen_Process ? listen_filter.zdf_tick();
 
 DO_OVERSAMPLE ? (
   // Oversampling with zero padding and FIR half band filtering.
 
-  !Listen_Enabled ? (
+  !Listen_Process ? (
     // Mid/Left
     y0 = spl0; y1 = 0;
 
-    Band_Enabled0 && Band_Group0 <= 1 ? (y0 = band1.filter.zdf_svf0(y0); y1 = band1.filter.zdf_svf0(y1));
-    Band_Enabled1 && Band_Group1 <= 1 ? (y0 = band2.filter.zdf_svf0(y0); y1 = band2.filter.zdf_svf0(y1));
-    Band_Enabled2 && Band_Group2 <= 1 ? (y0 = band3.filter.zdf_svf0(y0); y1 = band3.filter.zdf_svf0(y1));
-    Band_Enabled3 && Band_Group3 <= 1 ? (y0 = band4.filter.zdf_svf0(y0); y1 = band4.filter.zdf_svf0(y1));
-    Band_Enabled4 && Band_Group4 <= 1 ? (y0 = band5.filter.zdf_svf0(y0); y1 = band5.filter.zdf_svf0(y1));
-    Band_Enabled5 && Band_Group5 <= 1 ? (y0 = band6.filter.zdf_svf0(y0); y1 = band6.filter.zdf_svf0(y1));
-    Band_Enabled6 && Band_Group6 <= 1 ? (y0 = band7.filter.zdf_svf0(y0); y1 = band7.filter.zdf_svf0(y1));
-    Band_Enabled7 && Band_Group7 <= 1 ? (y0 = band8.filter.zdf_svf0(y0); y1 = band8.filter.zdf_svf0(y1));
+    Band_Process0 && Band_Group0 <= 1 ? (y0 = band1.filter.zdf_svf0(y0); y1 = band1.filter.zdf_svf0(y1));
+    Band_Process1 && Band_Group1 <= 1 ? (y0 = band2.filter.zdf_svf0(y0); y1 = band2.filter.zdf_svf0(y1));
+    Band_Process2 && Band_Group2 <= 1 ? (y0 = band3.filter.zdf_svf0(y0); y1 = band3.filter.zdf_svf0(y1));
+    Band_Process3 && Band_Group3 <= 1 ? (y0 = band4.filter.zdf_svf0(y0); y1 = band4.filter.zdf_svf0(y1));
+    Band_Process4 && Band_Group4 <= 1 ? (y0 = band5.filter.zdf_svf0(y0); y1 = band5.filter.zdf_svf0(y1));
+    Band_Process5 && Band_Group5 <= 1 ? (y0 = band6.filter.zdf_svf0(y0); y1 = band6.filter.zdf_svf0(y1));
+    Band_Process6 && Band_Group6 <= 1 ? (y0 = band7.filter.zdf_svf0(y0); y1 = band7.filter.zdf_svf0(y1));
+    Band_Process7 && Band_Group7 <= 1 ? (y0 = band8.filter.zdf_svf0(y0); y1 = band8.filter.zdf_svf0(y1));
 
     spl0 = firL.do_FIR_filter(y0) * 2;
     firL.do_FIR_filter(y1);
@@ -704,14 +779,14 @@ DO_OVERSAMPLE ? (
     // Side/Right
     y0 = spl1; y1 = 0;
 
-    Band_Enabled0 && Band_Group0 != 1 ? (y0 = band1.filter.zdf_svf1(y0); y1 = band1.filter.zdf_svf1(y1));
-    Band_Enabled1 && Band_Group1 != 1 ? (y0 = band2.filter.zdf_svf1(y0); y1 = band2.filter.zdf_svf1(y1));
-    Band_Enabled2 && Band_Group2 != 1 ? (y0 = band3.filter.zdf_svf1(y0); y1 = band3.filter.zdf_svf1(y1));
-    Band_Enabled3 && Band_Group3 != 1 ? (y0 = band4.filter.zdf_svf1(y0); y1 = band4.filter.zdf_svf1(y1));
-    Band_Enabled4 && Band_Group4 != 1 ? (y0 = band5.filter.zdf_svf1(y0); y1 = band5.filter.zdf_svf1(y1));
-    Band_Enabled5 && Band_Group5 != 1 ? (y0 = band6.filter.zdf_svf1(y0); y1 = band6.filter.zdf_svf1(y1));
-    Band_Enabled6 && Band_Group6 != 1 ? (y0 = band7.filter.zdf_svf1(y0); y1 = band7.filter.zdf_svf1(y1));
-    Band_Enabled7 && Band_Group7 != 1 ? (y0 = band8.filter.zdf_svf1(y0); y1 = band8.filter.zdf_svf1(y1));
+    Band_Process0 && Band_Group0 != 1 ? (y0 = band1.filter.zdf_svf1(y0); y1 = band1.filter.zdf_svf1(y1));
+    Band_Process1 && Band_Group1 != 1 ? (y0 = band2.filter.zdf_svf1(y0); y1 = band2.filter.zdf_svf1(y1));
+    Band_Process2 && Band_Group2 != 1 ? (y0 = band3.filter.zdf_svf1(y0); y1 = band3.filter.zdf_svf1(y1));
+    Band_Process3 && Band_Group3 != 1 ? (y0 = band4.filter.zdf_svf1(y0); y1 = band4.filter.zdf_svf1(y1));
+    Band_Process4 && Band_Group4 != 1 ? (y0 = band5.filter.zdf_svf1(y0); y1 = band5.filter.zdf_svf1(y1));
+    Band_Process5 && Band_Group5 != 1 ? (y0 = band6.filter.zdf_svf1(y0); y1 = band6.filter.zdf_svf1(y1));
+    Band_Process6 && Band_Group6 != 1 ? (y0 = band7.filter.zdf_svf1(y0); y1 = band7.filter.zdf_svf1(y1));
+    Band_Process7 && Band_Group7 != 1 ? (y0 = band8.filter.zdf_svf1(y0); y1 = band8.filter.zdf_svf1(y1));
 
     spl1 = firR.do_FIR_filter(y0) * 2;
     firR.do_FIR_filter(y1);
@@ -729,33 +804,33 @@ DO_OVERSAMPLE ? (
 
     listen_group == 1 ? spl1list = 0;
     listen_group == 2 ? spl0list = 0;
-
+  
     spl0list *= listen_gain;
     spl1list *= listen_gain;
   );
 ) : (
   // No oversampling
 
-  !Listen_Enabled ? (
+  !Listen_Process ? (
     // Mid/Left
-    Band_Enabled0 && Band_Group0 <= 1 ? spl0 = band1.filter.zdf_svf0(spl0);
-    Band_Enabled1 && Band_Group1 <= 1 ? spl0 = band2.filter.zdf_svf0(spl0);
-    Band_Enabled2 && Band_Group2 <= 1 ? spl0 = band3.filter.zdf_svf0(spl0);
-    Band_Enabled3 && Band_Group3 <= 1 ? spl0 = band4.filter.zdf_svf0(spl0);
-    Band_Enabled4 && Band_Group4 <= 1 ? spl0 = band5.filter.zdf_svf0(spl0);
-    Band_Enabled5 && Band_Group5 <= 1 ? spl0 = band6.filter.zdf_svf0(spl0);
-    Band_Enabled6 && Band_Group6 <= 1 ? spl0 = band7.filter.zdf_svf0(spl0);
-    Band_Enabled7 && Band_Group7 <= 1 ? spl0 = band8.filter.zdf_svf0(spl0);
+    Band_Process0 && Band_Group0 <= 1 ? spl0 = band1.filter.zdf_svf0(spl0);
+    Band_Process1 && Band_Group1 <= 1 ? spl0 = band2.filter.zdf_svf0(spl0);
+    Band_Process2 && Band_Group2 <= 1 ? spl0 = band3.filter.zdf_svf0(spl0);
+    Band_Process3 && Band_Group3 <= 1 ? spl0 = band4.filter.zdf_svf0(spl0);
+    Band_Process4 && Band_Group4 <= 1 ? spl0 = band5.filter.zdf_svf0(spl0);
+    Band_Process5 && Band_Group5 <= 1 ? spl0 = band6.filter.zdf_svf0(spl0);
+    Band_Process6 && Band_Group6 <= 1 ? spl0 = band7.filter.zdf_svf0(spl0);
+    Band_Process7 && Band_Group7 <= 1 ? spl0 = band8.filter.zdf_svf0(spl0);
 
     // Side/Right
-    Band_Enabled0 && Band_Group0 != 1 ? spl1 = band1.filter.zdf_svf1(spl1);
-    Band_Enabled1 && Band_Group1 != 1 ? spl1 = band2.filter.zdf_svf1(spl1);
-    Band_Enabled2 && Band_Group2 != 1 ? spl1 = band3.filter.zdf_svf1(spl1);
-    Band_Enabled3 && Band_Group3 != 1 ? spl1 = band4.filter.zdf_svf1(spl1);
-    Band_Enabled4 && Band_Group4 != 1 ? spl1 = band5.filter.zdf_svf1(spl1);
-    Band_Enabled5 && Band_Group5 != 1 ? spl1 = band6.filter.zdf_svf1(spl1);
-    Band_Enabled6 && Band_Group6 != 1 ? spl1 = band7.filter.zdf_svf1(spl1);
-    Band_Enabled7 && Band_Group7 != 1 ? spl1 = band8.filter.zdf_svf1(spl1);
+    Band_Process0 && Band_Group0 != 1 ? spl1 = band1.filter.zdf_svf1(spl1);
+    Band_Process1 && Band_Group1 != 1 ? spl1 = band2.filter.zdf_svf1(spl1);
+    Band_Process2 && Band_Group2 != 1 ? spl1 = band3.filter.zdf_svf1(spl1);
+    Band_Process3 && Band_Group3 != 1 ? spl1 = band4.filter.zdf_svf1(spl1);
+    Band_Process4 && Band_Group4 != 1 ? spl1 = band5.filter.zdf_svf1(spl1);
+    Band_Process5 && Band_Group5 != 1 ? spl1 = band6.filter.zdf_svf1(spl1);
+    Band_Process6 && Band_Group6 != 1 ? spl1 = band7.filter.zdf_svf1(spl1);
+    Band_Process7 && Band_Group7 != 1 ? spl1 = band8.filter.zdf_svf1(spl1);
   ) : ( 
     // Listen/Solo mode
     listen_group <= 1 ? spl0list = listen_filter.zdf_svf0(spl0);
@@ -788,7 +863,7 @@ Stereo_Mode == 0 ? (
 spl0 *= gainDb;
 spl1 *= gainDb;
 
-Listen_Enabled ? ( 
+Listen_Process ? ( 
   // Stereo gains
   spl0list *= gainML;
   spl1list *= gainSR;
@@ -817,7 +892,7 @@ Spectrum_Mode == 4 ? spectrum.sample0(spl0);
 Spectrum_Mode == 5 ? spectrum.sample0(spl1) :
 Spectrum_Mode == 6 ? (spectrum.sample0(spl0); spectrum.sample1(spl1));
 
-Listen_Enabled ? (
+Listen_Process ? (
   Spectrum_Mode == 0 ? spectrum.sample4(spl0list + spl1list) :
   Spectrum_Mode == 1 ? spectrum.sample4((spl0list + spl1list) * 0.5) :
   Spectrum_Mode == 2 ? spectrum.sample4((spl0list - spl1list) * 0.5) :
@@ -1033,14 +1108,14 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
     // Draw connecting line so that we can see which node affects which part of the curve
     // Low Cut,Low Cut (Butterworth),High Cut,High Cut (Butterworth),Band Pass,Notch,Peak,Low Shelf,High Shelf,Tilt Shelf,Pultec Low Shelf,All Pass
     Band_Enabled[band]==2 ? (
-      transfer = (band == 0 ? band1.filter.zdf_magnitude(freq) :
-        band == 1 ? band2.filter.zdf_magnitude(freq) :
-          band == 2 ? band3.filter.zdf_magnitude(freq) :
-            band == 3 ? band4.filter.zdf_magnitude(freq) :
-              band == 4 ? band5.filter.zdf_magnitude(freq) :
-                band == 5 ? band6.filter.zdf_magnitude(freq) :
-                  band == 6 ? band7.filter.zdf_magnitude(freq) :
-                    band == 7 ? band8.filter.zdf_magnitude(freq);
+      transfer = (band == 0 ? gfx_band1.filter.zdf_magnitude(freq) :
+        band == 1 ? gfx_band2.filter.zdf_magnitude(freq) :
+          band == 2 ? gfx_band3.filter.zdf_magnitude(freq) :
+            band == 3 ? gfx_band4.filter.zdf_magnitude(freq) :
+              band == 4 ? gfx_band5.filter.zdf_magnitude(freq) :
+                band == 5 ? gfx_band6.filter.zdf_magnitude(freq) :
+                  band == 6 ? gfx_band7.filter.zdf_magnitude(freq) :
+                    band == 7 ? gfx_band8.filter.zdf_magnitude(freq);
       );
 
       m = 20 * log10(transfer);
@@ -1109,14 +1184,14 @@ function draw_filter_bands()
         while (
           freq = scx_to_freq(xf);
 
-          transfer = (band == 0 ? band1.filter.zdf_magnitude(freq) :
-            band == 1 ? band2.filter.zdf_magnitude(freq) :
-              band == 2 ? band3.filter.zdf_magnitude(freq) :
-                band == 3 ? band4.filter.zdf_magnitude(freq) :
-                  band == 4 ? band5.filter.zdf_magnitude(freq) :
-                    band == 5 ? band6.filter.zdf_magnitude(freq) :
-                      band == 6 ? band7.filter.zdf_magnitude(freq) :
-                        band == 7 ? band8.filter.zdf_magnitude(freq);
+          transfer = (band == 0 ? gfx_band1.filter.zdf_magnitude(freq) :
+            band == 1 ? gfx_band2.filter.zdf_magnitude(freq) :
+              band == 2 ? gfx_band3.filter.zdf_magnitude(freq) :
+                band == 3 ? gfx_band4.filter.zdf_magnitude(freq) :
+                  band == 4 ? gfx_band5.filter.zdf_magnitude(freq) :
+                    band == 5 ? gfx_band6.filter.zdf_magnitude(freq) :
+                      band == 6 ? gfx_band7.filter.zdf_magnitude(freq) :
+                        band == 7 ? gfx_band8.filter.zdf_magnitude(freq);
           );
 
           m = 20 * log10(transfer);
@@ -1201,24 +1276,24 @@ function draw_filter_response(group, red, green, blue)
     m = 1.0;
     group == 0 ? (
       // Magnitude for stereo/mid/left
-      Band_Enabled[0]==BAND_STATE_ENABLED && Band_Group[0] != 2 ? m *= band1.filter.zdf_magnitude(freq);
-      Band_Enabled[1]==BAND_STATE_ENABLED && Band_Group[1] != 2 ? m *= band2.filter.zdf_magnitude(freq);
-      Band_Enabled[2]==BAND_STATE_ENABLED && Band_Group[2] != 2 ? m *= band3.filter.zdf_magnitude(freq);
-      Band_Enabled[3]==BAND_STATE_ENABLED && Band_Group[3] != 2 ? m *= band4.filter.zdf_magnitude(freq);
-      Band_Enabled[4]==BAND_STATE_ENABLED && Band_Group[4] != 2 ? m *= band5.filter.zdf_magnitude(freq);
-      Band_Enabled[5]==BAND_STATE_ENABLED && Band_Group[5] != 2 ? m *= band6.filter.zdf_magnitude(freq);
-      Band_Enabled[6]==BAND_STATE_ENABLED && Band_Group[6] != 2 ? m *= band7.filter.zdf_magnitude(freq);
-      Band_Enabled[7]==BAND_STATE_ENABLED && Band_Group[7] != 2 ? m *= band8.filter.zdf_magnitude(freq);
+      Band_Enabled[0]==BAND_STATE_ENABLED && Band_Group[0] != 2 ? m *= gfx_band1.filter.zdf_magnitude(freq);
+      Band_Enabled[1]==BAND_STATE_ENABLED && Band_Group[1] != 2 ? m *= gfx_band2.filter.zdf_magnitude(freq);
+      Band_Enabled[2]==BAND_STATE_ENABLED && Band_Group[2] != 2 ? m *= gfx_band3.filter.zdf_magnitude(freq);
+      Band_Enabled[3]==BAND_STATE_ENABLED && Band_Group[3] != 2 ? m *= gfx_band4.filter.zdf_magnitude(freq);
+      Band_Enabled[4]==BAND_STATE_ENABLED && Band_Group[4] != 2 ? m *= gfx_band5.filter.zdf_magnitude(freq);
+      Band_Enabled[5]==BAND_STATE_ENABLED && Band_Group[5] != 2 ? m *= gfx_band6.filter.zdf_magnitude(freq);
+      Band_Enabled[6]==BAND_STATE_ENABLED && Band_Group[6] != 2 ? m *= gfx_band7.filter.zdf_magnitude(freq);
+      Band_Enabled[7]==BAND_STATE_ENABLED && Band_Group[7] != 2 ? m *= gfx_band8.filter.zdf_magnitude(freq);
     ) : (
         // Magnitude for right/side
-        Band_Enabled[0]==BAND_STATE_ENABLED && (Band_Group[0] == group || (Band_Group[0] == 0)) ? m *= band1.filter.zdf_magnitude(freq);
-        Band_Enabled[1]==BAND_STATE_ENABLED && (Band_Group[1] == group || (Band_Group[1] == 0)) ? m *= band2.filter.zdf_magnitude(freq);
-        Band_Enabled[2]==BAND_STATE_ENABLED && (Band_Group[2] == group || (Band_Group[2] == 0)) ? m *= band3.filter.zdf_magnitude(freq);
-        Band_Enabled[3]==BAND_STATE_ENABLED && (Band_Group[3] == group || (Band_Group[3] == 0)) ? m *= band4.filter.zdf_magnitude(freq);
-        Band_Enabled[4]==BAND_STATE_ENABLED && (Band_Group[4] == group || (Band_Group[4] == 0)) ? m *= band5.filter.zdf_magnitude(freq);
-        Band_Enabled[5]==BAND_STATE_ENABLED && (Band_Group[5] == group || (Band_Group[5] == 0)) ? m *= band6.filter.zdf_magnitude(freq);
-        Band_Enabled[6]==BAND_STATE_ENABLED && (Band_Group[6] == group || (Band_Group[6] == 0)) ? m *= band7.filter.zdf_magnitude(freq);
-        Band_Enabled[7]==BAND_STATE_ENABLED && (Band_Group[7] == group || (Band_Group[7] == 0)) ? m *= band8.filter.zdf_magnitude(freq);
+        Band_Enabled[0]==BAND_STATE_ENABLED && (Band_Group[0] == group || (Band_Group[0] == 0)) ? m *= gfx_band1.filter.zdf_magnitude(freq);
+        Band_Enabled[1]==BAND_STATE_ENABLED && (Band_Group[1] == group || (Band_Group[1] == 0)) ? m *= gfx_band2.filter.zdf_magnitude(freq);
+        Band_Enabled[2]==BAND_STATE_ENABLED && (Band_Group[2] == group || (Band_Group[2] == 0)) ? m *= gfx_band3.filter.zdf_magnitude(freq);
+        Band_Enabled[3]==BAND_STATE_ENABLED && (Band_Group[3] == group || (Band_Group[3] == 0)) ? m *= gfx_band4.filter.zdf_magnitude(freq);
+        Band_Enabled[4]==BAND_STATE_ENABLED && (Band_Group[4] == group || (Band_Group[4] == 0)) ? m *= gfx_band5.filter.zdf_magnitude(freq);
+        Band_Enabled[5]==BAND_STATE_ENABLED && (Band_Group[5] == group || (Band_Group[5] == 0)) ? m *= gfx_band6.filter.zdf_magnitude(freq);
+        Band_Enabled[6]==BAND_STATE_ENABLED && (Band_Group[6] == group || (Band_Group[6] == 0)) ? m *= gfx_band7.filter.zdf_magnitude(freq);
+        Band_Enabled[7]==BAND_STATE_ENABLED && (Band_Group[7] == group || (Band_Group[7] == 0)) ? m *= gfx_band8.filter.zdf_magnitude(freq);
     );
 
     // Convert from scalar to db
@@ -1766,8 +1841,9 @@ function create_band(band, x, y) local (m, g, f) (
     Band_Type[band] = 5;
   );
 
+  flag_filter_update(band);
+
   filters_to_sliders();
-  update_filter_eqs();
 );
 
 /*
@@ -1784,9 +1860,15 @@ function split_band(band, other) (
 
   Band_Group[other] = 2;
 
-  filters_to_sliders();
+  Band_Update[band] = 1;
+  Band_GfxUpdate[band] = 1;
+  Band_Update[other] = 1;
+  Band_GfxUpdate[other] = 1;
 
-  update_filter_eqs();
+  flag_filter_update(band);
+  flag_filter_update(other);
+
+  filters_to_sliders();
 );
 
 /*
@@ -2348,6 +2430,10 @@ gfx_ext_retina != last_gfx_ext_retina ? (
     gfx_setfont(1,"Arial",12,'b');
 );
 
+// Update any changed filters
+
+update_filter_eqs();
+
 // Draw everything
 
 Display_Mode < 2 ? (
@@ -2488,14 +2574,18 @@ mouse_cap & 2 ? (
 
       last_clicked_item == 1 ? (
         Band_Enabled[band] = Band_Enabled[band]==BAND_STATE_ENABLED ? BAND_STATE_DISABLED : BAND_STATE_ENABLED;
+
+        flag_filter_update(band);
+
         filters_to_sliders();
-        update_filter_eqs();
       );
 
       last_clicked_item == 2 ? (
         Band_Gain[band] = -Band_Gain[band];
+
+        flag_filter_update(band);
+
         filters_to_sliders();
-        update_filter_eqs();
       );
 
       last_clicked_item >= 3 && last_clicked_item <= 14 ? (
@@ -2505,22 +2595,27 @@ mouse_cap & 2 ? (
         Band_Type[band] == 10 ? Band_Q[band] = 20 :
           Band_Q[band] = 0.7071;
 
+        flag_filter_update(band);
+
         filters_to_sliders();
-        update_filter_eqs();
       );
 
       has_slope_menu ? (
         last_clicked_item >= 15 && last_clicked_item <= 30 ? (
           Band_Slope[band] = last_clicked_item - 15;
+
+          flag_filter_update(band);
+
           filters_to_sliders();
-          update_filter_eqs();
         );
       ) : last_clicked_item += 16;
 
       last_clicked_item >= 31 && last_clicked_item <= 33 ? (
         Band_Group[band] = last_clicked_item - 31;
+
+        flag_filter_update(band);
+
         filters_to_sliders();
-        update_filter_eqs();
       );
 
       last_clicked_item == 34 ? (
@@ -2536,24 +2631,24 @@ mouse_cap & 2 ? (
         );
 
         filters_to_sliders();
-        update_filter_eqs();
       );
 
       last_clicked_item == 35 ? (
         // Delete band
         Band_Enabled[band] = BAND_STATE_OFF;
 
-        band == 0 ? band1.filter.zdf_bypass() :
-        band == 1 ? band2.filter.zdf_bypass() :
-        band == 2 ? band3.filter.zdf_bypass() :
-        band == 3 ? band4.filter.zdf_bypass() :
-        band == 4 ? band5.filter.zdf_bypass() :
-        band == 5 ? band6.filter.zdf_bypass() :
-        band == 6 ? band7.filter.zdf_bypass() :
-        band == 7 ? band8.filter.zdf_bypass();
+        band == 0 ? gfx_band1.filter.zdf_bypass() :
+        band == 1 ? gfx_band2.filter.zdf_bypass() :
+        band == 2 ? gfx_band3.filter.zdf_bypass() :
+        band == 3 ? gfx_band4.filter.zdf_bypass() :
+        band == 4 ? gfx_band5.filter.zdf_bypass() :
+        band == 5 ? gfx_band6.filter.zdf_bypass() :
+        band == 6 ? gfx_band7.filter.zdf_bypass() :
+        band == 7 ? gfx_band8.filter.zdf_bypass();
+
+        flag_filter_update(band);
 
         filters_to_sliders();
-        // update_filter_eqs();
       );
 
       band = NUM_BANDS;
@@ -2586,17 +2681,19 @@ mouse_cap & 1 ? (
             Band_Enabled[band]!=BAND_STATE_OFF && is_node_selected(Band_Frequency[band], Band_Gain[band]) ? (
               Band_Enabled[band] = BAND_STATE_OFF;
 
-              band == 0 ? band1.filter.zdf_bypass() :
-              band == 1 ? band2.filter.zdf_bypass() :
-              band == 2 ? band3.filter.zdf_bypass() :
-              band == 3 ? band4.filter.zdf_bypass() :
-              band == 4 ? band5.filter.zdf_bypass() :
-              band == 5 ? band6.filter.zdf_bypass() :
-              band == 6 ? band7.filter.zdf_bypass() :
-              band == 7 ? band8.filter.zdf_bypass();
+              band == 0 ? gfx_band1.filter.zdf_bypass() :
+              band == 1 ? gfx_band2.filter.zdf_bypass() :
+              band == 2 ? gfx_band3.filter.zdf_bypass() :
+              band == 3 ? gfx_band4.filter.zdf_bypass() :
+              band == 4 ? gfx_band5.filter.zdf_bypass() :
+              band == 5 ? gfx_band6.filter.zdf_bypass() :
+              band == 6 ? gfx_band7.filter.zdf_bypass() :
+              band == 7 ? gfx_band8.filter.zdf_bypass();
+
+              flag_filter_update(band);
 
               filters_to_sliders();
-              // update_filter_eqs();
+
               band = NUM_BANDS;
             );
             band += 1;
@@ -2679,8 +2776,9 @@ mouse_cap & 1 ? (
       Band_Frequency[node_drag] = scx_to_freq(mouse_x - node_drag_offx);
     );
 
+    flag_filter_update(node_drag);
+
     filters_to_sliders();
-    update_filter_eqs();
   );
 
 ) : (
@@ -2721,6 +2819,9 @@ md != 0.0 ? (
         Band_Q[band] < 2 ? md *= 0.03;
         Band_Q[band] = max(min(Band_Q[band] + md, 40.0), 0.10);
       );
+
+      flag_filter_update(band);
+
       band = NUM_BANDS;
       done_band = 1;
     );
@@ -2736,7 +2837,6 @@ md != 0.0 ? (
   );
 
   filters_to_sliders();
-  update_filter_eqs();
 );
 
 // Set the button positions each time in case we move between
@@ -2832,9 +2932,9 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     Quality = mb - 1;
     set_oversample(Quality);
 
-    filters_to_sliders();
+    flag_filter_update_all();
 
-    update_filter_eqs();
+    filters_to_sliders();
   );
 
   button_oversample.draw_options_button();
@@ -2847,7 +2947,7 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
   last_scale = Scale;
   button_scale.db = Scale;
   Scale = button_scale.handle_number_button();
-  Scale != last_scale ? update_filter_eqs();
+  Scale != last_scale ? flag_filter_update_all();
 
   button_scale.draw_number_button();
 
@@ -2919,13 +3019,26 @@ gainDb = 2 ^ (Gain/6);
 gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
+gfx_r = gfx_g = gfx_b = gfx_a = 1.0;gfx_x = 100; gfx_y = 120;
+// gfx_printf("srate         = %f", srate);  gfx_x = 100; gfx_y = 120;
+// gfx_printf("SAMPLE_RATE   = %f", SAMPLE_RATE);  gfx_x = 100; gfx_y = 140;
+// gfx_printf("pdc_delay     = %f", pdc_delay);  gfx_x = 100; gfx_y = 160;
+
 /*
-gfx_r = gfx_g = gfx_b = gfx_a = 1.0;
-gfx_printf("srate         = %f", srate);  gfx_x = 100; gfx_y = 120;
-gfx_printf("SAMPLE_RATE   = %f", SAMPLE_RATE);  gfx_x = 100; gfx_y = 140;
-gfx_printf("pdc_delay     = %f", pdc_delay);  gfx_x = 100; gfx_y = 160;
-gfx_printf("bands enabled = %d %d %d %d %d %d %d %d", Band_Enabled[0], Band_Enabled[1], Band_Enabled[2], Band_Enabled[3], Band_Enabled[4], Band_Enabled[5], Band_Enabled[6], Band_Enabled[7]);  gfx_x = 100; gfx_y = 180;
+gfx_printf("BandProcess0 = %d BandEnabled0 = %d  rest = %d",Band_Process0, Band_Enabled[0], band1.filter.zdf_is_resting()); gfx_x = 100; gfx_y = 140;
+gfx_printf("Coeffs       = %f %f %f %f %f %f", band1.filter.a1, band1.filter.a2, band1.filter.a3, band1.filter.m0, band1.filter.m1, band1.filter.m2);  gfx_x = 100; gfx_y = 160;
+gfx_printf("Targ Coeffs  = %f %f %f %f %f %f", band1.filter.t_a1, band1.filter.t_a2, band1.filter.t_a3, band1.filter.t_m0, band1.filter.t_m1, band1.filter.t_m2); gfx_x = 100; gfx_y = 180;
+gfx_printf("Targ Steps  = %f %f %f %f %f %f", band1.filter.t_sa1, band1.filter.t_sa2, band1.filter.t_sa3, band1.filter.t_sm0, band1.filter.t_sm1, band1.filter.t_sm2); gfx_x = 100; gfx_y = 200;
 */
+
+/*
+gfx_printf("Listen_Process = %d do_listen = %d  rest = %d",Listen_Process, do_listen, listen_filter.zdf_is_resting()); gfx_x = 100; gfx_y = 140;
+gfx_printf("Coeffs       = %f %f %f %f %f %f", listen_filter.a1, listen_filter.a2, listen_filter.a3, listen_filter.m0, listen_filter.m1, listen_filter.m2);  gfx_x = 100; gfx_y = 160;
+gfx_printf("Targ Coeffs  = %f %f %f %f %f %f", listen_filter.t_a1, listen_filter.t_a2, listen_filter.t_a3, listen_filter.t_m0, listen_filter.t_m1, listen_filter.t_m2); gfx_x = 100; gfx_y = 180;
+gfx_printf("Targ Steps  = %f %f %f %f %f %f", listen_filter.t_sa1, listen_filter.t_sa2, listen_filter.t_sa3, listen_filter.t_sm0, listen_filter.t_sm1, listen_filter.t_sm2); gfx_x = 100; gfx_y = 200;
+*/
+
+//gfx_printf("bands enabled = %d %d %d %d %d %d %d %d", Band_Enabled[0], Band_Enabled[1], Band_Enabled[2], Band_Enabled[3], Band_Enabled[4], Band_Enabled[5], Band_Enabled[6], Band_Enabled[7]);  gfx_x = 100; gfx_y = 180;
 
 /*
 gfx_r = gfx_g = gfx_b = gfx_a = 1.0;
