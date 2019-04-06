@@ -19,7 +19,7 @@ desc: ReEQ
  */
 
 slider1:Stereo_Mode=<0,1,1{Mid/Side,Left/Right}>-Stereo Mode
-slider2:Quality=1<0,1,1{Digital,Analog}>-Quality
+slider2:Quality=1<0,1,1{Digital,HQ}>-Quality
 slider3:Gain=0<-136,36,0.01>-Gain
 slider4:MLGain=0<-136,36,0.01>-Mid/Left Gain
 slider5:SRGain=0<-136,36,0.01>-Side/Right Gain
@@ -2895,7 +2895,7 @@ gfx_ext_retina == 2 ? (
 );
 
 buttons_init == 0 || gfx_w != OLD_WIDTH ? (
-  button_oversample.init_options_button(button_oversample_xoffset, py, button_oversample_width, Quality, "DIG", "ANA", "Digital - Faster, Less accurate", "Analog - Oversampled, Accurate");
+  button_oversample.init_options_button(button_oversample_xoffset, py, button_oversample_width, Quality, "DIG", "HQ", "Digital - Fastest", "High Quality - Oversampled, Accurate");
   button_stereo_mode.init_options_button(button_stereo_mode_xoffset, py, button_stereo_mode_width, Stereo_Mode, "M/S", "L/R", "Mid / Side", "Left / Right");
   button_scale.init_number_button(button_scale_xoffset, py, button_scale_width, "", 1, 100);
   button_gain.init_number_button(button_gain_xoffset, py, button_gain_width, "", 0, 0);
