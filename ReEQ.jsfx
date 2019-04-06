@@ -323,9 +323,6 @@ function band_init()
   filter.zdf_bypass();
   color.create_color(0,0,0);
 
-
-
-
   filter.a1 = filter.t_a1;
   filter.a2 = filter.t_a2;
   filter.a3 = filter.t_a3;
@@ -544,6 +541,7 @@ init_rate != srate ? (
   Band_Gain = MEMORY.alloc_memory(NUM_BANDS);
   Band_Q = MEMORY.alloc_memory(NUM_BANDS);
   Band_Slope = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dynamic_Range = MEMORY.alloc_memory(NUM_BANDS);
   Band_Red = MEMORY.alloc_memory(NUM_BANDS);
   Band_Green = MEMORY.alloc_memory(NUM_BANDS);
   Band_Blue = MEMORY.alloc_memory(NUM_BANDS);
@@ -685,6 +683,7 @@ file_mem(0, Band_Frequency, NUM_BANDS);
 file_mem(0, Band_Gain, NUM_BANDS);
 file_mem(0, Band_Q, NUM_BANDS);
 file_mem(0, Band_Slope, NUM_BANDS);
+file_mem(0, Band_Dynamic_Range, NUM_BANDS);
 file_mem(0, Band_Red, NUM_BANDS);
 file_mem(0, Band_Green, NUM_BANDS);
 file_mem(0, Band_Blue, NUM_BANDS);
@@ -1431,7 +1430,36 @@ function is_node_selected(freq, db) local (x, y, d) (
 /*
  * Draw the mouse crosshair
  */
-function draw_mouse_crosshair() (
+function draw_mouse_crosshair() local(read_freq, frq, width, height) (
+  read_freq = spectrum.x_to_freq(mouse_x);
+
+  frq = #;
+
+  read_freq < 100 ? ( sprintf(frq,"%.1f Hz", read_freq) ) :
+    (read_freq < 1000 ? ( sprintf(frq,"%.0f Hz", read_freq) ) : ( 
+      (read_freq < 10000 ? ( sprintf(frq,"%.2f kHz", read_freq/1000) ) : ( 
+        sprintf(frq,"%.1f kHz", read_freq/1000);
+      )
+    )
+  ));
+
+  gfx_measurestr(frq, width, height);
+
+  // Black rectangle background
+  gfx_set(0, 0, 0, 1);
+  gfx_x = mouse_x + 2;
+  gfx_y = gfx_h-(gfx_texth-2)-spectrum.bottom_margin;
+  gfx_rect(gfx_x - 10, gfx_y, width+20, gfx_texth);
+
+  // Now draw the frequency string
+  gfx_set(0.6, 0.6, 0.6, 1);
+
+  gfx_x = mouse_x + 2;
+  gfx_y = gfx_h-(gfx_texth-2)-spectrum.bottom_margin;
+
+  gfx_drawstr(frq);
+
+  // Draw the mouse crosshairs
   gfx_set(1.0, 1.0, 1.0, 0.3);
   mouse_y < gfx_h - BOTTOM_MARGIN ? gfx_line(0,mouse_y,gfx_w,mouse_y,1);
   gfx_line(mouse_x,0,mouse_x,gfx_h - BOTTOM_MARGIN, 1);
@@ -2676,6 +2704,9 @@ mouse_cap & 1 ? (
           button_gain.is_mouse_number_button() ? (Gain = button_gain.db = 0;) :
             button_mid_gain.is_mouse_number_button() ? (MLGain = button_mid_gain.db = 0;) :
               button_side_gain.is_mouse_number_button() ? (SRGain = button_side_gain.db = 0;);
+
+        // Flag all filters for updating
+        flag_filter_update_all();
       ) : (
         // Delete band?
         mouse_cap & 16 ? (
@@ -2767,8 +2798,18 @@ mouse_cap & 1 ? (
     );
 
     node_drag_lock == 0 ? (
+      old_gain = Band_Gain[node_drag];
+
+
       Band_Gain[node_drag] = y_to_db(mouse_y - node_drag_offy);
       Band_Frequency[node_drag] = scx_to_freq(mouse_x - node_drag_offx);
+
+      // Adaptive Q
+/*
+      gain_diff = (Band_Gain[node_drag] - old_gain) / 2;
+
+      Band_Q[node_drag] += abs(gain_diff);
+*/
     );
 
     node_drag_lock == 2 ? (
@@ -3023,6 +3064,9 @@ gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
 gfx_r = gfx_g = gfx_b = gfx_a = 1.0;gfx_x = 100; gfx_y = 120;
+
+// gfx_printf("gain_diff         = %f", gain_diff);  gfx_x = 100; gfx_y = 120;
+
 // gfx_printf("srate         = %f", srate);  gfx_x = 100; gfx_y = 120;
 // gfx_printf("SAMPLE_RATE   = %f", SAMPLE_RATE);  gfx_x = 100; gfx_y = 140;
 // gfx_printf("pdc_delay     = %f", pdc_delay);  gfx_x = 100; gfx_y = 160;
