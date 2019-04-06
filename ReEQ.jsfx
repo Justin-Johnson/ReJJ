@@ -1509,20 +1509,18 @@ function draw_info_panel(note_select)
       panel_offset_y = 60;
       
       gfx_ext_retina != 2 ? ( width -= 50; panel_offset_x += 45; );
-      
-      //Left
-      mouse_x < gfx_w * 0.09 ?
-      (
-        gfx_x = x + 80 - panel_offset_x;
-      )
-      //Right
-      : mouse_x > gfx_w * 0.892 ?
-      (
-        gfx_x = x - 195 + panel_offset_x;
-      ):
-      (
-        gfx_x = x - 50;
+
+      gfx_x = x - 50;
+
+      // Clamp x position so the panel is never off screen horizontally
+      gfx_ext_retina != 2 ? (
+        gfx_x = max(32, gfx_x);
+        gfx_x = min(gfx_w - width - 18, gfx_x);
+      ) : ( 
+        gfx_x = max(48, gfx_x);
+        gfx_x = min(gfx_w - width - 32, gfx_x);
       );
+
       xbase = gfx_x;
       
       gfx_ext_retina != 2 ? (
@@ -1531,14 +1529,19 @@ function draw_info_panel(note_select)
        panel_offset_y -= 190;
      );
      
-      //Show panel above band node when dragged under 0db
-      read_amp < 0 ?
+      //Show panel below band node when dragged under 0db
+      read_amp > 0 ?
       (
-        // gfx_y = y + rect_height + panel_offset_y - BOTTOM_MARGIN ; //Top
         gfx_y = y - gfx_texth * rect_height - gfx_texth;
+        gfx_y < 14 ? ( 
+          gfx_y = y - rect_height - panel_offset_y - BOTTOM_MARGIN; //Below
+        );
       ):
       (
-         gfx_y = y - rect_height - panel_offset_y - BOTTOM_MARGIN; //Below
+        gfx_y = y - rect_height - panel_offset_y - BOTTOM_MARGIN; //Below
+        gfx_y > gfx_h - (gfx_texth * rect_height) - gfx_texth - BOTTOM_MARGIN ? (
+          gfx_y = y - gfx_texth * rect_height - gfx_texth;
+        );
       );
       
       gfx_ext_retina != 2 ? rect_height += 1.0;
@@ -1559,7 +1562,7 @@ function draw_info_panel(note_select)
           0.1 ,0.1, 0.1, 0.4,
           0.0, 0.0, 0.0, 0 / width,
           0.0, 0.0, 0.0, -0.0025 /gfx_texth*rect_height);  
-      ):
+      ) :
       (
         gfx_r = 0; gfx_g = 0; gfx_b = 0; gfx_a = 0.1; //shadow
         gfx_rect(gfx_x-22,gfx_y-4,width+14, gfx_texth*rect_height+3);
