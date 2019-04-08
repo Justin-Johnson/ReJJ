@@ -14,6 +14,7 @@ desc: ReEQ
  * Standing on the shoulders of giants for this one.
  *
  * TODO:
+ *  - Add mode for adaptive Q
  *  - Listen toggle is a bit clicky.  Fix at some point by only setting filter coefficients
  *    in same places that band coefficients are set.
  */
@@ -88,6 +89,8 @@ import firhalfband.jsfx-inc
 
 in_pin:left input
 in_pin:right input
+in_pin:sc input left
+in_pin:sc input right
 out_pin:left output
 out_pin:right output
 
@@ -487,20 +490,20 @@ function flag_filter_update_all() (
 /*
  * Update the filter parameters
  */
-function update_filter_eqs() local (band_scalar) (
+function update_visual_filters() local (band_scalar) (
   band_scalar = Scale / 100.0;
 
-  Band_GfxUpdate[0] ? (Band_GfxUpdate[0] = 0; Band_Enabled[0] != BAND_STATE_ENABLED ? gfx_band1.filter.zdf_bypass() : gfx_band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
-  Band_GfxUpdate[1] ? (Band_GfxUpdate[1] = 0; Band_Enabled[1] != BAND_STATE_ENABLED ? gfx_band2.filter.zdf_bypass() : gfx_band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); );
-  Band_GfxUpdate[2] ? (Band_GfxUpdate[2] = 0; Band_Enabled[2] != BAND_STATE_ENABLED ? gfx_band3.filter.zdf_bypass() : gfx_band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); );
-  Band_GfxUpdate[3] ? (Band_GfxUpdate[3] = 0; Band_Enabled[3] != BAND_STATE_ENABLED ? gfx_band4.filter.zdf_bypass() : gfx_band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); );
-  Band_GfxUpdate[4] ? (Band_GfxUpdate[4] = 0; Band_Enabled[4] != BAND_STATE_ENABLED ? gfx_band5.filter.zdf_bypass() : gfx_band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); );
-  Band_GfxUpdate[5] ? (Band_GfxUpdate[5] = 0; Band_Enabled[5] != BAND_STATE_ENABLED ? gfx_band6.filter.zdf_bypass() : gfx_band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); );
-  Band_GfxUpdate[6] ? (Band_GfxUpdate[6] = 0; Band_Enabled[6] != BAND_STATE_ENABLED ? gfx_band7.filter.zdf_bypass() : gfx_band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); );
-  Band_GfxUpdate[7] ? (Band_GfxUpdate[7] = 0; Band_Enabled[7] != BAND_STATE_ENABLED ? gfx_band8.filter.zdf_bypass() : gfx_band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); );
+  Band_GfxUpdate[0] ? (Band_GfxUpdate[0] = 0; gfx_band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
+  Band_GfxUpdate[1] ? (Band_GfxUpdate[1] = 0; gfx_band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); );
+  Band_GfxUpdate[2] ? (Band_GfxUpdate[2] = 0; gfx_band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); );
+  Band_GfxUpdate[3] ? (Band_GfxUpdate[3] = 0; gfx_band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); );
+  Band_GfxUpdate[4] ? (Band_GfxUpdate[4] = 0; gfx_band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); );
+  Band_GfxUpdate[5] ? (Band_GfxUpdate[5] = 0; gfx_band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); );
+  Band_GfxUpdate[6] ? (Band_GfxUpdate[6] = 0; gfx_band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); );
+  Band_GfxUpdate[7] ? (Band_GfxUpdate[7] = 0; gfx_band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); );
 );
 
-function update_filter_eqs2() local (band_scalar) (
+function update_audio_filters() local (band_scalar) (
   band_scalar = Scale / 100.0;
 
   Band_Update[0] ? (Band_Update[0] = 0; Band_Enabled[0] != BAND_STATE_ENABLED ? band1.filter.zdf_bypass() : band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
@@ -589,6 +592,9 @@ init_rate != srate ? (
 
   RMSPre.RMS_init(RMSPreIndex, rms_max_count);
   RMSPost.RMS_init(RMSPostIndex, rms_max_count);
+
+  RMSSCIndex = MEMORY.alloc_memory(rms_alloc);
+  RMSSidechain.RMS_init(RMSSCIndex, rms_max_count);
 
   set_oversample(Quality);
 
@@ -690,14 +696,14 @@ file_mem(0, Band_Blue, NUM_BANDS);
 
 filters_to_sliders();
 
-update_filter_eqs();
+update_visual_filters();
 
 @block
 
 // Get array accessed variables per block to make access faster
 // in @sample section
 
-update_filter_eqs2();
+update_audio_filters();
 
 Band_Process0 = (Band_Enabled[0] == BAND_STATE_ENABLED) || !band1.filter.zdf_is_resting();
 Band_Process1 = (Band_Enabled[1] == BAND_STATE_ENABLED) || !band2.filter.zdf_is_resting();
@@ -725,6 +731,9 @@ agcControl = AGCEnabled;
 
 spl0orig = spl0;
 spl1orig = spl1;
+
+// Sidechain RMS
+RMSSidechain.RMS_process(spl2, spl3);
 
 // Feed the correct buffers depending on spectrum modes
 Show_PreEQ ? (
@@ -842,7 +851,6 @@ DO_OVERSAMPLE ? (
     spl1list *= listen_gain;
   );
 );
-
 
 // Stereo gains
 spl0 *= gainML;
@@ -1103,38 +1111,36 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
     );
   );
 
-  Band_Type[band] != 0 || Scale != 100 ? (  // Don't draw for peak eq
+  Band_Type[band] != BAND_STATE_OFF || Scale != 100 ? (  // Don't draw for peak eq
     // Draw connecting line so that we can see which node affects which part of the curve
     // Low Cut,Low Cut (Butterworth),High Cut,High Cut (Butterworth),Band Pass,Notch,Peak,Low Shelf,High Shelf,Tilt Shelf,Pultec Low Shelf,All Pass
-    Band_Enabled[band]==2 ? (
-      transfer = (band == 0 ? gfx_band1.filter.zdf_magnitude(freq) :
-        band == 1 ? gfx_band2.filter.zdf_magnitude(freq) :
-          band == 2 ? gfx_band3.filter.zdf_magnitude(freq) :
-            band == 3 ? gfx_band4.filter.zdf_magnitude(freq) :
-              band == 4 ? gfx_band5.filter.zdf_magnitude(freq) :
-                band == 5 ? gfx_band6.filter.zdf_magnitude(freq) :
-                  band == 6 ? gfx_band7.filter.zdf_magnitude(freq) :
-                    band == 7 ? gfx_band8.filter.zdf_magnitude(freq);
-      );
-
-      m = 20 * log10(transfer);
-
-      // Convert db to screen y
-      scy = db_to_y(m);
-
-      // Notch filters transfer is somewhere down the abyss...compensate
-      Band_Enabled[band] == 2 && Band_Type[band] == 7 ? scy = gfx_h - BOTTOM_MARGIN - gfx_texth;
-
-      scy = min(gfx_h - BOTTOM_MARGIN - gfx_texth, scy);
-
-      gfx_r = Band_Red[band]; gfx_g = Band_Green[band]; gfx_b = Band_Blue[band]; gfx_a = 1;
-
-      scy > y ? y = min(y+size, scy) : y = max(y-size, scy);
-      gfx_line(x, y, x, scy);
-      gfx_a = 0.5;
-      gfx_line(x-1, y, x-1, scy);
-      gfx_line(x+1, y, x+1, scy);
+    transfer = (band == 0 ? gfx_band1.filter.zdf_magnitude(freq) :
+      band == 1 ? gfx_band2.filter.zdf_magnitude(freq) :
+        band == 2 ? gfx_band3.filter.zdf_magnitude(freq) :
+          band == 3 ? gfx_band4.filter.zdf_magnitude(freq) :
+            band == 4 ? gfx_band5.filter.zdf_magnitude(freq) :
+              band == 5 ? gfx_band6.filter.zdf_magnitude(freq) :
+                band == 6 ? gfx_band7.filter.zdf_magnitude(freq) :
+                  band == 7 ? gfx_band8.filter.zdf_magnitude(freq);
     );
+
+    m = 20 * log10(transfer);
+
+    // Convert db to screen y
+    scy = db_to_y(m);
+
+    // Notch filters transfer is somewhere down the abyss...compensate
+    Band_Enabled[band] == 2 && Band_Type[band] == 7 ? scy = gfx_h - BOTTOM_MARGIN - gfx_texth;
+
+    scy = min(gfx_h - BOTTOM_MARGIN - gfx_texth, scy);
+
+    gfx_r = Band_Red[band]; gfx_g = Band_Green[band]; gfx_b = Band_Blue[band]; gfx_a = 1;
+
+    scy > y ? y = min(y+size, scy) : y = max(y-size, scy);
+    gfx_line(x, y, x, scy);
+    gfx_a = 0.5;
+    gfx_line(x-1, y, x-1, scy);
+    gfx_line(x+1, y, x+1, scy);
   ); 
 );
 
@@ -1172,8 +1178,9 @@ function draw_filter_bands()
 
   band = 0;
 
-  loop(NUM_BANDS, ( 
-      Band_Enabled[band]==BAND_STATE_ENABLED ? ( 
+  loop(NUM_BANDS, (
+      state = Band_Enabled[band];
+      state != BAND_STATE_OFF ? ( 
 
         gfx_r = Band_Red[band]; gfx_g = Band_Green[band]; gfx_b = Band_Blue[band];
 
@@ -1226,15 +1233,17 @@ function draw_filter_bands()
             );
 
             // Fill in
-            gfx_a = 0.5;
-            tx0=xf|0;
-            lx0=xo1|0;
-            y1 = min(scy, bottom);
-            y0 = min(yo1, bottom);
-            tx0>lx0 ? (
-              gfx_ext_retina == 2 ? gfx_triangle(xo1, y0+2, xf-1, y1+2, xf-1, midp, xo1, midp) :
-                gfx_triangle(xo1, y0+1, xf-1, y1+1, xf-1, midp, xo1, midp);
-            );
+              gfx_a = 0.5;
+              tx0=xf|0;
+              lx0=xo1|0;
+              y1 = min(scy, bottom);
+              y0 = min(yo1, bottom);
+              state == BAND_STATE_ENABLED ? (
+                tx0>lx0 ? (
+                  gfx_ext_retina == 2 ? gfx_triangle(xo1, y0+2, xf-1, y1+2, xf-1, midp, xo1, midp) :
+                    gfx_triangle(xo1, y0+1, xf-1, y1+1, xf-1, midp, xo1, midp);
+                );
+              );
           );
 
           xo1 = xf; yo1 = scy;
@@ -1428,10 +1437,56 @@ function is_node_selected(freq, db) local (x, y, d) (
 );
 
 /*
+ * Return nearest node to mouse within dist or -1 if none
+ */
+function get_node_in_range(dist)
+  local(band, found, founddist, dist, x, y, d)
+(
+  band = 0;
+  found = -1;
+  founddist = 1000000;
+
+  while( 
+    Band_Enabled[band] != BAND_STATE_OFF ? (
+      x = freq_to_scx(Band_Frequency[band]);
+      y = db_to_y(Band_Gain[band]);
+
+      d = sqrt((x - mouse_x)^2 + (y - mouse_y)^2);
+      d < founddist && d < dist ? (
+        founddist = d;
+        found = band;
+      );
+    );
+    band += 1;
+    band < NUM_BANDS;
+  );
+
+  found;
+);
+
+/*
+ * Return node nearby to mouse or -1 if none
+ */
+function get_nearby_node()
+  local(band, found, founddist, dist, x, y, d)
+(
+  get_node_in_range(gfx_ext_retina == 1 ? dist = sqrt(70 * 70) : dist = sqrt(140 * 140));
+);
+
+/*
+ * Return node nearest to mouse within node halo dist or -1 if none
+ */
+function get_nearest_node()
+  local(band, found, founddist, dist, x, y, d)
+(
+  get_node_in_range(gfx_ext_retina == 1 ? dist = sqrt(12 * 12) : dist = sqrt(24 * 24));
+);
+
+/*
  * Draw the mouse crosshair
  */
 function draw_mouse_crosshair() local(read_freq, frq, width, height) (
-  read_freq = spectrum.x_to_freq(mouse_x);
+  read_freq = spectrum.x_to_freq(mouse_x+1);
 
   frq = #;
 
@@ -1501,27 +1556,21 @@ function draw_info_panel(note_select)
     );
     
     node_drag_mode == 0 ? (
-      node_hover = -1;
       q = -1;
       slope = -1;
-      band = 0;
-      while( 
-        Band_Enabled[band]!=BAND_STATE_OFF && is_node_selected(Band_Frequency[band], Band_Gain[band]) ?
-        (
-          node_hover = band;
-          q = Band_Q[band];
-          read_freq = Band_Frequency[band];
-          read_amp = Band_Gain[band];
-          Band_Type[band] == 1 || Band_Type[band] == 2 || Band_Type[band] == 5 || Band_Type[band] == 6 ? slope = 6 + Band_Slope[band] * 6;
-          band = NUM_BANDS;
-        );
-        band += 1;
-        band < NUM_BANDS;
+      node_hover = do_listen ? get_nearest_node() : get_nearby_node();
+      node_hover != -1 ? ( 
+        band = node_hover;
+        q = Band_Q[band];
+        read_freq = Band_Frequency[band];
+        read_amp = Band_Gain[band];
+        Band_Type[band] == 1 || Band_Type[band] == 2 || Band_Type[band] == 5 || Band_Type[band] == 6 ? slope = 6 + Band_Slope[band] * 6;
+        band = NUM_BANDS;
       );
     );
     
     //Only show info while hovering band point or in listen mode (handy to see freq etc)
-    node_drag_mode || band > NUM_BANDS || do_listen ? (
+    node_drag_mode || node_hover != -1 || do_listen ? (
 
       x = freq_to_scx(read_freq);
       y = db_to_y(read_amp);
@@ -1687,8 +1736,7 @@ function draw_info_panel(note_select)
 
 /*
  * Draw the listener boundaries and set the Q for the bandpass filter
- * TODO: Figure out best soloing modes for different band shapes
-  */
+*/
 function draw_listen_helper()
   local (mouse_spec, lread_freq, rread_freq, lfreq, rfreq, lx, rx, node, width, gain, sy)
 (
@@ -2463,7 +2511,7 @@ gfx_ext_retina != last_gfx_ext_retina ? (
 
 // Update any changed filters
 
-update_filter_eqs();
+update_visual_filters();
 
 // Draw everything
 
@@ -2752,7 +2800,7 @@ mouse_cap & 1 ? (
             band = 0;
             while(
               Band_Enabled[band]==BAND_STATE_OFF ? (                
-                create_band(band, mouse_x, mouse_y);
+                create_band(band, mouse_x+1, mouse_y);
                 band = NUM_BANDS;
               );
               band += 1;
@@ -2768,24 +2816,18 @@ mouse_cap & 1 ? (
   click_up = 0;
 
   node_drag_mode == 0 && button_focus == -1 ? (
-    band = 0;
-    while( 
-        Band_Enabled[band]!=BAND_STATE_OFF && is_node_selected(Band_Frequency[band], Band_Gain[band]) ? ( 
-          node_drag = band;
-          node_drag_mode = 1;
-          node_drag_offy = mouse_y - db_to_y(Band_Gain[band]);
-          node_drag_offx = mouse_x - freq_to_scx(Band_Frequency[band]);
+    band = get_nearest_node();
+    band != -1 ? ( 
+      node_drag = band;
+      node_drag_mode = 1;
+      node_drag_offy = mouse_y - db_to_y(Band_Gain[band]);
+      node_drag_offx = mouse_x - freq_to_scx(Band_Frequency[band]);
 
-          mouse_cap & 4 ? ( 
-            node_drag_lock = 1;
-          ) : mouse_cap & 16 ? (
-            node_drag_lock = 2;
-          ) : node_drag_lock = 0;
-
-          band = NUM_BANDS;
-        );
-        band += 1;
-        band < NUM_BANDS;
+      mouse_cap & 4 ? ( 
+        node_drag_lock = 1;
+      ) : mouse_cap & 16 ? (
+        node_drag_lock = 2;
+      ) : node_drag_lock = 0;
     );
   );
 
@@ -2851,6 +2893,7 @@ last_wheel = mw;
 md != 0.0 ? ( 
   band = 0;
   done_band = 0;
+  /*
   while(
     is_node_selected(Band_Frequency[band], Band_Gain[band]) ? ( 
       mouse_cap & 4 ? (
@@ -2860,8 +2903,17 @@ md != 0.0 ? (
         Band_Slope[band] = max(min(Band_Slope[band] - md, 15.0), 0);
       ) : (
         // Alter filter Q
-        Band_Q[band] < 2 ? md *= 0.03;
-        Band_Q[band] = max(min(Band_Q[band] + md, 40.0), 0.10);
+        // Not much science here I'm afraid, just numbers that
+        // feel good when Q is large (narrow) or small (wide)
+        bandwidth = rbj_qtobw(Band_Q[band]);
+
+        banddiv = Band_Q[band] <= 2 ? 12 : 12 * (Band_Q[band] / 40) * 18;
+
+        bandwidth += md / banddiv;
+        bandwidth = max(bandwidth, 0);
+        Band_Q[band] = max(min(rbj_bwtoq(bandwidth), 40), 0.10);
+
+
       );
 
       flag_filter_update(band);
@@ -2872,6 +2924,34 @@ md != 0.0 ? (
     band += 1;
     band < NUM_BANDS;
   );
+*/
+  band = get_nearby_node();
+  band != -1 ? ( 
+      mouse_cap & 4 ? (
+        // Alter filter slope
+        md < 0 ? md = -1;
+        md > 0 ? md = 1;
+        Band_Slope[band] = max(min(Band_Slope[band] - md, 15.0), 0);
+      ) : (
+        // Alter filter Q
+        // Not much science here I'm afraid, just numbers that
+        // feel good when Q is large (narrow) or small (wide)
+        bandwidth = rbj_qtobw(Band_Q[band]);
+
+        banddiv = Band_Q[band] <= 2 ? 12 : 12 * (Band_Q[band] / 40) * 18;
+
+        bandwidth += md / banddiv;
+        bandwidth = max(bandwidth, 0);
+        Band_Q[band] = max(min(rbj_bwtoq(bandwidth), 40), 0.10);
+
+
+      );
+
+      flag_filter_update(band);
+  );
+
+
+
 
   // Shift held and not on a band?  Alter freeform listen width
   mouse_cap & 8 && done_band == 0 ? ( 
@@ -2936,7 +3016,7 @@ gfx_ext_retina == 2 ? (
 );
 
 buttons_init == 0 || gfx_w != OLD_WIDTH ? (
-  button_oversample.init_options_button(button_oversample_xoffset, py, button_oversample_width, Quality, "DIG", "HQ", "Digital - Fastest", "High Quality - Oversampled, Accurate");
+  button_oversample.init_options_button(button_oversample_xoffset, py, button_oversample_width, Quality, "DIG", "HQ", "Digital - Fastest, No Latency", "High Quality - Accurate, Latency");
   button_stereo_mode.init_options_button(button_stereo_mode_xoffset, py, button_stereo_mode_width, Stereo_Mode, "M/S", "L/R", "Mid / Side", "Left / Right");
   button_scale.init_number_button(button_scale_xoffset, py, button_scale_width, "", 1, 100);
   button_gain.init_number_button(button_gain_xoffset, py, button_gain_width, "", 0, 0);
@@ -3064,6 +3144,9 @@ gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
 gfx_r = gfx_g = gfx_b = gfx_a = 1.0;gfx_x = 100; gfx_y = 120;
+
+// rms = RMSSidechain.RMS_getDB();
+// gfx_printf("RMS = %f", rms);  gfx_x = 100; gfx_y = 120;
 
 // gfx_printf("gain_diff         = %f", gain_diff);  gfx_x = 100; gfx_y = 120;
 

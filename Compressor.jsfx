@@ -1,0 +1,120 @@
+// (C) 2006-2007, Michael Gruhn.
+
+// NO WARRANTY IS GRANTED. THIS PLUG-IN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT
+// WARRANTY OF ANY KIND. NO LIABILITY IS GRANTED, INCLUDING, BUT NOT LIMITED TO,
+// ANY DIRECT OR INDIRECT,  SPECIAL,  INCIDENTAL OR CONSEQUENTIAL DAMAGE ARISING
+// OUT OF  THE  USE  OR INABILITY  TO  USE  THIS PLUG-IN,  COMPUTER FAILTURE  OF
+// MALFUNCTION INCLUDED.  THE USE OF THE SOURCE CODE,  EITHER  PARTIALLY  OR  IN
+// TOTAL, IS ONLY GRANTED,  IF USED IN THE SENSE OF THE AUTHOR'S INTENTION,  AND
+// USED WITH ACKNOWLEDGEMENT OF THE AUTHOR. FURTHERMORE IS THIS PLUG-IN A  THIRD
+// PARTY CONTRIBUTION,  EVEN IF INCLUDED IN REAPER(TM),  COCKOS INCORPORATED  OR
+// ITS AFFILIATES HAVE NOTHING TO DO WITH IT.  LAST BUT NOT LEAST, BY USING THIS
+// PLUG-IN YOU RELINQUISH YOUR CLAIM TO SUE IT'S AUTHOR, AS WELL AS THE CLAIM TO
+// ENTRUST SOMEBODY ELSE WITH DOING SO.
+
+desc:Digital Versatile Compressor v2
+desc:Digital Versatile Compressor v2 [LOSER]
+//tags: dynamics compressor limiter
+//author: LOSER
+
+slider1:-.1<-30,-.1,.1>Threshold (dB)
+slider2:1<1,20,.1>Ratio
+slider3:20<0,500,1>Attack (ms)
+slider4:200<0,1000,1>Release (ms)
+slider5:0<0,100,1>RMS Size (ms)
+slider6:0<0,1,1{No,Yes}>Auto Make-Up
+slider7:0<-12,12,.1>Output (dB)
+slider8:0<0,1,1{Compress,Limit}>Character
+
+in_pin:left input
+in_pin:right input
+out_pin:left output
+out_pin:right output
+
+@init
+gain = seekgain = 1;
+c = 8.65617025;
+dc = 10^-30;
+
+gain = seekGain = 1;
+t = 0;
+b = -exp(-60 / srate );
+a = 1.0 + b;
+
+gr_meter=1;
+gr_meter_decay = exp(1/(1*srate));
+
+@slider
+threshDB = slider1;
+thresh = exp(threshDB/c);
+ratio = 1/slider2;
+
+attack = exp( threshDB / (slider3*srate/1000) / c);
+release = exp( threshdB / (slider4*srate/1000) / c );
+rmsSize = floor(slider5/1000*srate);
+
+rms_size = floor(slider5/1000*srate);
+rmsSqrSum = rmsPos = 0;
+memset(0,0,rmsSize);
+
+volume = exp(slider7/c) / (slider6 ? exp(( threshDB -threshDB*ratio )/c)  : 1 );
+
+seekgain = 1;
+
+@sample
+rmsS = rms = max( abs(spl0) , abs(spl1) );
+rms = sqrt( (t = a*rms-b*t) );
+slider8 ? rms = max(rms,rmsS);
+
+
+rmsSize > 1 ? (
+  rmsSqrSum = max(rmsSqrSum - rmsPos[0],0) + (rmsPos[0] = sqr(rms));
+  (rmsPos+=1) >= rmsSize ? rmsPos=0;
+  rms = sqrt(rmsSqrSum/rmsSize);
+);
+
+seekGain = ((rms > thresh) ? exp((threshDB + (log(rms)*c-threshDB)*ratio) /c) / rms : 1);
+gain = ((gain > seekGain) ? max( gain*attack , seekGain ) : min( gain/release , seekGain ));
+spl0 *= gain * volume;
+spl1 *= gain * volume;
+
+gain < gr_meter ? gr_meter=gain : ( gr_meter*=gr_meter_decay; gr_meter>1?gr_meter=1; );
+
+@gfx 0 32 // request horizontal/vertical heights (0 means dont care)
+
+  gr_meter *= exp(1/30); gr_meter>1?gr_meter=1; // decay meter here so if the audio processing stops it doesnt "stick"
+  gfx_r=1; gfx_g=gfx_b=0; gfx_a=0.8;
+  
+  meter_bot=20;
+  meter_h=min(gfx_h,32);
+  xscale=gfx_w*20/meter_bot;
+
+  gfx_y=0;
+  gfx_x=gfx_w + log10(gr_meter)*xscale;
+  gfx_rectto(gfx_w,meter_h);
+
+  gfx_r=gfx_g=gfx_b=1.0; gfx_a=0.6;
+
+  s2=sqrt(2)/2;
+  g = s2;
+  while(
+    gfx_x=gfx_w + log10(g)*xscale;
+    gfx_x >= 0 ? 
+    (
+      gfx_y=0;
+      gfx_lineto(gfx_x,meter_h,0);
+      gfx_y=meter_h-gfx_texth;
+      gfx_x+=2;
+      gfx_drawnumber(log10(g)*20,0);
+      gfx_drawchar($'d');
+      gfx_drawchar($'B');
+    );
+    g*=s2;
+    gfx_x >=0;
+  );
+  gfx_a=1;
+
+  gfx_x=0; gfx_y=meter_h/2 - gfx_texth/2;
+  gfx_drawnumber(log10(gr_meter)*20,1);
+  gfx_drawchar($'d');
+  gfx_drawchar($'B');
