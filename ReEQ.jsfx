@@ -43,7 +43,7 @@ slider19:Node1_Group=0<0,2,1{Stereo,Mid/Left,Side/Right}>-Filter1 Group
 slider20:Node1_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter1 Type
 slider21:Node1_Frequency=50.81<0,100,0.01>-Filter1 Frequency
 slider22:Node1_Gain=8.0<-18.0,18.0,0.01>-Filter1 Gain
-slider23:Node1_Q=0.707<0.10,40.0,0.01>-Filter1 Q
+slider23:Node1_Q=32.647<0,100.0,0.01>-Filter1 Q
 slider24:Node1_Slope=0<0,15,1>-Filter1 Slope
 
 slider25:Node2_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter2 Mode
@@ -51,7 +51,7 @@ slider26:Node2_Group=0<0,2,1{Stereo,Mid/Left,Side/Right}>-Filter2 Group
 slider27:Node2_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter2 Type
 slider28:Node2_Frequency=30<0,100,0.01>-Filter2 Frequency
 slider29:Node2_Gain=0.0<-18.0,18.0,0.01>-Filter2 Gain
-slider30:Node2_Q=0.707<0.10,40.0,0. 01>-Filter2 Q
+slider30:Node2_Q=32.647<0,100.0,0.01>-Filter2 Q
 slider31:Node2_Slope=0<0,15,1>-Filter2 Slope
 
 slider32:Node3_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter3 Mode
@@ -59,7 +59,7 @@ slider33:Node3_Group=0<0,2,1{Stereo,Mid/Left,Side/Right}>-Filter3 Group
 slider34:Node3_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter3 Type
 slider35:Node3_Frequency=40<0,100,0.01>-Filter3 Frequency
 slider36:Node3_Gain=0.0<-18.0,18.0,0.01>-Filter3 Gain
-slider37:Node3_Q=0.707<0.10,40.0,0.01>-Filter3 Q
+slider37:Node3_Q=32.647<0,100.0,0.01>-Filter3 Q
 slider38:Node3_Slope=0<0,15,1>-Filter3 Slope
 
 slider39:Node4_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter4 Mode
@@ -67,7 +67,7 @@ slider40:Node4_Group=0<0,2,1{Stereo,Mid/Left,Side/Right}>-Filter4 Group
 slider41:Node4_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter4 Type
 slider42:Node4_Frequency=70<0,100,0.01>-Filter4 Frequency
 slider43:Node4_Gain=0.0<-18.0,18.0,0.01>-Filter4 Gain
-slider44:Node4_Q=0.707<0.10,40.0,0.01>-Filter4 Q
+slider44:Node4_Q=32.647<0,100.0,0.01>-Filter4 Q
 slider45:Node4_Slope=0<0,15,1>-Filter4 Slope
 
 slider46:Node5_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter5 Mode
@@ -75,7 +75,7 @@ slider47:Node5_Group=0<0,2,1{Stereo,Mid/Left,Side/Right}>-Filter5 Group
 slider48:Node5_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter5 Type
 slider49:Node5_Frequency=70<0,100,0.01>-Filter5 Frequency
 slider50:Node5_Gain=0.0<-18.0,18.0,0.01>-Filter5 Gain
-slider51:Node5_Q=0.707<0.10,40.0,0.01>-Filter5 Q
+slider51:Node5_Q=32.647<0,100.0,0.01>-Filter5 Q
 slider52:Node5_Slope=0<0,15,1>-Filter5 Slope
 
 slider53:MidPolarity=0<0,1,1>-Mid Polarity
@@ -401,7 +401,7 @@ function filters_to_sliders() (
   Node1_Type = Band_Type[0];
   Node1_Frequency = freq_to_per(Band_Frequency[0], 100);
   Node1_Gain = Band_Gain[0];
-  Node1_Q = Band_Q[0];
+  Node1_Q = q_to_per(Band_Q[0], 100);
   Node1_Slope = Band_Slope[0];
 
   Node2_Enabled = Band_Enabled[1];
@@ -409,7 +409,7 @@ function filters_to_sliders() (
   Node2_Type = Band_Type[1];
   Node2_Frequency = freq_to_per(Band_Frequency[1], 100);
   Node2_Gain = Band_Gain[1];
-  Node2_Q = Band_Q[1];
+  Node2_Q = q_to_per(Band_Q[1], 100);
   Node2_Slope = Band_Slope[1];
 
   Node3_Enabled = Band_Enabled[2];
@@ -417,7 +417,7 @@ function filters_to_sliders() (
   Node3_Type = Band_Type[2];
   Node3_Frequency = freq_to_per(Band_Frequency[2], 100);
   Node3_Gain = Band_Gain[2];
-  Node3_Q = Band_Q[2];
+  Node3_Q = q_to_per(Band_Q[2], 100);
   Node3_Slope = Band_Slope[2];
 
   Node4_Enabled = Band_Enabled[3];
@@ -425,7 +425,7 @@ function filters_to_sliders() (
   Node4_Type = Band_Type[3];
   Node4_Frequency = freq_to_per(Band_Frequency[3], 100);
   Node4_Gain = Band_Gain[3];
-  Node4_Q = Band_Q[3];
+  Node4_Q = q_to_per(Band_Q[3], 100);
   Node4_Slope = Band_Slope[3];
 
   Node5_Enabled = Band_Enabled[4];
@@ -433,7 +433,7 @@ function filters_to_sliders() (
   Node5_Type = Band_Type[4];
   Node5_Frequency = freq_to_per(Band_Frequency[4], 100);
   Node5_Gain = Band_Gain[4];
-  Node5_Q = Band_Q[4];
+  Node5_Q = q_to_per(Band_Q[4], 100);
   Node5_Slope = Band_Slope[4];
 );
 
@@ -446,7 +446,7 @@ function sliders_to_filters() (
   Band_Type[0] = Node1_Type;
   Band_Frequency[0] = per_to_freq(Node1_Frequency, 100);
   Band_Gain[0] = Node1_Gain;
-  Band_Q[0] = Node1_Q;
+  Band_Q[0] = per_to_q(Node1_Q, 100);
   Band_Slope[0] = Node1_Slope;
 
   Band_Enabled[1] = Node2_Enabled;
@@ -454,7 +454,7 @@ function sliders_to_filters() (
   Band_Type[1] = Node2_Type;
   Band_Frequency[1] = per_to_freq(Node2_Frequency, 100);
   Band_Gain[1] = Node2_Gain;
-  Band_Q[1] = Node2_Q;
+  Band_Q[1] = per_to_q(Node2_Q, 100);
   Band_Slope[1] = Node2_Slope;
 
   Band_Enabled[2] = Node3_Enabled;
@@ -462,7 +462,7 @@ function sliders_to_filters() (
   Band_Type[2] = Node3_Type;
   Band_Frequency[2] = per_to_freq(Node3_Frequency, 100);;
   Band_Gain[2] = Node3_Gain;
-  Band_Q[2] = Node3_Q;
+  Band_Q[2] = per_to_q(Node3_Q, 100);
   Band_Slope[2] = Node3_Slope;
 
   Band_Enabled[3] = Node4_Enabled;
@@ -470,7 +470,7 @@ function sliders_to_filters() (
   Band_Type[3] = Node4_Type;
   Band_Frequency[3] = per_to_freq(Node4_Frequency, 100);;
   Band_Gain[3] = Node4_Gain;
-  Band_Q[3] = Node4_Q;
+  Band_Q[3] = per_to_q(Node4_Q, 100);
   Band_Slope[3] = Node4_Slope;
 
   Band_Enabled[4] = Node5_Enabled;
@@ -478,7 +478,7 @@ function sliders_to_filters() (
   Band_Type[4] = Node5_Type;
   Band_Frequency[4] = per_to_freq(Node5_Frequency, 100);;
   Band_Gain[4] = Node5_Gain;
-  Band_Q[4] = Node5_Q;
+  Band_Q[4] = per_to_q(Node5_Q, 100);
   Band_Slope[4] = Node5_Slope;
 );
 
@@ -805,8 +805,11 @@ DO_OVERSAMPLE ? (
     Band_Process6 && Band_Group6 <= 1 ? (y0 = band7.filter.zdf_svf0(y0); y1 = band7.filter.zdf_svf0(y1));
     Band_Process7 && Band_Group7 <= 1 ? (y0 = band8.filter.zdf_svf0(y0); y1 = band8.filter.zdf_svf0(y1));
 
-    spl0 = firL.do_FIR_filter(y0) * 2;
-    firL.do_FIR_filter(y1);
+    // Unoptimised
+    // spl0 = firL.do_FIR_filter(y0) * 2;
+    // firL.do_FIR_filter(y1);
+
+    spl0 = firL.do_FIR_filterX2(y0, y1);
 
     // Side/Right
     y0 = spl1; y1 = 0;
@@ -820,19 +823,31 @@ DO_OVERSAMPLE ? (
     Band_Process6 && Band_Group6 != 1 ? (y0 = band7.filter.zdf_svf1(y0); y1 = band7.filter.zdf_svf1(y1));
     Band_Process7 && Band_Group7 != 1 ? (y0 = band8.filter.zdf_svf1(y0); y1 = band8.filter.zdf_svf1(y1));
 
-    spl1 = firR.do_FIR_filter(y0) * 2;
-    firR.do_FIR_filter(y1);
+    // Unoptimised
+    // spl1 = firR.do_FIR_filter(y0) * 2;
+    // firR.do_FIR_filter(y1);
+
+    spl1 = firR.do_FIR_filterX2(y0, y1);
+ 
   ) : (
     // Listen/Solo mode
     y0 = spl0; y1 = 0;
     listen_group <= 1 ? (y0 = listen_filter.zdf_svf0(y0); y1 = listen_filter.zdf_svf0(y1));
-    spl0list = firL.do_FIR_filter(y0) * 2;
-    firL.do_FIR_filter(y1);
+
+    // Unoptimised
+    // spl0list = firL.do_FIR_filter(y0) * 2;
+    // firL.do_FIR_filter(y1);
+
+    spl0list = firL.do_FIR_filterX2(y0, y1);
 
     y0 = spl1; y1 = 0;
     listen_group != 1 ? (y0 = listen_filter.zdf_svf1(y0); y1 = listen_filter.zdf_svf1(y1));
-    spl1list = firR.do_FIR_filter(y0) * 2;
-    firR.do_FIR_filter(y1);
+
+    // Unoptimised
+    // spl1list = firR.do_FIR_filter(y0) * 2;
+    // firR.do_FIR_filter(y1);
+
+    spl1list = firR.do_FIR_filterX2(y0, y1);
 
     listen_group == 1 ? spl1list = 0;
     listen_group == 2 ? spl0list = 0;
@@ -3114,42 +3129,11 @@ md = -(mw - last_wheel) / 120;
 last_wheel = mw;
 
 md != 0.0 ? ( 
-  band = 0;
   done_band = 0;
-  /*
-  while(
-    is_node_selected(Band_Frequency[band], Band_Gain[band]) ? ( 
-      mouse_cap & 4 ? (
-        // Alter filter slope
-        md < 0 ? md = -1;
-        md > 0 ? md = 1;
-        Band_Slope[band] = max(min(Band_Slope[band] - md, 15.0), 0);
-      ) : (
-        // Alter filter Q
-        // Not much science here I'm afraid, just numbers that
-        // feel good when Q is large (narrow) or small (wide)
-        bandwidth = rbj_qtobw(Band_Q[band]);
 
-        banddiv = Band_Q[band] <= 2 ? 12 : 12 * (Band_Q[band] / 40) * 18;
-
-        bandwidth += md / banddiv;
-        bandwidth = max(bandwidth, 0);
-        Band_Q[band] = max(min(rbj_bwtoq(bandwidth), 40), 0.10);
-
-
-      );
-
-      flag_filter_update(band);
-
-      band = NUM_BANDS;
-      done_band = 1;
-    );
-    band += 1;
-    band < NUM_BANDS;
-  );
-*/
   band = get_nearby_node();
-  band != -1 ? ( 
+  band != -1 ? (
+      done_band = 1;
       mouse_cap & 4 ? (
         // Alter filter slope
         md < 0 ? md = -1;
@@ -3157,24 +3141,13 @@ md != 0.0 ? (
         Band_Slope[band] = max(min(Band_Slope[band] - md, 15.0), 0);
       ) : (
         // Alter filter Q
-        // Not much science here I'm afraid, just numbers that
-        // feel good when Q is large (narrow) or small (wide)
-        bandwidth = rbj_qtobw(Band_Q[band]);
-
-        banddiv = Band_Q[band] <= 2 ? 12 : 12 * (Band_Q[band] / 40) * 18;
-
-        bandwidth += md / banddiv;
-        bandwidth = max(bandwidth, 0);
-        Band_Q[band] = max(min(rbj_bwtoq(bandwidth), 40), 0.10);
-
-
+        // Get the Q value as 0..1, apply mouse offset then convert back to logarithmic Q
+        // This ensure that inc/dec movement is uniform throughout the entire Q range
+        Band_Q[band] = max(0.10, min(40, per_to_q(q_to_per(Band_Q[band], 1) + md * 0.008, 1)));
       );
 
       flag_filter_update(band);
   );
-
-
-
 
   // Shift held and not on a band?  Alter freeform listen width
   mouse_cap & 8 && done_band == 0 ? ( 
@@ -3417,7 +3390,6 @@ gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
 gfx_r = gfx_g = gfx_b = gfx_a = 1.0; gfx_x = 100; gfx_y = 120;
-
 
 // rms = RMSSidechain.RMS_getDB();
 // gfx_printf("RMS = %f", rms);  gfx_x = 100; gfx_y = 120;
