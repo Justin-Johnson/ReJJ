@@ -4,6 +4,8 @@ desc: ReEQ
  * Copyright (C) 2019 Justin Johnson
  * License: LGPL - http://www.gnu.org/licenses/lgpl.html
  *
+ * Version: v1.0.1
+ *
  * A parametric graphic equalizer supporting eight bands,
  * optional oversampling for correct near Nyquist
  * frequency filter shapes, and mid/side or
@@ -23,7 +25,7 @@ desc: ReEQ
  *  - Listen toggle is a bit clicky.  Fix at some point by only setting filter coefficients
  *    in same places that band coefficients are set.
  */
-
+ 
 slider1:Stereo_Mode=<0,1,1{Mid/Side,Left/Right}>-Stereo Mode
 slider2:Quality=1<0,1,1{Digital,HQ}>-Quality
 slider3:Gain=0<-136,30,0.01>-Gain
