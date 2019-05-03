@@ -9,9 +9,14 @@ desc: ReEQ
  * frequency filter shapes, and mid/side or
  * left/right band options.  A variety of filter types
  * are supported including high and low pass filters
- * with slopes up to 96dB with Butterworth versions.
+ * with slopes up to 120dB with Butterworth versions.
  * 
  * Standing on the shoulders of giants for this one.
+ *
+ * DONE:
+ *  - Filter cuts narrowed selection and raised to 120db max
+ *  - Smoother spectrum antialiasing
+ *  - Added 48kHz FIR window
  *
  * TODO:
  *  - Add mode for adaptive Q
@@ -226,6 +231,16 @@ function set_oversample(os) (
   srate < 88200 && os ? (
     DO_OVERSAMPLE = 1;
     SAMPLE_RATE = srate * 2;
+
+    // Choose right FIR window for sample rate
+    srate == 44100 ? (
+      firL.init_FIR_filter_44100();
+      firR.init_FIR_filter_44100();
+    ) : srate == 48000 ? ( 
+      firL.init_FIR_filter_48000();
+      firR.init_FIR_filter_48000();
+    );
+
     pdc_delay = get_FIR_pdc();
     pdc_bot_ch = 0;
     pdc_top_ch = 2; 
@@ -315,9 +330,45 @@ function update_state() local (blocks, fade, fill_r, fill_g, fill_b, fill_a, lin
     Db_Range == 1 ? (DB_EQ_RANGE = 12; DB_EQ_RANGE_STEPS = 3;) :
       Db_Range == 2 ? (DB_EQ_RANGE = 18; DB_EQ_RANGE_STEPS = 6;) :
         Db_Range == 3 ? (DB_EQ_RANGE = 24; DB_EQ_RANGE_STEPS = 8;) :
-          Db_Range == 4 ? (DB_EQ_RANGE = 30; DB_EQ_RANGE_STEPS = 12;);
+          Db_Range == 4 ? (DB_EQ_RANGE = 30; DB_EQ_RANGE_STEPS = 10;);
 
   // spectrum.reset_buffers();
+);
+
+/*
+ * Notify Reaper that frequency has been touched
+ */
+function notify_touched_frequency(node) (
+  // Notify Reaper that a parameter change has happened
+  node == 0 ? slider_automate(Node1_Frequency) :
+    node == 1 ? slider_automate(Node2_Frequency) :
+      node == 2 ? slider_automate(Node3_Frequency) :
+        node == 3 ? slider_automate(Node4_Frequency) :
+          node == 4 ? slider_automate(Node5_Frequency);
+);
+
+/*
+ * Notify Reaper that gain has been touched
+ */
+function notify_touched_gain(node) (
+  // Notify Reaper that a parameter change has happened
+  node == 0 ? slider_automate(Node1_Gain) :
+    node == 1 ? slider_automate(Node2_Gain) :
+      node == 2 ? slider_automate(Node3_Gain) :
+        node == 3 ? slider_automate(Node4_Gain) :
+          node == 4 ? slider_automate(Node5_Gain);
+);
+
+/*
+ * Notify Reaper that Q has been touched
+ */
+function notify_touched_Q(node) (
+  // Notify Reaper that a parameter change has happened
+  node == 0 ? slider_automate(Node1_Q) :
+    node == 1 ? slider_automate(Node2_Q) :
+      node == 2 ? slider_automate(Node3_Q) :
+        node == 3 ? slider_automate(Node4_Q) :
+          node == 4 ? slider_automate(Node5_Q);
 );
 
 function band_init()
@@ -593,8 +644,8 @@ init_rate != srate ? (
   color_band7.create_color(135, 45, 138);
 
   // Init FIR filter
-  firL.init_FIR_filter();
-  firR.init_FIR_filter();
+  firL.init_FIR_filter_44100();
+  firR.init_FIR_filter_44100();
 
   // Allocate and init RMS
   rms_time_constant_ms = 300;
@@ -617,18 +668,12 @@ init_rate != srate ? (
   MIN_FREQ = 10;
   FREQ_LOG_MAX = log(MAX_FREQ / MIN_FREQ);
 
-
-
   MAX_Q = 40;
   MIN_Q = 0.10;
   Q_LOG_MAX = log(MAX_Q / MIN_Q);
 
-
-
-
-
   DB_EQ_RANGE = 18;
-  DB_EQ_RANGE_STEPS = 9;
+  DB_EQ_RANGE_STEPS = 6;
 
   OLD_WIDTH = 0;
 
@@ -642,6 +687,7 @@ init_rate != srate ? (
   click_up = 0;
   click_time = 0;
 
+  selected_node = -1;
   node_drag_mode = 0;
   node_drag = 0;
   node_drag_offx = 0;
@@ -671,7 +717,37 @@ init_rate != srate ? (
   listen_filter.m2 = listen_filter.t_m2;
   listen_filter.iter_t = 1.0;
 
+  FilterTypes = MEMORY.alloc_memory(12);
+  FilterTypes[0] = "Peak";
+  FilterTypes[1] = "Low Cut";
+  FilterTypes[2] = "Low Cut (Butterworth)";
+  FilterTypes[3] = "Low Shelf";
+  FilterTypes[4] = "High Shelf";
+  FilterTypes[5] = "High Cut";
+  FilterTypes[6] = "High Cut (Butterworth)";
+  FilterTypes[7] = "Notch";
+  FilterTypes[8] = "Band Pass";
+  FilterTypes[9] = "Tilt Shelf";
+  FilterTypes[10] = "Pultec Low Shelf";
+  FilterTypes[11] = "All Pass";
 
+  NumFilterSlopes = 10;
+  FilterSlopes = MEMORY.alloc_memory(10);
+  FilterSlopes[0] = "6db";
+  FilterSlopes[1] = "12db";
+  FilterSlopes[2] = "18db";
+  FilterSlopes[3] = "24db";
+  FilterSlopes[4] = "30db";
+  FilterSlopes[5] = "36db";
+  FilterSlopes[6] = "48db";
+  FilterSlopes[7] = "72db";
+  FilterSlopes[8] = "96db";
+  FilterSlopes[9] = "120db";
+
+  StereoModes = MEMORY.alloc_memory(3);
+  StereoModes[0] = "Stereo";
+  StereoModes[1] = "Mid";
+  StereoModes[2] = "Side";
 
 
   // Automatic Gain Control
@@ -809,7 +885,7 @@ DO_OVERSAMPLE ? (
     // spl0 = firL.do_FIR_filter(y0) * 2;
     // firL.do_FIR_filter(y1);
 
-    spl0 = firL.do_FIR_filterX2(y0, y1);
+    spl0 = firL.do_FIR_filter(y0, y1);
 
     // Side/Right
     y0 = spl1; y1 = 0;
@@ -827,7 +903,7 @@ DO_OVERSAMPLE ? (
     // spl1 = firR.do_FIR_filter(y0) * 2;
     // firR.do_FIR_filter(y1);
 
-    spl1 = firR.do_FIR_filterX2(y0, y1);
+    spl1 = firR.do_FIR_filter(y0, y1);
  
   ) : (
     // Listen/Solo mode
@@ -838,7 +914,7 @@ DO_OVERSAMPLE ? (
     // spl0list = firL.do_FIR_filter(y0) * 2;
     // firL.do_FIR_filter(y1);
 
-    spl0list = firL.do_FIR_filterX2(y0, y1);
+    spl0list = firL.do_FIR_filter(y0, y1);
 
     y0 = spl1; y1 = 0;
     listen_group != 1 ? (y0 = listen_filter.zdf_svf1(y0); y1 = listen_filter.zdf_svf1(y1));
@@ -847,7 +923,7 @@ DO_OVERSAMPLE ? (
     // spl1list = firR.do_FIR_filter(y0) * 2;
     // firR.do_FIR_filter(y1);
 
-    spl1list = firR.do_FIR_filterX2(y0, y1);
+    spl1list = firR.do_FIR_filter(y0, y1);
 
     listen_group == 1 ? spl1list = 0;
     listen_group == 2 ? spl0list = 0;
@@ -950,7 +1026,7 @@ Listen_Process ? (
   spl1 = spl1list;
 );
 
-agcControl > 0 || agcOverride > 0 ? ( 
+play_state == 1 && agcControl > 0 || agcOverride > 0 ? ( 
   RMSPre.RMS_process(spl0orig, spl1orig);
   RMSPost.RMS_process(spl0, spl1);
 
@@ -991,6 +1067,10 @@ gfx_mode = 0;
 
 TOP_MARGIN = 10;
 BOTTOM_MARGIN = gfx_ext_retina == 2 ? 64 : 32;
+RAISED_BOTTOM = gfx_ext_retina == 2 ? 240 : 120;
+//ENABLE_RAISED_BOTTOM = 1;
+ENABLE_RAISED_BOTTOM = 0;
+
 LEFT_MARGIN = 0;
 RIGHT_MARGIN = 0;
 
@@ -998,6 +1078,25 @@ spectrum.top_margin = TOP_MARGIN;
 spectrum.bottom_margin = BOTTOM_MARGIN;
 spectrum.left_margin = LEFT_MARGIN;
 spectrum.left_margin = RIGHT_MARGIN;
+
+/*
+ * Set rgb from 0..255
+ */
+function set_rgb255(r, g, b) (
+  gfx_r = r / 255;
+  gfx_g = g / 255;
+  gfx_b = b / 255;
+);
+
+/*
+ * Set rgba from 0..255
+ */
+function set_rgba255(r, g, b, a) (
+  gfx_r = r / 255;
+  gfx_g = g / 255;
+  gfx_b = b / 255;
+  gfx_a = b / 255;
+);
 
 /*
  * Get screen x from freq
@@ -1019,14 +1118,14 @@ function scx_to_freq(x) (
  */
 function db_to_y(db) local(m) (
   m = 1.0 - (((db / DB_EQ_RANGE) / 2) + 0.5);
-  TOP_MARGIN+(m * (gfx_h - (gfx_texth*2) - BOTTOM_MARGIN));
+  TOP_MARGIN+(m * (gfx_h - (gfx_texth*2) - BOTTOM_MARGIN - (RAISED_BOTTOM * ENABLE_RAISED_BOTTOM)));
 );
 
 /*
  * Get eq dB from screen y
  */
 function y_to_db(y) local(m) (
-  m = (y - TOP_MARGIN) / (gfx_h - (gfx_texth*2) - BOTTOM_MARGIN);
+  m = (y - TOP_MARGIN) / (gfx_h - (gfx_texth*2) - BOTTOM_MARGIN - (RAISED_BOTTOM * ENABLE_RAISED_BOTTOM));
   m = (1.0 - (m + 0.5)) * 2 * DB_EQ_RANGE;
   max(min(m, DB_EQ_RANGE), -DB_EQ_RANGE);
 );
@@ -1132,10 +1231,10 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
   gfx_r = 0; gfx_g = 0; gfx_b = 0; gfx_a = 1;
   gfx_circle(x-1, y-1, size, 0, 1);
 
-  band == node_hover ? (
+  band == node_hover || selected_node == band ? (
     //Custom
-    // Change Alpha when note is pressed
-    node_drag_mode == 1 ? (
+    // Change Alpha when node is pressed
+    selected_node == band ? (
       gfx_r = 1; gfx_g = 1; gfx_b = 0.3; gfx_a = 0.4;
     ):(
       gfx_r = 1; gfx_g = 1; gfx_b = 0.3; gfx_a = 0.2;
@@ -1150,7 +1249,7 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
     );
   );
 
-  Band_Type[band] != BAND_STATE_OFF || Scale != 100 ? (  // Don't draw for peak eq
+  Band_Type[band] != BAND_STATE_OFF || Scale != 100 ? (
     // Draw connecting line so that we can see which node affects which part of the curve
     // Low Cut,Low Cut (Butterworth),High Cut,High Cut (Butterworth),Band Pass,Notch,Peak,Low Shelf,High Shelf,Tilt Shelf,Pultec Low Shelf,All Pass
     transfer = (band == 0 ? gfx_band1.filter.zdf_magnitude(freq) :
@@ -1193,6 +1292,17 @@ function draw_nodes() local (band) (
       band += 1;
     );
   );
+);
+
+function draw_line(x1, y1, x2, y2)
+(
+  x1 = floor(x1);
+  x2 = floor(x2);
+  x2 = floor(x2);
+  y2 = floor(y2);
+  
+  gfx_line(x1, y1-1, x2, y2-1, 1);
+  gfx_line(x1, y1, x2, y2, 1); 
 );
 
 /*
@@ -1264,11 +1374,14 @@ function draw_filter_bands()
                 y0 = bottom;
               );
 
+              /*
               gfx_line(x1, y1, x0, y0, 1);
               gfx_ext_retina == 2 ? (
                 gfx_line(x1, y1+1, x0, y0+1, 1);
                 gfx_line(x1, y1+2, x0, y0+2, 1);
               );
+              */
+              draw_line(x1, y1, x0, y0);
             );
 
             // Fill in
@@ -1367,26 +1480,21 @@ function draw_filter_response(group, red, green, blue)
       );
 
       gfx_a = 1;
-      gfx_line(x0, y0, x1, y1, 1);
+
+
+      draw_line(x0, y0, x1, y1);
 
       gfx_ext_retina == 2 ? (
         // Thicken the line up
         abs(x1 - x0) > abs(y1 - y0) ? (
-          gfx_a = 0.3;
-          gfx_line(x0, y0+2, x1, y0+2, 1);
-          gfx_line(x0, y0-2, x1, y0-2, 1);
-          gfx_a = 0.6;
-          gfx_line(x0, y0+1, x1, y0+1, 1);
-          gfx_line(x0, y0-1, x1, y0-1, 1);
+          draw_line(x0, y0+1, x1, y1+1);
+          draw_line(x0, y0-1, x1, y1-1);
         ) : ( 
-          gfx_a = 0.3;
-          gfx_line(x0+2, y0, x1+2, y1, 1);
-          gfx_line(x0-2, y0, x1-2, y1, 1);
-          gfx_a = 0.6;
-          gfx_line(x0+1, y0, x1+1, y1, 1);
-          gfx_line(x0-1, y0, x1-1, y1, 1);
+          draw_line(x0+1, y0, x1+1, y1);
+          draw_line(x0-1, y0, x1-1, y1);
         );
       );
+
       /*
       midp = (gfx_h - gfx_texth) / 2;
 
@@ -1452,16 +1560,20 @@ function draw_grid() local (db, y, scx, size) (
     y > gfx_y ? (
       gfx_r=gfx_g=gfx_b=1; gfx_a=0.3;
     
-      gfx_line((gfx_texth*2), y, gfx_w-(gfx_texth*2.2), y, 0);
-
-      gfx_r=gfx_g=0.75; gfx_b=0; gfx_a=1.0;
-      gfx_x = scx-gfx_texth*(gfx_ext_retina == 2 ? 2 : 2); gfx_y = y - gfx_texth/2;
-      db > 0 ? gfx_printf("+%d", db) : db < 0 ? gfx_printf("%d", db) : gfx_printf("  %d", db);
-      gfx_y+=gfx_texth;
+      abs(db) <= DB_EQ_RANGE ? (
+        gfx_line((gfx_texth*2), y, gfx_w-(gfx_texth*2.2), y, 0);
+        gfx_r=gfx_g=0.75; gfx_b=0; gfx_a=1.0;
+        gfx_x = scx-gfx_texth*(gfx_ext_retina == 2 ? 2 : 2); gfx_y = y - gfx_texth/2;
+        db > 0 ? gfx_printf("+%d", db) : db < 0 ? gfx_printf("%d", db) : gfx_printf("  %d", db);
+      ) : (
+        y < gfx_h - gfx_texth*2 - BOTTOM_MARGIN ? gfx_line((gfx_texth*2), y, gfx_w - gfx_texth, y, 0);
+      );
+      gfx_y += gfx_texth;
     );
     db -= DB_EQ_RANGE_STEPS;
 
-    abs(db) <= DB_EQ_RANGE;
+    y < gfx_h - gfx_texth*2 - BOTTOM_MARGIN;
+
   );
 );
 
@@ -1522,13 +1634,10 @@ function get_nearest_node()
 );
 
 /*
- * Draw the mouse crosshair
+ * Return readable string of frequency
  */
-function draw_mouse_crosshair() local(read_freq, frq, width, height) (
-  read_freq = spectrum.x_to_freq(mouse_x+1);
-
+function get_freq_str(read_freq) instance(frq) ( 
   frq = #;
-
   read_freq < 100 ? ( sprintf(frq,"%.1f Hz", read_freq) ) :
     (read_freq < 1000 ? ( sprintf(frq,"%.0f Hz", read_freq) ) : ( 
       (read_freq < 10000 ? ( sprintf(frq,"%.2f kHz", read_freq/1000) ) : ( 
@@ -1536,6 +1645,16 @@ function draw_mouse_crosshair() local(read_freq, frq, width, height) (
       )
     )
   ));
+  frq;
+);
+
+/*
+ * Draw the mouse crosshair
+ */
+function draw_mouse_crosshair() local(read_freq, frq, width, height, frq) (
+  read_freq = spectrum.x_to_freq(mouse_x+1);
+
+  frq = cross.get_freq_str(read_freq);
 
   gfx_measurestr(frq, width, height);
 
@@ -2022,6 +2141,16 @@ function set_node_color(band, frq) local (bnd, bndabs, bndfrac) (
   Band_Green[band] = (1.0 - bndfrac) * b1 + bndfrac * b2;
 );
 
+
+
+function uix_thick_line(x1, y1, x2, y2) (
+  gfx_line(x1, y1, x2, y2, 1);
+  gfx_line(x1 + 1, y1, x2 + 1, y2, 1);
+  gfx_line(x1, y1 + 1, x2, y2 + 1, 1);
+  gfx_line(x1 - 1, y1, x2 - 1, y2, 1);
+  gfx_line(x1, y1 - 1, x2, y2 - 1, 1);
+);
+
 /*
  * Draw a dial at x, y with radius r and value v 0..1
  * Set mode to 1 to support negative..positive mode
@@ -2029,7 +2158,91 @@ function set_node_color(band, frq) local (bnd, bndabs, bndfrac) (
 function draw_dial(x, y, r, v, mode) 
 local(x, y, x1, x2, x3, x4, y1, y2, y3, y4, x1r, y1r, x2r, y2r, x3r, y3r, x4r, y4r, start, end, ang, rsize, rwidth, roffset, ofs, c, i, st, en)
 (
-  r = r * gfx_ext_retina;
+  // gfx_circle(x, y, r, 1);
+
+  gfx_r *= 0.4;
+  gfx_g *= 0.4;
+  gfx_b *= 0.4;
+  gfx_a = 1;
+  // gfx_circle(x, y, r-(r*0.10), 1);
+
+  // gfx_circle(x, y, r, 1);
+
+  start = 3 * (2*$pi/8);
+  end = 9 * (2*$pi/8);
+
+  ang = start + ((end - start) * v);
+
+  rsize = r-2;
+  rwidth = 1 * gfx_ext_retina;
+  roffset = r - (7 * gfx_ext_retina); // * (40 / 50);
+
+  gfx_r = gfx_b = gfx_g = 1; gfx_a = 1;
+
+  x1 = roffset;
+  y1 = 0;
+  x2 = rsize;
+  y2 = 0;
+
+  x1r = x1 * cos(ang) - y1 * sin(ang);
+  y1r = y1 * cos(ang) + x1 * sin(ang);
+
+  x2r = x2 * cos(ang) - y2 * sin(ang);
+  y2r = y2 * cos(ang) + x2 * sin(ang);
+
+
+  uix_thick_line(x+x1r, y+y1r, x+x2r, y+y2r);
+
+  gfx_r = gfx_b = gfx_g = 0.4; gfx_a = 1;
+
+  ofs = 2 * (2*$pi/8);
+
+  mode == 0 ? ( 
+    st = start + ofs;
+    en = ang + ofs;
+  ) : mode == 1 ? (
+    en = 3 * (2*$pi/8) + ofs;
+    st = 6 * (2*$pi/8) + ofs;
+    en = en + ((st - en) * (v*2));
+  );
+
+
+  gfx_r = gfx_g = gfx_b = 0.3; gfx_a = 1;
+  gfx_r = 70/255; gfx_g = 105/255; gfx_b = 127/255;
+
+  //gfx_set(0.40);
+  c = gfx_ext_retina * 5;
+  i=0;
+  rad = r + 3;
+  while(
+    gfx_arc(x,y,rad, start+ofs, end+ofs, 1); 
+    rad += 0.5;
+    i += 1;
+    i < c;
+  );
+
+
+
+
+  gfx_r = gfx_g = gfx_b = gfx_a = 1;
+  gfx_r = 97/255; gfx_g = 155/255; gfx_b = 173/255;
+
+  c = gfx_ext_retina * 5;
+  i=0;
+  rad = r + 3;
+  while(
+    gfx_arc(x,y,rad, st, en, 1); 
+    rad += 0.5;
+    i += 1;
+    i < c;
+  );
+);
+
+
+function draw_dial2(x, y, r, v, mode) 
+local(x, y, x1, x2, x3, x4, y1, y2, y3, y4, x1r, y1r, x2r, y2r, x3r, y3r, x4r, y4r, start, end, ang, rsize, rwidth, roffset, ofs, c, i, st, en)
+(
+  // r = r * gfx_ext_retina;
 
   gfx_circle(x, y, r, 1);
 
@@ -2045,8 +2258,8 @@ local(x, y, x1, x2, x3, x4, y1, y2, y3, y4, x1r, y1r, x2r, y2r, x3r, y3r, x4r, y
   ang = start + ((end - start) * v);
 
   rsize = r+2;
-  rwidth = 3 * gfx_ext_retina;
-  roffset = r * (24 / 50);
+  rwidth = 1 * gfx_ext_retina;
+  roffset = r * (20 / 50);
 
   x1 = roffset;
   y1 = -rwidth;
@@ -2072,11 +2285,11 @@ local(x, y, x1, x2, x3, x4, y1, y2, y3, y4, x1r, y1r, x2r, y2r, x3r, y3r, x4r, y
   x4r = x4 * cos(ang) - y4 * sin(ang);
   y4r = y4 * cos(ang) + x4 * sin(ang);
 
-  gfx_r = gfx_b = gfx_g = 0; gfx_a = 1;
+  gfx_r = gfx_b = gfx_g = 0.4; gfx_a = 1;
 
   gfx_triangle(x+x1r, y+y1r, x+x2r, y+y2r, x+x3r, y+y3r, x+x4r, y+y4r);
 
-  gfx_r = gfx_b = gfx_g = 0; gfx_a = 1;
+  gfx_r = gfx_b = gfx_g = 0.4; gfx_a = 1;
   gfx_line(x+x1r, y+y1r, x+x2r, y+y2r, 1);
   gfx_line(x+x3r, y+y3r, x+x4r, y+y4r, 1);
 
@@ -2105,21 +2318,160 @@ local(x, y, x1, x2, x3, x4, y1, y2, y3, y4, x1r, y1r, x2r, y2r, x3r, y3r, x4r, y
 );
 
 /*
- * Init the toggle style button
+ * Init the close style button
  */
-function init_toggle_button(xpos, ypos, buttonwidth, select, label) instance (x, y, width, menutext, label, select) (
+function init_close_button(xpos, ypos, buttonwidth, select, label) instance (x, y, width, menutext, label, select, select_r, select_g, select_b, small) (
   x = xpos;
   y = ypos;
   width = buttonwidth;
   this.select = select;
   this.label = label;
+  select_r = 46/255;
+  select_g = 139/255;
+  select_b = 87/255;
+  small = 1;
+);
+
+/*
+ * Draw the close style button
+ */
+function draw_close_button() instance (x, y, width, menutext, label, pressed, height, select, small, select_r, select_g, select_b) ( 
+  gfx_a = 1;
+
+  small == 1 ? gfx_setfont(2) : gfx_setfont(1);
+
+  gfx_measurestr("*", w, h);
+
+  height = h;
+
+  button_focus == -1 && node_drag_mode == 0 &&
+    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+    gfx_r = (221 / 255);
+    gfx_g = (119 / 255);
+    gfx_b = (108 / 255);
+  ) : (
+    gfx_r = (234 / 255) * 0.80;
+    gfx_g = (22 / 255) * 0.80;
+    gfx_b = (32 / 255) * 0.80;
+  );
+
+  gfx_ext_retina == 2 ? (
+    gfx_rect(x, y, width, h+9);
+    gfx_circle(x, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
+    gfx_circle(x + width, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
+  ) : ( 
+    small == 1 ? gfx_rect(x, y, width, h+4) : gfx_rect(x, y, width, h+5);    
+    gfx_circle(x, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
+    gfx_circle(x + width, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
+  );
+
+  gfx_r = (114 / 255);
+  gfx_g = (215 / 255);
+  gfx_b = (253 / 255);
+  gfx_a = 1;
+  gfx_x = x + (width / 2) - (w / 2);
+
+  gfx_ext_retina == 2 ? (
+    gfx_y = y + 4;
+  ) : ( 
+    gfx_y = y + 4;
+  );
+
+  gfx_set(0.9, 0.9, 0.9, 1);
+  gfx_ext_retina == 2 ? (
+
+    gfx_line(gfx_x, gfx_y+19, gfx_x+12, gfx_y+1, 1);    
+    gfx_line(gfx_x, gfx_y+1, gfx_x+12, gfx_y+19, 1);
+
+    //gfx_line(gfx_x-1, gfx_y+19, gfx_x+12, gfx_y+1);
+  ) : (
+    gfx_line(gfx_x-1, gfx_y+7, gfx_x+5, gfx_y+1, 1);    
+    gfx_line(gfx_x-1, gfx_y+1, gfx_x+5, gfx_y+7, 1);
+  );
+);
+
+/*
+ * Handle the close style button
+ */
+function handle_close_button() instance (x, y, width, menutext, label, pressed, height, select, m1, m2)
+  local (last_clicked_item)
+(
+  last_clicked_item = 0;
+  select = 0;
+  button_focus == -1 && node_drag_mode == 0 ? (
+    mouse_cap & 1 ? (
+      mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+        select = 1;
+      );
+    );
+  );
+  select;
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * Init the toggle style button
+ */
+function init_toggle_button(xpos, ypos, buttonwidth, select, label) instance (x, y, width, menutext, label, select, select_r, select_g, select_b, small) (
+  x = xpos;
+  y = ypos;
+  width = buttonwidth;
+  this.select = select;
+  this.label = label;
+  select_r = 46/255;
+  select_g = 139/255;
+  select_b = 87/255;
+);
+
+function init_toggle_button_small(xpos, ypos, buttonwidth, select, label) instance (x, y, width, menutext, label, select, select_r, select_g, select_b, small) (
+  this.init_toggle_button(xpos, ypos, buttonwidth, select, label);
+  small = 1;
+
+  select_r = (204*0.90)/255;
+  select_g = (127*0.90)/255;
+  select_b = (28*0.90)/255;
 );
 
 /*
  * Draw the toggle style button
  */
-function draw_toggle_button() instance (x, y, width, menutext, label, pressed, height, select) ( 
+function draw_toggle_button() instance (x, y, width, menutext, label, pressed, height, select, small, select_r, select_g, select_b) ( 
   gfx_a = 1;
+
+  small == 1 ? gfx_setfont(2) : gfx_setfont(1);
 
   strlen(label) == 0 ? gfx_measurestr("*", w, h) : gfx_measurestr(label, w, h);
 
@@ -2138,7 +2490,7 @@ function draw_toggle_button() instance (x, y, width, menutext, label, pressed, h
 
   select == 1 ? (
     strlen(label) == 0 ? ( gfx_r = 0.0; gfx_g = 0.4; gfx_b = 1; ) : 
-      ( gfx_r = 46/255; gfx_g = 139/255; gfx_b = 87/255; );
+      ( gfx_r = select_r; gfx_g = select_g; gfx_b = select_b; );
   );
 
   gfx_ext_retina == 2 ? (
@@ -2146,7 +2498,7 @@ function draw_toggle_button() instance (x, y, width, menutext, label, pressed, h
     gfx_circle(x, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
     gfx_circle(x + width, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
   ) : ( 
-    gfx_rect(x, y, width, h+5);
+    small == 1 ? gfx_rect(x, y, width, h+4) : gfx_rect(x, y, width, h+5);
     gfx_circle(x, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
     gfx_circle(x + width, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
   );
@@ -2156,7 +2508,14 @@ function draw_toggle_button() instance (x, y, width, menutext, label, pressed, h
   gfx_b = (253 / 255);
   gfx_a = 1;
   gfx_x = x + (width / 2) - (w / 2);
-  gfx_y = y + 4;
+
+  gfx_ext_retina == 2 ? (
+    small == 1 ? gfx_y = y + 4 :
+      gfx_y = y + 4;
+  ) : ( 
+    small == 1 ? gfx_y = y + 2 :
+      gfx_y = y + 4;
+  );
 
   strlen(label) == 0 ? (
     gfx_ext_retina == 2 ? (
@@ -2166,7 +2525,12 @@ function draw_toggle_button() instance (x, y, width, menutext, label, pressed, h
       gfx_circle(gfx_x+3, gfx_y+5, 4, 0, 1);
       gfx_line(gfx_x-1, gfx_y+10, gfx_x+7, gfx_y);
     );
-  ) : gfx_drawstr(label);
+  ) : (
+    select == 1 ? gfx_set(0.9, 0.9, 0.9, 1);
+    gfx_drawstr(label);
+  );
+
+  gfx_setfont(1);
 );
 
 /*
@@ -2198,7 +2562,155 @@ function handle_toggle_button() instance (x, y, width, menutext, label, pressed,
 /*
  * Init the options style button
  */
-function init_options_button(xpos, ypos, buttonwidth, select, m1, m2, mf1, mf2) instance (x, y, width, menutext, label, select, m1, m2, mf1, mf2) (
+function init_options_button2(xpos, ypos, buttonwidth, select, nOptions, options) instance (x, y, width, menutext, label, select, small, nOptions, options) (
+  x = xpos;
+  y = ypos;
+  width = buttonwidth;
+  this.select = select;
+  label = options[select];
+  this.nOptions = nOptions;
+  this.options = options;
+);
+
+function init_options_button_small2(xpos, ypos, buttonwidth, select, nOptions, options) instance (x, y, width, menutext, label, select, small, nOptions, options) (
+  this.init_options_button2(xpos, ypos, buttonwidth, select, nOptions, options);
+  small = 1;
+);
+
+/*
+ * Draw the options style button
+ */
+function draw_options_button2() instance (x, y, width, menutext, label, pressed, height, select, small, nOptions, options) ( 
+  gfx_a = 1;
+
+  small == 1 ? gfx_setfont(2) : gfx_setfont(1);
+
+  label = options[select];
+
+  gfx_measurestr(label, w, h);
+
+  height = h;
+
+  button_focus == -1 && node_drag_mode == 0 &&
+    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+    gfx_r = (114 / 255) * 0.6;
+    gfx_g = (215 / 255) * 0.6;
+    gfx_b = (253 / 255) * 0.6;
+  ) : (
+    gfx_r = (114 / 255) * 0.4;
+    gfx_g = (215 / 255) * 0.4;
+    gfx_b = (253 / 255) * 0.4;
+  );
+
+  gfx_ext_retina == 2 ? (
+    gfx_rect(x, y, width, h+9);
+    gfx_circle(x, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
+    gfx_circle(x + width, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
+  ) : ( 
+    small == 1 ? gfx_rect(x, y, width, h+4) : gfx_rect(x, y, width, h+5);
+    gfx_circle(x, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
+    gfx_circle(x + width, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
+  );
+
+  gfx_r = (114 / 255);
+  gfx_g = (215 / 255);
+  gfx_b = (253 / 255);
+  gfx_a = 1;
+
+  gfx_x = x + (width / 2) - (w / 2);
+
+  gfx_ext_retina == 2 ? (
+    small == 1 ? gfx_y = y + 4 :
+      gfx_y = y + 4;
+  ) : ( 
+    small == 1 ? gfx_y = y + 2 :
+      gfx_y = y + 4;
+  );
+
+  gfx_drawstr(label);
+
+  gfx_setfont(1);
+);
+
+/*
+ * Handle the options style button
+ */
+function handle_options_button2() instance (x, y, width, menutext, label, pressed, height, select, nOptions, options)
+  local (last_clicked_item, oi)
+(
+  last_clicked_item = 0;
+  button_focus == -1 && node_drag_mode == 0 ? (
+    mouse_cap & 1 && !pressed ? (
+      mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+        pressed = 1;
+
+        #menu = "";
+
+        oi = 0;
+        while( 
+          oi == select ? #menu += "!";
+          #menu += options[oi];
+          #menu += "|";
+          oi += 1;
+          oi < nOptions;
+        );
+
+        gfx_x = mouse_x;
+        gfx_y = mouse_y;
+
+        gfx_ext_retina == 2 ? (
+          gfx_x = gfx_x / 2;
+          gfx_y = gfx_y / 2;
+        );
+
+        last_clicked_item = gfx_showmenu(#menu);
+
+        last_clicked_item == 1 ? (label = m1; select = 0;);
+        last_clicked_item == 2 ? (label = m2; select = 1;);
+
+        pressed = 0;
+
+      ) : pressed = 0;
+    ) : ( 
+      !(mouse_cap & 1) ? pressed = 0;
+    );
+
+  );
+  last_clicked_item;
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * Init the options style button
+ */
+function init_options_button(xpos, ypos, buttonwidth, select, m1, m2, mf1, mf2) instance (x, y, width, menutext, label, select, m1, m2, mf1, mf2, small) (
   x = xpos;
   y = ypos;
   width = buttonwidth;
@@ -2210,11 +2722,18 @@ function init_options_button(xpos, ypos, buttonwidth, select, m1, m2, mf1, mf2) 
   this.mf2 = mf2;
 );
 
+function init_options_button_small(xpos, ypos, buttonwidth, select, m1, m2, mf1, mf2) instance (x, y, width, menutext, label, select, m1, m2, mf1, mf2, small) (
+  this.init_options_button(xpos, ypos, buttonwidth, select, m1, m2, mf1, mf2);
+  small = 1;
+);
+
 /*
  * Draw the options style button
  */
-function draw_options_button() instance (x, y, width, menutext, label, pressed, height, select, m1, m2, mf1, mf2) ( 
+function draw_options_button() instance (x, y, width, menutext, label, pressed, height, select, m1, m2, mf1, mf2, small) ( 
   gfx_a = 1;
+
+  small == 1 ? gfx_setfont(2) : gfx_setfont(1);
 
   label = select == 0 ? m1 : select == 1 ? m2;
 
@@ -2238,7 +2757,7 @@ function draw_options_button() instance (x, y, width, menutext, label, pressed, 
     gfx_circle(x, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
     gfx_circle(x + width, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
   ) : ( 
-    gfx_rect(x, y, width, h+5);
+    small == 1 ? gfx_rect(x, y, width, h+4) : gfx_rect(x, y, width, h+5);
     gfx_circle(x, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
     gfx_circle(x + width, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
   );
@@ -2247,9 +2766,20 @@ function draw_options_button() instance (x, y, width, menutext, label, pressed, 
   gfx_g = (215 / 255);
   gfx_b = (253 / 255);
   gfx_a = 1;
+
   gfx_x = x + (width / 2) - (w / 2);
-  gfx_y = y + 4;
+
+  gfx_ext_retina == 2 ? (
+    small == 1 ? gfx_y = y + 4 :
+      gfx_y = y + 4;
+  ) : ( 
+    small == 1 ? gfx_y = y + 2 :
+      gfx_y = y + 4;
+  );
+
   gfx_drawstr(label);
+
+  gfx_setfont(1);
 );
 
 /*
@@ -2406,18 +2936,20 @@ function handle_number_button() instance (x, y, width, menutext, label, drag, he
 /*
  * Init the number style dial
  */
-function init_number_dial(xpos, ypos, rad, mode) instance (x, y, r, v, mode) (
+function init_number_dial(xpos, ypos, rad, mode, label, label2) instance (x, y, r, v, mode, label, label2) (
   x = xpos;
   y = ypos;
   r = rad;
   v = 0;
   this.mode = mode;
+  this.label = label;
+  this.label2 = label2;
 );
 
 /*
  * Draw the number style button
  */
-function draw_number_dial() instance (x, y, r, v, mode) local (txt) ( 
+function draw_number_dial() instance (x, y, r, v, mode, label, label2) local (txt) ( 
   gfx_a = 1;
   txt = #;
   /*
@@ -2431,6 +2963,29 @@ function draw_number_dial() instance (x, y, r, v, mode) local (txt) (
 
   height = h;
   */
+
+  gfx_setfont(2);
+
+  gfx_measurestr(label, w, h);
+
+  gfx_r = gfx_b = gfx_g = gfx_a = 1;
+
+  gfx_x = x - (w/2);
+  gfx_y = y - r - (18 * gfx_ext_retina);
+
+  gfx_printf("%s", label);
+
+  gfx_measurestr(label2, w, h);
+
+  gfx_r = gfx_b = gfx_g = gfx_a = 1;
+
+  gfx_x = x - (w/2);
+  gfx_y = y + r + (gfx_texth - (6 * gfx_ext_retina));
+
+  gfx_printf("%s", label2);
+
+  gfx_setfont(1);
+
 
   gfx_r = gfx_b = gfx_g = gfx_a = 1;
 
@@ -2743,8 +3298,14 @@ gfx_ext_retina != last_gfx_ext_retina ? (
   last_gfx_ext_retina = gfx_ext_retina;
   
   //gfx_ext_retina > 1 ? gfx_setfont(1,"Verdana",18,'b') : gfx_setfont(0);
-  gfx_ext_retina > 1 ? gfx_setfont(1,"Arial",20,'b') : 
+  gfx_ext_retina > 1 ? (
+    gfx_setfont(1,"Arial",20,'b');
+    gfx_setfont(2,"Arial",18,'b');
+  ) : (
     gfx_setfont(1,"Arial",12,'b');
+    gfx_setfont(2,"Arial",10,'b');
+  );
+  gfx_setfont(1);
 );
 
 // Update any changed filters
@@ -2767,6 +3328,16 @@ Display_Mode < 2 ? (
     Spectrum_Mode == 3 || Spectrum_Mode == 6 ? spectrum.draw(5);
   );
 );
+
+
+ht = (gfx_h - BOTTOM_MARGIN - gfx_texth) + 2;
+
+dst_a = 0.55 / ht;
+gfx_gradrect(0, ht/2, gfx_w, ht/2, 0,0,0,0,    0, 0, 0, 0, 0, 0, 0, dst_a*2); 
+
+
+
+
 
 draw_grid();
 
@@ -2848,22 +3419,18 @@ mouse_cap & 2 ? (
       has_slope_menu = 0;
       Band_Type[band] == 1 || Band_Type[band] == 2 || Band_Type[band] == 5 || Band_Type[band] == 6 ? (
         #menu += ">Slope|";
-        Band_Slope[band] == 0 ? #menu += "!"; #menu += "6db|";
-        Band_Slope[band] == 1 ? #menu += "!"; #menu += "12db|";
-        Band_Slope[band] == 2 ? #menu += "!"; #menu += "18db|";
-        Band_Slope[band] == 3 ? #menu += "!"; #menu += "24db|";
-        Band_Slope[band] == 4 ? #menu += "!"; #menu += "30db|";
-        Band_Slope[band] == 5 ? #menu += "!"; #menu += "36db|";
-        Band_Slope[band] == 6 ? #menu += "!"; #menu += "42db|";
-        Band_Slope[band] == 7 ? #menu += "!"; #menu += "48db|";
-        Band_Slope[band] == 8 ? #menu += "!"; #menu += "54db|";
-        Band_Slope[band] == 9 ? #menu += "!"; #menu += "60db|";
-        Band_Slope[band] == 10 ? #menu += "!"; #menu += "66db|";
-        Band_Slope[band] == 11 ? #menu += "!"; #menu += "72db|";
-        Band_Slope[band] == 12 ? #menu += "!"; #menu += "78db|";
-        Band_Slope[band] == 13 ? #menu += "!"; #menu += "84db|";
-        Band_Slope[band] == 14 ? #menu += "!"; #menu += "90db|";
-        Band_Slope[band] == 15 ? #menu += "!"; #menu += "<96db|";
+
+        slope = 0;
+        while( 
+          match("%ddb", FilterSlopes[slope], value);
+
+          Band_Slope[band] == ((value / 6)-1) ? #menu += "!";
+          slope == NumFilterSlopes-1 ? #menu += "<";
+          #menu += FilterSlopes[slope]; #menu += "|";
+
+          slope += 1;
+          slope < NumFilterSlopes;
+        );
         has_slope_menu = 1;
       );
 
@@ -2918,24 +3485,25 @@ mouse_cap & 2 ? (
       );
 
       has_slope_menu ? (
-        last_clicked_item >= 15 && last_clicked_item <= 30 ? (
-          Band_Slope[band] = last_clicked_item - 15;
+        last_clicked_item >= 15 && last_clicked_item <= 24 ? (
+          match("%ddb", FilterSlopes[last_clicked_item - 15], value);
+          Band_Slope[band] = (value / 6) - 1;
 
           flag_filter_update(band);
 
           filters_to_sliders();
         );
-      ) : last_clicked_item += 16;
+      ) : last_clicked_item += 10;
 
-      last_clicked_item >= 31 && last_clicked_item <= 33 ? (
-        Band_Group[band] = last_clicked_item - 31;
+      last_clicked_item >= 25 && last_clicked_item <= 27 ? (
+        Band_Group[band] = last_clicked_item - 25;
 
         flag_filter_update(band);
 
         filters_to_sliders();
       );
 
-      last_clicked_item == 34 ? (
+      last_clicked_item == 28 ? (
         // Split band
         fband = 0;
         while(
@@ -2950,8 +3518,10 @@ mouse_cap & 2 ? (
         filters_to_sliders();
       );
 
-      last_clicked_item == 35 ? (
+      last_clicked_item == 29 ? (
         // Delete band
+        selected_node = -1;
+
         Band_Enabled[band] = BAND_STATE_OFF;
 
         band == 0 ? gfx_band1.filter.zdf_bypass() :
@@ -2999,6 +3569,7 @@ mouse_cap & 1 ? (
           band = 0;
           while( 
             Band_Enabled[band]!=BAND_STATE_OFF && is_node_selected(Band_Frequency[band], Band_Gain[band]) ? (
+              selected_band = -1;
               Band_Enabled[band] = BAND_STATE_OFF;
 
               band == 0 ? gfx_band1.filter.zdf_bypass() :
@@ -3055,7 +3626,8 @@ mouse_cap & 1 ? (
 
   node_drag_mode == 0 && button_focus == -1 ? (
     band = get_nearest_node();
-    band != -1 ? ( 
+    band != -1 ? (
+      selected_node = band;
       node_drag = band;
       node_drag_mode = 1;
       node_drag_offy = mouse_y - db_to_y(Band_Gain[band]);
@@ -3066,6 +3638,8 @@ mouse_cap & 1 ? (
       ) : mouse_cap & 16 ? (
         node_drag_lock = 2;
       ) : node_drag_lock = 0;
+    ) : ( 
+      selected_node = -1;
     );
   );
 
@@ -3078,31 +3652,35 @@ mouse_cap & 1 ? (
     );
 
     node_drag_lock == 0 ? (
-      old_gain = Band_Gain[node_drag];
-
-
       Band_Gain[node_drag] = y_to_db(mouse_y - node_drag_offy);
       Band_Frequency[node_drag] = scx_to_freq(mouse_x - node_drag_offx);
 
-      // Adaptive Q
-/*
-      gain_diff = (Band_Gain[node_drag] - old_gain) / 2;
+      filters_to_sliders();
 
-      Band_Q[node_drag] += abs(gain_diff);
-*/
+      // Notify Reaper that a parameter change has happened
+      notify_touched_gain(node_drag);
+      notify_touched_frequency(node_drag);
     );
 
     node_drag_lock == 2 ? (
       Band_Gain[node_drag] = y_to_db(mouse_y - node_drag_offy);
+
+      filters_to_sliders();
+
+      // Notify Reaper that a parameter change has happened
+      notify_touched_gain(node_drag);
     );
 
     node_drag_lock == 1 ? (
       Band_Frequency[node_drag] = scx_to_freq(mouse_x - node_drag_offx);
+
+      filters_to_sliders();
+
+      // Notify Reaper that a parameter change has happened
+      notify_touched_frequency(node_drag);
     );
 
     flag_filter_update(node_drag);
-
-    filters_to_sliders();
   );
 
 ) : (
@@ -3138,12 +3716,39 @@ md != 0.0 ? (
         // Alter filter slope
         md < 0 ? md = -1;
         md > 0 ? md = 1;
-        Band_Slope[band] = max(min(Band_Slope[band] - md, 15.0), 0);
+
+        // Find the current slope
+        foundSlope = 0;
+        slope = 0;
+        while( 
+          match("%ddb", FilterSlopes[slope], value);
+
+          numSlope = ((value / 6) - 1);
+
+          numSlope >= Band_Slope[band] ? (
+            foundSlope = slope;
+            slope = NumFilterSlopes;
+          );
+
+          slope += 1;
+          slope < NumFilterSlopes;
+        );
+
+        foundSlope = max(min(foundSlope - md, 9), 0);
+
+        match("%ddb", FilterSlopes[foundSlope], value);
+
+        Band_Slope[band] = ((value / 6) - 1);
       ) : (
         // Alter filter Q
         // Get the Q value as 0..1, apply mouse offset then convert back to logarithmic Q
         // This ensure that inc/dec movement is uniform throughout the entire Q range
         Band_Q[band] = max(0.10, min(40, per_to_q(q_to_per(Band_Q[band], 1) + md * 0.008, 1)));
+
+        filters_to_sliders();
+
+        // Notify Reaper that a parameter change has happened
+        notify_touched_Q(band);
       );
 
       flag_filter_update(band);
@@ -3155,8 +3760,6 @@ md != 0.0 ? (
     listen_width = min(0.30, listen_width);
     listen_width = max(0.01, listen_width);
   );
-
-  filters_to_sliders();
 );
 
 // Set the button positions each time in case we move between
@@ -3229,9 +3832,34 @@ buttons_init == 0 || gfx_w != OLD_WIDTH ? (
 
 
 
-  dial_freq.init_number_dial(100, 200, 30, 0);
-  dial_gain.init_number_dial(300, 200, 40, 1);
-  dial_q.init_number_dial(500, 200, 30, 0);
+
+  // Filter panel
+
+  panel_bypass_xoffset = 300;
+  panel_bypass_width = 50;
+  panel_bypass_toggle.init_toggle_button_small(panel_bypass_xoffset, gfx_h-150, panel_bypass_width, 0, "BYPASS");
+
+  panel_delete_xoffset = 800;
+  panel_delete_width = 6;
+  panel_delete_toggle.init_close_button(panel_delete_xoffset, gfx_h-150, panel_delete_width, 0, "X");
+
+  panel_shape_xoffset = 300;
+  panel_shape_width = 100;
+  panel_shape_options.init_options_button_small2(panel_shape_xoffset, gfx_h-130, panel_shape_width, 0, 12, FilterTypes);
+
+  panel_slope_xoffset = 300;
+  panel_slope_width = 50;
+  panel_slope_toggle.init_options_button_small2(panel_slope_xoffset, gfx_h-110, panel_slope_width, 0, NumFilterSlopes, FilterSlopes);
+
+  panel_stereo_xoffset = 300;
+  panel_stereo_width = 50;
+  panel_stereo_options.init_options_button_small2(panel_stereo_xoffset, gfx_h-90, panel_stereo_width, 0, 3, StereoModes);
+
+
+
+  dial_freq.init_number_dial(100, 200, 20, 0, "FREQ", "10kHz");
+  dial_gain.init_number_dial(300, 200, 30, 1, "GAIN", "18dB");
+  dial_q.init_number_dial(500, 200, 20, 0, "Q", "0.701");
 
 
 
@@ -3347,39 +3975,155 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
 
 
 
+  /*
+
+  Filter node panel features:
+
+    Enable
+    Delete
+    Shape
+    Slope
+    Stereo
+    Split
+    Duplicate
+    Listen
+    Next
+    Prev
+
+
+
+
+  */
+
+
+
 
 /*
-  dial_freq.draw_number_dial();
-  rotval = freq_to_per(Band_Frequency[0], 1.0);
+  // Draw node panel background
+  gfx_r = 0; gfx_g = 0; gfx_b = 0; gfx_a = 0.5;
+  gfx_rect(gfx_w/4, gfx_h - 160, gfx_w - (gfx_w/2), 100);
 
-  v = dial_freq.handle_number_dial(rotval);
+  selected_node != -1 ? (
 
-  v != rotval ? (
-    Band_Frequency[0] = per_to_freq(v, 1.0);
-    flag_filter_update(0);
-  );
+    // Bypass
+    panel_bypass_xoffset = 490;
+    panel_bypass_width = 40;
+
+    panel_bypass_toggle.select = Band_Enabled[selected_node] == 1;
+
+    bypassed = panel_bypass_toggle.handle_toggle_button() ? 1 : 2;
+    bypassed != Band_Enabled[selected_node] ? (
+      Band_Enabled[selected_node] = bypassed;
+      flag_filter_update(selected_node);
+      filters_to_sliders();
+    );
+
+    panel_bypass_toggle.draw_toggle_button();
+
+    // Shape
+    panel_shape_xoffset = 490;
+    panel_shape_width = 40;
+
+    panel_shape_options.select = Band_Enabled[selected_node] == 1;
+
+    panel_shape_options.draw_options_button2();
+
+    bypassed = panel_shape_options.handle_options_button2() ? 1 : 2;
 
 
-  dial_gain.draw_number_dial();
-  a1 = -30;  b1 = 30;
-  rotval = (Band_Gain[0] - a1) / (b1 - a1);
+    // Slope
+    panel_slope_xoffset = 490;
+    panel_slope_width = 50;
 
-  v = dial_gain.handle_number_dial(rotval);
-  v != rotval ? (
-    Band_Gain[0] = a1 + (b1 - a1) * v;
-    flag_filter_update(0);
-  );
+    panel_slope_toggle.select = Band_Enabled[selected_node] == 1;
+
+    bypassed = panel_slope_toggle.handle_options_button2() ? 1 : 2;
+
+    panel_slope_toggle.draw_options_button2();
+
+
+    // Stereo
+    panel_stereo_xoffset = 490;
+    panel_stereo_width = 50;
+
+    panel_stereo_options.select = Band_Enabled[selected_node] == 1;
+
+    bypassed = panel_stereo_options.handle_options_button2() ? 1 : 2;
+
+    panel_stereo_options.draw_options_button2();
 
 
 
-  dial_q.draw_number_dial();
-  a1 = 0.10;  b1 = 40;
-  rotval = q_to_per(Band_Q[0], 1.0);
+    dial_freq.x = gfx_w * 0.5 - 90;
+    dial_freq.y = gfx_h - 112;
 
-  v = dial_q.handle_number_dial(rotval);
-  v != rotval ? (
-    Band_Q[0] = per_to_q(v, 1.0);
-    flag_filter_update(0);
+    dial_gain.x = gfx_w * 0.5;
+    dial_gain.y = gfx_h - 112;
+
+    dial_q.x = gfx_w * 0.5 + 90;
+    dial_q.y = gfx_h - 112;
+
+    dial_freq.draw_number_dial();
+    rotval = freq_to_per(Band_Frequency[selected_node], 1.0);
+
+    v = dial_freq.handle_number_dial(rotval);
+
+    v != rotval ? (
+      Band_Frequency[selected_node] = per_to_freq(v, 1.0);
+      flag_filter_update(selected_node);
+    );
+    dial_freq.label2 = dialf.get_freq_str(Band_Frequency[selected_node]);
+
+
+
+    dial_gain.draw_number_dial();
+    a1 = -30;  b1 = 30;
+    rotval = (Band_Gain[selected_node] - a1) / (b1 - a1);
+
+    v = dial_gain.handle_number_dial(rotval);
+    v != rotval ? (
+      Band_Gain[selected_node] = a1 + (b1 - a1) * v;
+      flag_filter_update(selected_node);
+    );
+    dialgs = #;
+    sprintf(dialgs, "%.2f dB", Band_Gain[selected_node]);
+    dial_gain.label2 = dialgs;
+
+
+
+    dial_q.draw_number_dial();
+    a1 = 0.10;  b1 = 40;
+    rotval = q_to_per(Band_Q[selected_node], 1.0);
+
+    v = dial_q.handle_number_dial(rotval);
+    v != rotval ? (
+      Band_Q[selected_node] = per_to_q(v, 1.0);
+      flag_filter_update(selected_node);
+    );
+
+    dialqs = #;
+    sprintf(dialqs, "%.2f", Band_Q[selected_node]);
+    dial_q.label2 = dialqs;
+
+    // Delete
+    panel_delete_xoffset = 750;
+    panel_delete_width = 40;
+
+    del = panel_delete_toggle.handle_close_button();
+    del == 1 ? (
+      
+      // TODO: not working because clicking on this deslects node currently!!!
+
+      panel_delete_toggle.select = 0;
+      Band_Enabled[selected_node] = BAND_STATE_OFF;
+
+      flag_filter_update(selected_node);
+      filters_to_sliders();
+
+      selected_node = -1;
+    );
+
+    panel_delete_toggle.draw_close_button();
   );
 */
 

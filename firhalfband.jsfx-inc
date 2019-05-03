@@ -10,10 +10,10 @@ desc:FIR Filter Half Band
  *
  *  It's a half band low pass 65 tap FIR filter meant for use with oversampling x2.
  *
- *  At 88.2kHz it filters out frequencies after 22050hz which gets rid of aliasing introduced
+ *  For 44.1Khz: At 88.2kHz it filters out frequencies after 22050hz which gets rid of aliasing introduced
  *  by zero filling when oversampling.
  *
- *  The filter is steep and uses the following vars:
+ *  The filter is steep and uses the following vars (44.1kHz):
  *
  *  Fa = 0
  *  Fb = 22050
@@ -31,7 +31,7 @@ desc:FIR Filter Half Band
  *  // Oversampling x 2
  *
  *  @init
- *  firL.init_FIR_filter();
+ *  firL.init_FIR_filter_44100();
  *
  *  @sample
  *  y0 = left.do_process(spl0);   // Apply application filters and other processing etc
@@ -45,7 +45,7 @@ desc:FIR Filter Half Band
 
 @init
 
-function init_FIR_filter()
+function init_FIR_filter_44100()
   instance(
     b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19,
     b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39,
@@ -91,7 +91,54 @@ function init_FIR_filter()
   w32 = 0.500000; 
 );
 
-function do_FIR_filter(input)
+function init_FIR_filter_48000()
+  instance(
+    b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19,
+    b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39,
+    b40, b41, b42, b43, b44, b45, b46, b47, b48, b49, b50, b51, b52, b53, b54, b55, b56, b57, b58, b59,
+    b60, b61, b62, b63, b64,
+    w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, w16, w17, w18, w19,
+    w20, w21, w22, w23, w24, w25, w26, w27, w28, w29, w30, w31, w32
+  )
+(
+  // Set the FIR window taking into account symmetry around the centre tap (w32).
+
+  w0  = -0.000005; 
+  w1  = 0.000006;
+  w2  = 0.000034; 
+  w3  = -0.000015; 
+  w4  = -0.000115; 
+  w5  = 0.000020; 
+  w6  = 0.000293; 
+  w7  = 0.000007; 
+  w8  = -0.000631; 
+  w9  = -0.000125; 
+  w10 = 0.001200; 
+  w11 = 0.000433; 
+  w12 = -0.002076; 
+  w13 = -0.001087; 
+  w14 = 0.003317; 
+  w15 = 0.002305; 
+  w16 = -0.004952; 
+  w17 = -0.004386; 
+  w18 = 0.006964; 
+  w19 = 0.007728; 
+  w20 = -0.009278; 
+  w21 = -0.012890; 
+  w22 = 0.011759; 
+  w23 = 0.020763; 
+  w24 = -0.014222; 
+  w25 = -0.033078; 
+  w26 = 0.016454; 
+  w27 = 0.054199; 
+  w28 = -0.018238; 
+  w29 = -0.100165; 
+  w30 = 0.019392; 
+  w31 = 0.316285; 
+  w32 = 0.480208; 
+);
+
+function do_FIR_filter_less_efficient(input)
   instance(
     b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19,
     b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39,
@@ -121,7 +168,7 @@ function do_FIR_filter(input)
   w28 * (b28 + b36) + w29 * (b29 + b35) + w30 * (b30 + b34) + w31 * (b31 + b33) + w32 * (b32);
 );
 
-function do_FIR_filterX2(input0, input1) local(ret)
+function do_FIR_filter(input0, input1) local(ret)
   instance(
     b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19,
     b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31, b32, b33, b34, b35, b36, b37, b38, b39,
