@@ -1470,8 +1470,11 @@ function draw_line(x1, y1, x2, y2)
   x2 = floor(x2);
   y2 = floor(y2);
   
-  gfx_line(x1, y1-1, x2, y2-1, 1);
+  gfx_a = 1;
   gfx_line(x1, y1, x2, y2, 1); 
+  gfx_a = 0.25;
+  gfx_line(x1-1, y1-1, x2+1, y2-1, 1);
+  gfx_line(x1-1, y1+1, x2+1, y2+1, 1);
 );
 
 /*
@@ -1623,30 +1626,6 @@ function draw_filter_response(group, red, green, blue)
     be6 ? m *= gfx_band7.filter.zdf_magnitude(freq);
     be7 ? m *= gfx_band8.filter.zdf_magnitude(freq);
 
-    /*
-    group == 0 ? (
-      // Magnitude for stereo/mid/left
-      Band_Enabled[0]==BAND_STATE_ENABLED && Band_Group[0] != 2 ? m *= gfx_band1.filter.zdf_magnitude(freq);
-      Band_Enabled[1]==BAND_STATE_ENABLED && Band_Group[1] != 2 ? m *= gfx_band2.filter.zdf_magnitude(freq);
-      Band_Enabled[2]==BAND_STATE_ENABLED && Band_Group[2] != 2 ? m *= gfx_band3.filter.zdf_magnitude(freq);
-      Band_Enabled[3]==BAND_STATE_ENABLED && Band_Group[3] != 2 ? m *= gfx_band4.filter.zdf_magnitude(freq);
-      Band_Enabled[4]==BAND_STATE_ENABLED && Band_Group[4] != 2 ? m *= gfx_band5.filter.zdf_magnitude(freq);
-      Band_Enabled[5]==BAND_STATE_ENABLED && Band_Group[5] != 2 ? m *= gfx_band6.filter.zdf_magnitude(freq);
-      Band_Enabled[6]==BAND_STATE_ENABLED && Band_Group[6] != 2 ? m *= gfx_band7.filter.zdf_magnitude(freq);
-      Band_Enabled[7]==BAND_STATE_ENABLED && Band_Group[7] != 2 ? m *= gfx_band8.filter.zdf_magnitude(freq);
-    ) : (
-        // Magnitude for right/side
-        Band_Enabled[0]==BAND_STATE_ENABLED && (Band_Group[0] == group || (Band_Group[0] == 0)) ? m *= gfx_band1.filter.zdf_magnitude(freq);
-        Band_Enabled[1]==BAND_STATE_ENABLED && (Band_Group[1] == group || (Band_Group[1] == 0)) ? m *= gfx_band2.filter.zdf_magnitude(freq);
-        Band_Enabled[2]==BAND_STATE_ENABLED && (Band_Group[2] == group || (Band_Group[2] == 0)) ? m *= gfx_band3.filter.zdf_magnitude(freq);
-        Band_Enabled[3]==BAND_STATE_ENABLED && (Band_Group[3] == group || (Band_Group[3] == 0)) ? m *= gfx_band4.filter.zdf_magnitude(freq);
-        Band_Enabled[4]==BAND_STATE_ENABLED && (Band_Group[4] == group || (Band_Group[4] == 0)) ? m *= gfx_band5.filter.zdf_magnitude(freq);
-        Band_Enabled[5]==BAND_STATE_ENABLED && (Band_Group[5] == group || (Band_Group[5] == 0)) ? m *= gfx_band6.filter.zdf_magnitude(freq);
-        Band_Enabled[6]==BAND_STATE_ENABLED && (Band_Group[6] == group || (Band_Group[6] == 0)) ? m *= gfx_band7.filter.zdf_magnitude(freq);
-        Band_Enabled[7]==BAND_STATE_ENABLED && (Band_Group[7] == group || (Band_Group[7] == 0)) ? m *= gfx_band8.filter.zdf_magnitude(freq);
-    );
-    */
-
     // Convert from scalar to db
     m = 20 * log10(m);
 
@@ -1671,7 +1650,6 @@ function draw_filter_response(group, red, green, blue)
       );
 
       gfx_a = 1;
-
 
       draw_line(x0, y0, x1, y1);
 
@@ -3536,7 +3514,7 @@ while (
 );
 
 // Mid
-drawMid ? draw_filter_response(1, 94/255, 241/255, 74/255);
+drawMid ? draw_filter_response(1, 92/255, 190/255, 98/255);
 
 // Side
 drawSide ? draw_filter_response(2, 91/255, 236/255, 252/255);
