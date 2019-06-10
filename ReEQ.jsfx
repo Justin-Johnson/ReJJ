@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.2
+Version: v1.0.4
 
 The MIT License (MIT)
 
@@ -27,17 +27,13 @@ SOFTWARE.
 
 DONE:
 
-- Added 'Zero Gain' and 'Duplicate' to node menu
-- Got rid of mouse crosshairs
+- Added more frequencies, now centered, in bottom spectrum row
+- Mouse tracking frequency now also centered
+- Enlarged filter nodes and added node index
+- Improved node stereo indicators
+- Added filter node panel and toggle
 
 TODO:
-
-- Stop dials from flickering on resize
-- Pull in DB range to accomodate panel
-- Implement panel enable/disable
-- Make nodes behave propery when adjusting dial values
-- Make nodes clip against bottom of spectrum screen
-- Make nodes not selectable if they're below the bottom visible db range
 
 - Listen toggle is a bit clicky.  Fix at some point by only setting filter coefficients
  in same places that band coefficients are set.
@@ -45,7 +41,7 @@ TODO:
 */
  
 slider1:Stereo_Mode=<0,1,1{Mid/Side,Left/Right}>-Stereo Mode
-slider2:Quality=1<0,1,1{Digital,HQ}>-Quality
+slider2:Quality=1<0,1,1{Eco,HQ}>-Quality
 slider3:Gain=0<-136,30,0.01>-Gain
 slider4:MLGain=0<-136,30,0.01>-Mid/Left Gain
 slider5:SRGain=0<-136,30,0.01>-Side/Right Gain
@@ -107,6 +103,7 @@ slider53:MidPolarity=0<0,1,1>-Mid Polarity
 slider54:SidePolarity=0<0,1,1>-Side Polarity
 slider55:LimitOutput=0<0,1,1>-Limit Output
 slider56:AGCEnabled=0<0,1,1>-AGC Enabled
+slider57:PanelEnabled=1<0,1,1>-Panel Enabled
 
 import spectrum.jsfx-inc
 import svf_filter.jsfx-inc
@@ -119,6 +116,7 @@ in_pin:sc input right
 out_pin:left output
 out_pin:right output
 
+options:want_all_kb
 options:no_meter
 
 @init
@@ -1261,8 +1259,9 @@ gfx_mode = 0;
 TOP_MARGIN = 10;
 BOTTOM_MARGIN = gfx_ext_retina == 2 ? 64 : 32;
 RAISED_BOTTOM = gfx_ext_retina == 2 ? 240 : 120;
-//ENABLE_RAISED_BOTTOM = 1;
-ENABLE_RAISED_BOTTOM = 0;
+
+ENABLE_RAISED_BOTTOM = PanelEnabled;
+//ENABLE_RAISED_BOTTOM = 0;
 
 LEFT_MARGIN = 0;
 RIGHT_MARGIN = 0;
@@ -1324,93 +1323,74 @@ function y_to_db(y) local(m) (
 );
 
 /*
- * Draw triangle
- */
-function draw_triangle(x1, y1, x2, y2, x3, y3) ( 
-  gfx_triangle(x1, y1, x2, y2, x3, y3);
-);
-
-/*
- * Draw the triangle pointers for a band/node
+ * Draw the node indicators for a band/node
  * Used for mid/side and left/right indicators
  */
-function draw_node_triangles(band, x, y) local (size, nx, ny, x1, x2, x3, y1, y2, y3) (
-  gfx_ext_retina == 2 ? size = 12 : size = 6;
+function draw_node_stereo(band, x, y, alpha) local (size, nx, ny, x1, x2, x3, y1, y2, y3) (
+  gfx_ext_retina == 2 ? size = 13 : size = 7;
 
-  (Band_Group[band] == 2 || Band_Group[band] == 3) ? (
-    // Left
-    nx = x - (size+2);
-    ny = y;
-    x1 = nx; y1 = ny - size;
-    x2 = nx; y2 = ny + size;
-    x3 = nx - size; y3 = ny;
-    
-    gfx_r = gfx_g = gfx_b = 0; gfx_a = 0.5;
-    draw_triangle(x1+2, y1+3, x2+2, y2+3, x3+2, y3+3);
+  gfx_r = gfx_g = gfx_b = 1; gfx_a = alpha;
 
-    gfx_r = Band_Red[band]; gfx_g = Band_Green[band]; gfx_b = Band_Blue[band]; gfx_a = 1;
-    draw_triangle(x1, y1, x2, y2, x3, y3);
-  );
-
-  (Band_Group[band] == 2 || Band_Group[band] == 4) ? (
-    // Right
-    nx = x + (size+2);
-    ny = y;
-    x1 = nx; y1 = ny - size;
-    x2 = nx + size; y2 = ny;
-    x3 = nx; y3 = ny + size;
-
-    gfx_r = gfx_g = gfx_b = 0; gfx_a = 0.5;
-    draw_triangle(x1+2, y1+3, x2+2, y2+3, x3+2, y3+3);
-
-    gfx_r = Band_Red[band]; gfx_g = Band_Green[band]; gfx_b = Band_Blue[band]; gfx_a = 1;
-    draw_triangle(x1, y1, x2, y2, x3, y3);
-  );
-
+  // Top + bottom
   (Band_Group[band] == 1) ? (
-    // Top
-    nx = x;
-    ny = y - (size+2);
-    x1 = nx-size; y1 = ny;
-    x2 = nx+size; y2 = ny;
-    x3 = nx; y3 = ny - size;
+    start = 14 * (2*$pi/16);
+    end = 18 * (2*$pi/16);
 
-    gfx_r = gfx_g = gfx_b = 0; gfx_a = 0.5;
-    draw_triangle(x1+2, y1+3, x2+2, y2+3, x3+2, y3+3);
+    gfx_arc(x-1, y-1, size*2, start, end, 1);
+    gfx_arc(x-1, y-1, (size*2)-0.5, start, end, 1);
+    gfx_ext_retina == 2 ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
+   
+    start = 22 * (2*$pi/16);
+    end = 26 * (2*$pi/16);
 
-    gfx_r = Band_Red[band]; gfx_g = Band_Green[band]; gfx_b = Band_Blue[band]; gfx_a = 1;
-    draw_triangle(x1, y1, x2, y2, x3, y3);
-  
-    // Bottom
-    nx = x;
-    ny = y + (size+2);
-    x1 = nx-size; y1 = ny;
-    x2 = nx+size; y2 = ny;
-    x3 = nx; y3 = ny + size;
+    gfx_arc(x-1, y-1, size*2, start, end, 1);
+    gfx_arc(x-1, y-1, (size*2)-0.5, start, end, 1);
+    gfx_ext_retina == 2 ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
+  );
 
-    gfx_r = gfx_g = gfx_b = 0; gfx_a = 0.5;
-    draw_triangle(x1+2, y1+3, x2+2, y2+3, x3+2, y3+3);
+  // Left
+  (Band_Group[band] == 2 || Band_Group[band] == 3) ? (
+    start = 26 * (2*$pi/16);
+    end = 30 * (2*$pi/16);
 
-    gfx_r = Band_Red[band]; gfx_g = Band_Green[band]; gfx_b = Band_Blue[band]; gfx_a = 1;
-    draw_triangle(x1, y1, x2, y2, x3, y3);
+    gfx_arc(x-1, y-1, size*2, start, end, 1);
+    gfx_arc(x-1, y-1, (size*2)-0.5, start, end, 1);
+    gfx_ext_retina == 2 ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
+  );
+
+  // Right
+  (Band_Group[band] == 2 || Band_Group[band] == 4) ? (
+    start = 18 * (2*$pi/16);
+    end = 22 * (2*$pi/16);
+
+    gfx_arc(x-1, y-1, size*2, start, end, 1);
+    gfx_arc(x-1, y-1, (size*2)-0.5, start, end, 1);
+    gfx_ext_retina == 2 ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
   );
 );
 
 /*
  * Draw the node/band
  */
-function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transfer, size) (
+function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transfer, size, alpha, width) (
   x = freq_to_scx(freq);
   y = db_to_y(db);
 
-  gfx_ext_retina == 2 ? size = 12 : size = 6;
+  //gfx_ext_retina == 2 ? size = 12 : size = 6;
+  gfx_ext_retina == 2 ? size = 18 : size = 9;
 
-  draw_node_triangles(band, x, y);
+  y > gfx_h - gfx_texth - BOTTOM_MARGIN - (RAISED_BOTTOM * ENABLE_RAISED_BOTTOM) ? (
+    node_alpha = 0.5;
+  ) : node_alpha = 1.0;
+
+  y > gfx_h - gfx_texth - BOTTOM_MARGIN ? node_alpha = 0;
+  
+  draw_node_stereo(band, x, y, node_alpha);
 
   gfx_r = Band_Red[band]; gfx_g = Band_Green[band]; gfx_b = Band_Blue[band];
 
   // JSFX issue with circles being off one pixel?
-  enabled==2 ? gfx_a=1.0 : gfx_a = 0.6;
+  enabled==2 ? gfx_a=node_alpha : gfx_a = node_alpha * 0.3;
   gfx_circle(x-1, y-1, size, 1, 1);
 
   gfx_r = 1; gfx_g = 1; gfx_b = 1; gfx_a -= 0.1;
@@ -1421,16 +1401,16 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
     gfx_circle(x-1, y-1, size-3, 0, 1);
   );
 
-  gfx_r = 0; gfx_g = 0; gfx_b = 0; gfx_a = 1;
+  gfx_r = 0; gfx_g = 0; gfx_b = 0; gfx_a = node_alpha;
   gfx_circle(x-1, y-1, size, 0, 1);
 
   band == node_hover || selected_node == band ? (
     //Custom
     // Change Alpha when node is pressed
     selected_node == band ? (
-      gfx_r = 1; gfx_g = 1; gfx_b = 0.3; gfx_a = 0.4;
+      gfx_r = 1; gfx_g = 1; gfx_b = 0.3; gfx_a = node_alpha * 0.4;
     ):(
-      gfx_r = 1; gfx_g = 1; gfx_b = 0.3; gfx_a = 0.2;
+      gfx_r = 1; gfx_g = 1; gfx_b = 0.3; gfx_a = node_alpha * 0.2;
     );
     // Add extra circle when hovering over band
     gfx_ext_retina == 2 ?(
@@ -1441,6 +1421,15 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
       gfx_circle(x-1, y-1, 10, 1, 1);
     );
   );
+
+  // Draw the band index number
+  gfx_measurestr(sprintf(#, "%d", band+1), width, height);
+
+  gfx_r = gfx_g = gfx_b = 1; gfx_a = node_alpha;
+  gfx_x = x - width * 0.5;
+  gfx_y = y - gfx_texth * 0.5;
+
+  gfx_drawnumber(band+1,0);
 
   Band_Type[band] != BAND_STATE_OFF || Scale != 100 ? (
     // Draw connecting line so that we can see which node affects which part of the curve
@@ -1853,14 +1842,14 @@ function draw_mouse_crosshair() local(read_freq, frq, width, height, frq) (
 
   // Black rectangle background
   gfx_set(0, 0, 0, 1);
-  gfx_x = mouse_x + 2;
+  gfx_x = mouse_x - (width * 0.5);
   gfx_y = gfx_h-(gfx_texth-2)-spectrum.bottom_margin;
   gfx_rect(gfx_x - 10, gfx_y, width+20, gfx_texth);
 
   // Now draw the frequency string
   gfx_set(0.6, 0.6, 0.6, 1);
 
-  gfx_x = mouse_x + 2;
+  gfx_x = mouse_x - (width * 0.5);
   gfx_y = gfx_h-(gfx_texth-2)-spectrum.bottom_margin;
 
   gfx_drawstr(frq);
@@ -1901,7 +1890,7 @@ function mouse_within_window() (
  * Return true if mouse is within panel
  */
 function mouse_within_panel() ( 
-  mouse_x >= panel_x && mouse_x < panel_x+panel_w && mouse_y >= panel_y && mouse_y < panel_y+panel_h;
+  PanelEnabled && (mouse_x >= panel_x && mouse_x < panel_x+panel_w && mouse_y >= panel_y && mouse_y < panel_y+panel_h);
 );
 
 /*
@@ -1910,6 +1899,7 @@ function mouse_within_panel() (
 function draw_info_panel(note_select)
   local(x, y, xbase, read_freq, read_amp, q, band, C0, semi, octave, note, cent, keys, nn, note_freq, centstr, width, rect_height, slope, panel_offset_x)
  (
+  hide = 0;
   mouse_within_window() ? 
   (
     gfx_set(0, 0.5, 1);
@@ -1936,11 +1926,15 @@ function draw_info_panel(note_select)
         read_amp = Band_Gain[band];
         Band_Type[band] == 1 || Band_Type[band] == 2 || Band_Type[band] == 5 || Band_Type[band] == 6 ? slope = 6 + Band_Slope[band] * 6;
         band = NUM_BANDS;
+
+        // Hide info panel if it's too low
+        y = db_to_y(read_amp);
+        y > gfx_h - gfx_texth - BOTTOM_MARGIN - (RAISED_BOTTOM * ENABLE_RAISED_BOTTOM) ? hide = 1;
       );
     );
     
     //Only show info while hovering band point or in listen mode (handy to see freq etc)
-    node_drag_mode || node_hover != -1 || do_listen ? (
+    node_drag_mode || node_hover != -1 || do_listen && !hide ? (
 
       x = freq_to_scx(read_freq);
       y = db_to_y(read_amp);
@@ -1986,7 +1980,7 @@ function draw_info_panel(note_select)
       ):
       (
         gfx_y = y - rect_height - panel_offset_y - BOTTOM_MARGIN; //Below
-        gfx_y > gfx_h - (gfx_texth * rect_height) - gfx_texth - BOTTOM_MARGIN ? (
+        gfx_y > gfx_h - (gfx_texth * rect_height) - gfx_texth - BOTTOM_MARGIN - (RAISED_BOTTOM * ENABLE_RAISED_BOTTOM) ? (
           gfx_y = y - gfx_texth * rect_height - gfx_texth;
         );
       );
@@ -2591,7 +2585,8 @@ function draw_close_button() instance (x, y, width, menutext, label, pressed, he
 
   gfx_measurestr("*", w, h);
 
-  height = h;
+  height = 10 * gfx_ext_retina;
+  width = w * gfx_ext_retina;
 
   button_focus == -1 && node_drag_mode == 0 &&
     mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
@@ -2620,23 +2615,12 @@ function draw_close_button() instance (x, y, width, menutext, label, pressed, he
   gfx_a = 1;
   gfx_x = x + (width / 2) - (w / 2);
 
-  gfx_ext_retina == 2 ? (
-    gfx_y = y + 4;
-  ) : ( 
-    gfx_y = y + 4;
-  );
+  gfx_y = y + 4 * gfx_ext_retina;
 
   gfx_set(0.9, 0.9, 0.9, 1);
-  gfx_ext_retina == 2 ? (
 
-    gfx_line(gfx_x, gfx_y+19, gfx_x+12, gfx_y+1, 1);    
-    gfx_line(gfx_x, gfx_y+1, gfx_x+12, gfx_y+19, 1);
-
-    //gfx_line(gfx_x-1, gfx_y+19, gfx_x+12, gfx_y+1);
-  ) : (
-    gfx_line(gfx_x-1, gfx_y+7, gfx_x+5, gfx_y+1, 1);    
-    gfx_line(gfx_x-1, gfx_y+1, gfx_x+5, gfx_y+7, 1);
-  );
+  gfx_line(gfx_x-1*gfx_ext_retina, gfx_y+7*gfx_ext_retina, gfx_x+5*gfx_ext_retina, gfx_y+1*gfx_ext_retina, 1);    
+  gfx_line(gfx_x-1*gfx_ext_retina, gfx_y+1*gfx_ext_retina, gfx_x+5*gfx_ext_retina, gfx_y+7*gfx_ext_retina, 1);
 );
 
 /*
@@ -3642,8 +3626,10 @@ initialise_gfx == 0 ? (
 );
 
 // Handle main screen input?
-//!mouse_within_panel() ? (
-1 ? (
+
+mouse_cap & 1 && mouse_within_panel() && node_drag_mode == 0 ? do_general_mouse = 0 : do_general_mouse = 1;
+
+do_general_mouse ? (
   mouse_cap & 2 ? ( 
     band = 0;
     while( 
@@ -4079,10 +4065,12 @@ gfx_ext_retina == 2 ? (
   button_side_toggle_width = 10;
   button_limit_toggle_xoffset = 840;
   button_limit_toggle_width = 50;
-  button_agc_toggle_xoffset = 930;
+  button_agc_toggle_xoffset = 1030;
   button_agc_toggle_width = 60;
-  button_agcset_toggle_xoffset = 1005;
+  button_agcset_toggle_xoffset = 1105;
   button_agcset_toggle_width = 5;
+  button_panel_toggle_xoffset = 930;
+  button_panel_toggle_width = 60;
   py = gfx_h - (gfx_texth+28);
 ) : ( 
   button_oversample_xoffset = 0;
@@ -4103,15 +4091,17 @@ gfx_ext_retina == 2 ? (
   button_side_toggle_width = 10;
   button_limit_toggle_xoffset = 490;
   button_limit_toggle_width = 40;
-  button_agc_toggle_xoffset = 555;
+  button_agc_toggle_xoffset = 620;
   button_agc_toggle_width = 40;
-  button_agcset_toggle_xoffset = 600;
+  button_agcset_toggle_xoffset = 665;
   button_agcset_toggle_width = 5;
+  button_panel_toggle_xoffset = 555;
+  button_panel_toggle_width = 40;
   py = gfx_h - (gfx_texth);
 );
 
 buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
-  button_oversample.init_options_button(button_oversample_xoffset, py, button_oversample_width, Quality, "DIG", "HQ", "Digital - Fastest, No Latency", "High Quality - Accurate, Latency");
+  button_oversample.init_options_button(button_oversample_xoffset, py, button_oversample_width, Quality, "ECO", "HQ", "Economy - Fastest, No Latency", "High Quality - Accurate, Latency");
   button_stereo_mode.init_options_button(button_stereo_mode_xoffset, py, button_stereo_mode_width, Stereo_Mode, "M/S", "L/R", "Mid / Side", "Left / Right");
   button_scale.init_number_button(button_scale_xoffset, py, button_scale_width, "", 1, 100);
   button_gain.init_number_button(button_gain_xoffset, py, button_gain_width, "", 0, 0);
@@ -4126,61 +4116,69 @@ buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
   button_agc_toggle.init_toggle_button(button_agc_toggle_xoffset, py, button_agc_toggle_width, 0, "AGC");
   button_agcset_toggle.init_toggle_button(button_agcset_toggle_xoffset, py, button_agcset_toggle_width, 0, "S");
 
+  button_panel_toggle.init_toggle_button(button_panel_toggle_xoffset, py, button_panel_toggle_width, 0, "PANEL");
 
-  panel_w = 550;
-  panel_h = 108;
+  panel_w = 550 * gfx_ext_retina;
+  panel_h = 108 * gfx_ext_retina;
 
   gfx_setfont(2);
 
   panel_x = gfx_w/2 - panel_w/2;
   panel_y = gfx_h - BOTTOM_MARGIN - gfx_texth*2.5 - panel_h;
 
-  panel_side_margin = 26;
-  panel_vert_margin = 8;
+  gfx_ext_retina == 2 ? panel_y += 10 * (gfx_ext_retina * 0.4) : panel_y += 10;
+
+  panel_side_margin = 26 * gfx_ext_retina;
+  panel_vert_margin = 8 * gfx_ext_retina;
+  panel_gap1 = 20 * gfx_ext_retina;
+  panel_gap2 = 20 * 2 * gfx_ext_retina;
+  panel_gap3 = 20 * 3 * gfx_ext_retina;
+  panel_gap4 = 20 * 4 * gfx_ext_retina;
 
   // Filter panel
 
   panel_bypass_xoffset = panel_x + panel_side_margin;
-  panel_bypass_width = 50;
+  panel_bypass_width = 50 * gfx_ext_retina;
   panel_bypass_toggle.init_toggle_button_small(panel_bypass_xoffset, panel_y+panel_vert_margin, panel_bypass_width, 0, "BYPASS");
 
   panel_shape_xoffset = panel_x + panel_side_margin;
-  panel_shape_width = 100;
-  panel_shape_options.init_options_button_small2(panel_shape_xoffset, panel_y+panel_vert_margin+20, panel_shape_width, 0, 12, FilterTypes);
+  panel_shape_width = 100 * gfx_ext_retina;
+  panel_shape_options.init_options_button_small2(panel_shape_xoffset, panel_y+panel_vert_margin+panel_gap1, panel_shape_width, 0, 12, FilterTypes);
 
   panel_slope_xoffset = panel_x + panel_side_margin;
-  panel_slope_width = 50;
-  panel_slope_toggle.init_options_button_small2(panel_slope_xoffset, panel_y+panel_vert_margin+20+20, panel_slope_width, 0, NumFilterSlopes, FilterSlopes);
+  panel_slope_width = 50 * gfx_ext_retina;
+  panel_slope_toggle.init_options_button_small2(panel_slope_xoffset, panel_y+panel_vert_margin+panel_gap2, panel_slope_width, 0, NumFilterSlopes, FilterSlopes);
 
   panel_stereo_xoffset = panel_x + panel_side_margin;
-  panel_stereo_width = 50;
-  panel_stereo_options.init_options_button_small2(panel_stereo_xoffset, panel_y+panel_vert_margin+20+20+20, panel_stereo_width, 0, 5, StereoModes);
+  panel_stereo_width = 50 * gfx_ext_retina;
+  panel_stereo_options.init_options_button_small2(panel_stereo_xoffset, panel_y+panel_vert_margin+panel_gap3, panel_stereo_width, 0, 5, StereoModes);
 
 
   panel_delete_xoffset = panel_x + panel_w - panel_side_margin;
-  panel_delete_width = 6;
+  panel_delete_width = 6 * gfx_ext_retina;
   panel_delete_toggle.init_close_button(panel_delete_xoffset, panel_y+panel_vert_margin, panel_delete_width, 0, "X");
 
 
   panel_next_xoffset = panel_x + panel_w - panel_side_margin;
-  panel_next_width = 6;
-  panel_next_toggle.init_toggle_button_small(panel_next_xoffset, panel_y+panel_vert_margin+20, panel_next_width, 0, ">");
+  panel_next_width = 6 * gfx_ext_retina;
+  panel_next_toggle.init_toggle_button_small(panel_next_xoffset, panel_y+panel_vert_margin+panel_gap1, panel_next_width, 0, ">");
 
-  panel_prev_xoffset = panel_x + panel_w - panel_side_margin - 38;
-  panel_prev_width = 6;
-  panel_prev_toggle.init_toggle_button_small(panel_prev_xoffset, panel_y+panel_vert_margin+20, panel_next_width, 0, "<");
-
-
-  panel_listen_xoffset = panel_x + panel_w - panel_side_margin - 40;
-  panel_listen_width = 46;
-  panel_listen_toggle.init_toggle_button_small(panel_listen_xoffset, panel_y+panel_vert_margin+20+20, panel_listen_width, 0, "LISTEN");
+  panel_prev_xoffset = panel_x + panel_w - panel_side_margin - 38 * gfx_ext_retina;
+  panel_prev_width = 6 * gfx_ext_retina;
+  panel_prev_toggle.init_toggle_button_small(panel_prev_xoffset, panel_y+panel_vert_margin+panel_gap1, panel_next_width, 0, "<");
 
 
+  panel_listen_xoffset = panel_x + panel_w - panel_side_margin - 40 * gfx_ext_retina;
+  panel_listen_width = 46 * gfx_ext_retina;
+  panel_listen_toggle.init_toggle_button_small(panel_listen_xoffset, panel_y+panel_vert_margin+panel_gap2, panel_listen_width, 0, "LISTEN");
 
 
-  dial_freq.init_number_dial(100, 200, 20, 0, "FREQ", "10kHz");
-  dial_gain.init_number_dial(300, 200, 30, 1, "GAIN", "18dB");
-  dial_q.init_number_dial(500, 200, 20, 0, "Q", "0.701");
+
+  buttons_init == 0 ? (
+    dial_freq.init_number_dial(100, 200, 20 * gfx_ext_retina, 0, "FREQ", "10kHz");
+    dial_gain.init_number_dial(300, 200, 30 * gfx_ext_retina, 1, "GAIN", "18dB");
+    dial_q.init_number_dial(500, 200, 20 * gfx_ext_retina, 0, "Q", "0.701");
+  );
 
   gfx_setfont(1);
 
@@ -4190,7 +4188,7 @@ buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
 );
 
 button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h) ? (
-  gfx_ext_retina == 2 ? px = (gfx_w / 2) - (1000/2) : px = (gfx_w / 2) - (600/2);
+  gfx_ext_retina == 2 ? px = (gfx_w / 2) - (1090/2) : px = (gfx_w / 2) - (660/2);
   gfx_ext_retina == 2 ? py = gfx_h - (gfx_texth+28) : py = gfx_h - (gfx_texth+14);
   button_oversample.x = px+button_oversample_xoffset; button_oversample.y = py;
   button_stereo_mode.x = px+button_stereo_mode_xoffset; button_stereo_mode.y = py;
@@ -4203,6 +4201,7 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
   button_limit_toggle.x = px+button_limit_toggle_xoffset; button_limit_toggle.y = py;
   button_agc_toggle.x = px+button_agc_toggle_xoffset; button_agc_toggle.y = py;
   button_agcset_toggle.x = px+button_agcset_toggle_xoffset; button_agcset_toggle.y = py;
+  button_panel_toggle.x = px+button_panel_toggle_xoffset; button_panel_toggle.y = py;
 
   mb = button_oversample.handle_options_button();
   mb > 0 ? (
@@ -4273,6 +4272,10 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     );
   );
 
+  button_panel_toggle.select = PanelEnabled;
+  PanelEnabled = button_panel_toggle.handle_toggle_button();
+  button_panel_toggle.draw_toggle_button();
+
   gfx_ext_retina == 2 ? (
     menu.x = gfx_w - 200; 
     menu.width = 120;
@@ -4314,13 +4317,25 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
 
   */
 
-/*
-  selected_node != -1 ? (
+  PanelEnabled && selected_node != -1 ? (
     // Draw node panel background
     gfx_r = 0; gfx_g = 0; gfx_b = 0; gfx_a = 0.5;
     gfx_rect(panel_x, panel_y, panel_w, panel_h);
+
+
+    //gfx_r = 0; gfx_g = 0; gfx_b = 0;
+    gfx_r = 70/255; gfx_g = 105/255; gfx_b = 127/255;
+    gfx_a = 0.9;
+    gfx_roundrect(panel_x-1, panel_y-1, panel_w+1, panel_h+1, 3, 1);
+    gfx_roundrect(panel_x-2, panel_y-2, panel_w+3, panel_h+3, 3, 1);
+    gfx_roundrect(panel_x-2, panel_y-2, panel_w+4, panel_h+4, 4, 1);
+
   
     gfx_setfont(2);
+
+    dial_freq.r = 20 * gfx_ext_retina;
+    dial_gain.r = 30 * gfx_ext_retina;
+    dial_q.r = 20 * gfx_ext_retina;
 
     // Bypass
     panel_bypass_toggle.select = Band_Enabled[selected_node] == 1;
@@ -4402,13 +4417,13 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
 
 
 
-    dial_freq.x = panel_x + panel_w/2 - 90;
+    dial_freq.x = panel_x + panel_w/2 - 90 * gfx_ext_retina;
     dial_freq.y = panel_y + panel_h/2;
 
     dial_gain.x = panel_x + panel_w/2;
     dial_gain.y = panel_y + panel_h/2;
 
-    dial_q.x = panel_x + panel_w/2 + 90;
+    dial_q.x = panel_x + panel_w/2 + 90 * gfx_ext_retina;
     dial_q.y = panel_y + panel_h/2;
 
     dial_freq.draw_number_dial();
@@ -4505,10 +4520,12 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
 
 
     // Current node number
-    gfx_x = panel_prev_toggle.x+20;
-    gfx_y = panel_prev_toggle.y+2;
+    gfx_x = panel_prev_toggle.x + 20 * gfx_ext_retina;
+    gfx_y = panel_prev_toggle.y + 2 * gfx_ext_retina;;
 
-    gfx_printf("%d", selected_node+1);
+    gfx_r = gfx_b = gfx_g = 1;
+    gfx_drawnumber(selected_node+1, 0);
+    //gfx_printf("%d", selected_node+1);
 
 
     // Listen
@@ -4573,7 +4590,6 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     gfx_setfont(1);
 
   );
-*/
 
 );
 
@@ -4582,6 +4598,11 @@ gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
 gfx_r = gfx_g = gfx_b = gfx_a = 1.0; gfx_x = 100; gfx_y = 120;
+
+//Band_Enabled[0] != 0 ? _global.test = Band_Enabled[0];
+
+//gfx_printf("Global = %d", _global.test);  gfx_x = 100; gfx_y += 30;
+
 
 //rms = RMSSidechain.RMS_getDB();
 //gfx_printf("RMS pre = %f", RMSPre.RMS_getDB());  gfx_x = 100; gfx_y += 30;

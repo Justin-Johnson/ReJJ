@@ -743,7 +743,7 @@ function spectrum.draw(bufindex)
 /*
  * Draw the spectrum bode grid
  */
-function spectrum.draw_grid(skip_dblines) local(db, y, f, lx, tx, dotext) (
+function spectrum.draw_grid(skip_dblines) local(db, y, f, lx, tx, dotext, frq, width, height) (
   // Draw magnitude axis
   gfx_y = -100;
   db = spectrum.ceiling;
@@ -774,14 +774,22 @@ function spectrum.draw_grid(skip_dblines) local(db, y, f, lx, tx, dotext) (
   while(
     tx = spectrum.freq_to_x(f);
 
-    dotext = tx > gfx_x && (f==10 || f==100 || f == 1000 || f == 10000);
+    dotext = tx > gfx_x && (f==20 || f==50 || f==100 || f == 200 || f == 500 || f == 1000 || f == 2000 || f == 5000 || f == 10000);
     gfx_a = dotext ? 0.8 : 0.6;
-    tx > lx ? ( lx=tx+4; gfx_line(tx,0,tx,gfx_h - (dotext ? 0 : gfx_texth+2) - spectrum.bottom_margin,0); );
+    tx > lx ? ( lx=tx+4; gfx_line(tx,0,tx,gfx_h - (dotext ? 12 : gfx_texth+2) - spectrum.bottom_margin,0); );
     dotext ? (
       gfx_r=gfx_g=gfx_b=0.4; gfx_a=1.0;
-      gfx_x=tx +3;
+
+      frq = #;
+      sprintf(frq,"%.1f Hz", read_freq);
+      f>=1000 ? sprintf(frq,"%dk",f/1000) : sprintf(frq,"%d",f);
+
+      gfx_measurestr(frq, width, height);
+
+      gfx_x = tx - (width*0.5);
+
       gfx_y = gfx_h-(gfx_texth-2)-spectrum.bottom_margin;
-      f>=1000 ? gfx_printf("%dk",f/1000) : gfx_printf("%d",f);
+      gfx_drawstr(frq);
     );
     f += (f<100?10:f<1000?100:f<10000?1000:10000);
 
