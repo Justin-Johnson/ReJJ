@@ -29,7 +29,7 @@ SMOOTHING_TIME_MS = 30;
 /*
  * Check if all our interpolating coefficients at rest
  */
-function zdf_is_resting() local(resting)
+function zdf_is_resting() local(resting) instance(onepole)
 ( 
   resting = this.iter_t == 1.0;
   nlp > 2 ? (
@@ -59,7 +59,8 @@ function zdf_is_resting() local(resting)
       );
     );
   );
-  resting;
+  // Iterations are done or filter is onepole (no interpolation yet so always resting)
+  resting || onepole;
 );
 
 /*

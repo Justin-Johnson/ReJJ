@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.4
+Version: v1.0.5
 
 The MIT License (MIT)
 
@@ -27,11 +27,11 @@ SOFTWARE.
 
 DONE:
 
-- Added more frequencies, now centered, in bottom spectrum row
-- Mouse tracking frequency now also centered
-- Enlarged filter nodes and added node index
-- Improved node stereo indicators
-- Added filter node panel and toggle
+- Close [X] is now delete in panel
+- Fixed the 6db high/low pass filter bug
+- Increase the dial values on the panel
+- Altered the default window size
+- Reaper notified when dials change
 
 TODO:
 
@@ -116,7 +116,6 @@ in_pin:sc input right
 out_pin:left output
 out_pin:right output
 
-options:want_all_kb
 options:no_meter
 
 @init
@@ -1252,7 +1251,7 @@ LimitOutput ? (
 );
 
 
-@gfx 640 400
+@gfx 922 564
 
 gfx_mode = 0;
 
@@ -2583,10 +2582,9 @@ function draw_close_button() instance (x, y, width, menutext, label, pressed, he
 
   small == 1 ? gfx_setfont(2) : gfx_setfont(1);
 
-  gfx_measurestr("*", w, h);
+  strlen(label) == 0 ? gfx_measurestr("*", w, h) : gfx_measurestr(label, w, h);
 
-  height = 10 * gfx_ext_retina;
-  width = w * gfx_ext_retina;
+  height = h;
 
   button_focus == -1 && node_drag_mode == 0 &&
     mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
@@ -2619,8 +2617,27 @@ function draw_close_button() instance (x, y, width, menutext, label, pressed, he
 
   gfx_set(0.9, 0.9, 0.9, 1);
 
-  gfx_line(gfx_x-1*gfx_ext_retina, gfx_y+7*gfx_ext_retina, gfx_x+5*gfx_ext_retina, gfx_y+1*gfx_ext_retina, 1);    
-  gfx_line(gfx_x-1*gfx_ext_retina, gfx_y+1*gfx_ext_retina, gfx_x+5*gfx_ext_retina, gfx_y+7*gfx_ext_retina, 1);
+
+  gfx_ext_retina == 2 ? (
+    small == 1 ? gfx_y = y + 4 :
+      gfx_y = y + 4;
+  ) : ( 
+    small == 1 ? gfx_y = y + 2 :
+      gfx_y = y + 4;
+  );
+
+  strlen(label) == 0 ? (
+    gfx_ext_retina == 2 ? (
+      gfx_circle(gfx_x+6, gfx_y+11, 7, 0, 1);
+      gfx_line(gfx_x, gfx_y+20, gfx_x+13, gfx_y+2);
+    ) : (
+      gfx_circle(gfx_x+3, gfx_y+5, 4, 0, 1);
+      gfx_line(gfx_x-1, gfx_y+10, gfx_x+7, gfx_y);
+    );
+  ) : (
+    select == 1 ? gfx_set(0.9, 0.9, 0.9, 1);
+    gfx_drawstr(label);
+  );
 );
 
 /*
@@ -3181,16 +3198,18 @@ function draw_number_dial() instance (x, y, r, v, mode, label, label2) local (tx
   gfx_r = gfx_b = gfx_g = gfx_a = 1;
 
   gfx_x = x - (w/2);
-  gfx_y = y - r - (18 * gfx_ext_retina);
+  gfx_y = y - r - (20 * gfx_ext_retina);
 
   gfx_printf("%s", label);
+
+  gfx_setfont(1);
 
   gfx_measurestr(label2, w, h);
 
   gfx_r = gfx_b = gfx_g = gfx_a = 1;
 
   gfx_x = x - (w/2);
-  gfx_y = y + r + (gfx_texth - (6 * gfx_ext_retina));
+  gfx_y = y + r + 4 * gfx_ext_retina;// + (gfx_texth - (8 * gfx_ext_retina));
 
   gfx_printf("%s", label2);
 
@@ -3241,9 +3260,10 @@ function draw_number_dial() instance (x, y, r, v, mode, label, label2) local (tx
 /*
  * Return 1 if mouse is over number button
  */
-function is_mouse_number_dial() instance (x, y, r, v)
+function is_mouse_number_dial() instance (x, y, r, v) local (rad)
 (
-  mouse_x >= x-r && mouse_x <= x+r && mouse_y >= y-r && mouse_y <= y + r;
+  rad = r + gfx_texth*2;
+  mouse_x >= x - rad && mouse_x <= x + rad && mouse_y >= y - rad && mouse_y <= y + rad;
 );
 
 /*
@@ -3816,13 +3836,18 @@ do_general_mouse ? (
       // Double click?
       tm - click_time < 0.4 ? (
 
+        // TODO: the double click reset for the dials isn't working here.
+        // I think it's getting intercepted elsewhere
         // Handle double click button value resets
-        mouse_y >= gfx_h - BOTTOM_MARGIN - gfx_texth ? (
+        mouse_cap & 4 && ((mouse_y >= gfx_h - BOTTOM_MARGIN - gfx_texth) || (selected_node != -1 && mouse_within_panel())) ? (
           button_scale.is_mouse_number_button() ? (Scale = button_scale.db = 100;) : 
             button_gain.is_mouse_number_button() ? (Gain = button_gain.db = 0;) :
               button_mid_gain.is_mouse_number_button() ? (MLGain = button_mid_gain.db = 0;) :
-                button_side_gain.is_mouse_number_button() ? (SRGain = button_side_gain.db = 0;);
-
+                button_side_gain.is_mouse_number_button() ? (SRGain = button_side_gain.db = 0;) :
+                  dial_gain.is_mouse_number_dial() ? (Band_Gain[selected_node] = 0; ) : 
+                    dial_q.is_mouse_number_dial() ? (Band_Q[selected_node] = 0.707);
+          
+          filters_to_sliders();
           // Flag all filters for updating
           flag_filter_update_all();
         ) : (
@@ -3831,7 +3856,7 @@ do_general_mouse ? (
             band = 0;
             while( 
               Band_Enabled[band]!=BAND_STATE_OFF && is_node_selected(Band_Frequency[band], Band_Gain[band]) ? (
-                selected_band = -1;
+                selected_node = -1;
                 listen_node = -1;
                 Band_Enabled[band] = BAND_STATE_OFF;
 
@@ -4123,7 +4148,7 @@ buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
 
   gfx_setfont(2);
 
-  panel_x = gfx_w/2 - panel_w/2;
+  panel_x = floor(gfx_w/2 - panel_w/2);
   panel_y = gfx_h - BOTTOM_MARGIN - gfx_texth*2.5 - panel_h;
 
   gfx_ext_retina == 2 ? panel_y += 10 * (gfx_ext_retina * 0.4) : panel_y += 10;
@@ -4154,9 +4179,9 @@ buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
   panel_stereo_options.init_options_button_small2(panel_stereo_xoffset, panel_y+panel_vert_margin+panel_gap3, panel_stereo_width, 0, 5, StereoModes);
 
 
-  panel_delete_xoffset = panel_x + panel_w - panel_side_margin;
-  panel_delete_width = 6 * gfx_ext_retina;
-  panel_delete_toggle.init_close_button(panel_delete_xoffset, panel_y+panel_vert_margin, panel_delete_width, 0, "X");
+  panel_delete_xoffset = panel_x + panel_w - panel_side_margin - 40 * gfx_ext_retina;
+  panel_delete_width = 46 * gfx_ext_retina;
+  panel_delete_toggle.init_close_button(panel_delete_xoffset, panel_y+panel_vert_margin, panel_delete_width, 0, "DELETE");
 
 
   panel_next_xoffset = panel_x + panel_w - panel_side_margin;
@@ -4326,11 +4351,9 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     //gfx_r = 0; gfx_g = 0; gfx_b = 0;
     gfx_r = 70/255; gfx_g = 105/255; gfx_b = 127/255;
     gfx_a = 0.9;
-    gfx_roundrect(panel_x-1, panel_y-1, panel_w+1, panel_h+1, 3, 1);
-    gfx_roundrect(panel_x-2, panel_y-2, panel_w+3, panel_h+3, 3, 1);
-    gfx_roundrect(panel_x-2, panel_y-2, panel_w+4, panel_h+4, 4, 1);
+    gfx_roundrect(panel_x-2, panel_y-2, panel_w+4, panel_h+4, 3, 1);
+    gfx_roundrect(panel_x-1, panel_y-1, panel_w+2, panel_h+2, 3, 1);
 
-  
     gfx_setfont(2);
 
     dial_freq.r = 20 * gfx_ext_retina;
@@ -4434,6 +4457,8 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     v != rotval ? (
       Band_Frequency[selected_node] = per_to_freq(v, 1.0);
       flag_filter_update(selected_node);
+
+      notify_touched_frequency(selected_node);
     );
     dial_freq.label2 = dialf.get_freq_str(Band_Frequency[selected_node]);
 
@@ -4447,6 +4472,8 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     v != rotval ? (
       Band_Gain[selected_node] = a1 + (b1 - a1) * v;
       flag_filter_update(selected_node);
+
+      notify_touched_gain(selected_node);
     );
     dialgs = #;
     sprintf(dialgs, "%.2f dB", Band_Gain[selected_node]);
@@ -4462,6 +4489,8 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     v != rotval ? (
       Band_Q[selected_node] = per_to_q(v, 1.0);
       flag_filter_update(selected_node);
+
+      notify_touched_Q(selected_node);
     );
 
     dialqs = #;
@@ -4525,8 +4554,6 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
 
     gfx_r = gfx_b = gfx_g = 1;
     gfx_drawnumber(selected_node+1, 0);
-    //gfx_printf("%d", selected_node+1);
-
 
     // Listen
     old_listen = (listen_node == selected_node);
