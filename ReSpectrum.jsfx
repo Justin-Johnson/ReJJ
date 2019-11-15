@@ -503,11 +503,6 @@ function handle_menu_button() instance (x, y, width, menutext, label, pressed, h
       gfx_x = mouse_x;
       gfx_y = mouse_y;
 
-      gfx_ext_retina == 2 ? (
-        gfx_x = x / 2;
-        gfx_y = y / 2;
-      );
-
       last_clicked_item = gfx_showmenu(#menu);
 
       pressed = 0;
