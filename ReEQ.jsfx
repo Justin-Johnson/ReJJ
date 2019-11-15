@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.5
+Version: v1.0.6
 
 The MIT License (MIT)
 
@@ -27,16 +27,7 @@ SOFTWARE.
 
 DONE:
 
-- Close [X] is now delete in panel
-- Fixed the 6db high/low pass filter bug
-- Increase the dial values on the panel
-- Altered the default window size
-- Reaper notified when dials change
-
 TODO:
-
-- Listen toggle is a bit clicky.  Fix at some point by only setting filter coefficients
- in same places that band coefficients are set.
 
 */
  
@@ -108,6 +99,7 @@ slider57:PanelEnabled=1<0,1,1>-Panel Enabled
 import spectrum.jsfx-inc
 import svf_filter.jsfx-inc
 import firhalfband.jsfx-inc
+import textinput.jsfx-inc
 
 in_pin:left input
 in_pin:right input
@@ -2914,11 +2906,6 @@ function handle_options_button2() instance (x, y, width, menutext, label, presse
         gfx_x = mouse_x;
         gfx_y = mouse_y;
 
-        gfx_ext_retina == 2 ? (
-          gfx_x = gfx_x / 2;
-          gfx_y = gfx_y / 2;
-        );
-
         last_clicked_item = gfx_showmenu(#menu) - 1;
 
         pressed = 0;
@@ -3030,11 +3017,6 @@ function handle_options_button() instance (x, y, width, menutext, label, pressed
 
         gfx_x = mouse_x;
         gfx_y = mouse_y;
-
-        gfx_ext_retina == 2 ? (
-          gfx_x = gfx_x / 2;
-          gfx_y = gfx_y / 2;
-        );
 
         last_clicked_item = gfx_showmenu(#menu);
 
@@ -3419,11 +3401,6 @@ function handle_menu_button() instance (x, y, width, menutext, label, pressed, h
       gfx_x = mouse_x;
       gfx_y = mouse_y;
 
-      gfx_ext_retina == 2 ? (
-        gfx_x = gfx_x / 2;
-        gfx_y = gfx_y / 2;
-      );
-
       last_clicked_item = gfx_showmenu(#menu);
 
       pressed = 0;
@@ -3502,11 +3479,6 @@ function handle_dbscale_button() instance (x, y, width, pressed, height)
 
       gfx_x = mouse_x;
       gfx_y = mouse_y;
-
-      gfx_ext_retina == 2 ? (
-        gfx_x = gfx_x / 2;
-        gfx_y = gfx_y / 2;
-      );
 
       last_clicked_item = gfx_showmenu(#menu);
 
@@ -3647,8 +3619,37 @@ initialise_gfx == 0 ? (
 
 // Handle main screen input?
 
-mouse_cap & 1 && mouse_within_panel() && node_drag_mode == 0 ? do_general_mouse = 0 : do_general_mouse = 1;
+//mouse_cap & 1 && mouse_within_panel() && node_drag_mode == 0 ? do_general_mouse = 0 : do_general_mouse = 1;
 
+//mouse_cap & 1 && node_drag_mode == 0 ? do_general_mouse = 0 : do_general_mouse = 1;
+
+gfx_x=20; gfx_y=20;
+
+pr = gfx_getchar(0);
+
+
+
+showTextInput ? (
+  textField.text_field(pr,#varstr,25,0x343434);
+  textField.set == 1 ? ( 
+    match("%f", #varstr, inputfreq);
+    Band_Frequency[selected_node] = inputfreq;
+
+    flag_filter_update(selected_node);
+
+    filters_to_sliders();
+
+    showTextInput = 0;
+  );
+);
+
+gfx_y=70; gfx_x=20;
+
+// TODO: comment back in for text input development
+//cc += textField.set;
+//gfx_printf("set = %d", cc);
+
+do_general_mouse = 1 && !showTextInput;
 do_general_mouse ? (
   mouse_cap & 2 ? ( 
     band = 0;
@@ -3705,11 +3706,6 @@ do_general_mouse ? (
 
         gfx_x = mouse_x;
         gfx_y = mouse_y;
-
-        gfx_ext_retina == 2 ? (
-          gfx_x = gfx_x / 2;
-          gfx_y = gfx_y / 2;
-        );
 
         last_clicked_item = gfx_showmenu(#menu);
 
@@ -3827,17 +3823,12 @@ do_general_mouse ? (
     );
   );
 
-  gfx_getchar();
-
   mouse_cap & 1 ? (
     click_up ? (
       tm = time_precise();
 
       // Double click?
       tm - click_time < 0.4 ? (
-
-        // TODO: the double click reset for the dials isn't working here.
-        // I think it's getting intercepted elsewhere
         // Handle double click button value resets
         mouse_cap & 4 && ((mouse_y >= gfx_h - BOTTOM_MARGIN - gfx_texth) || (selected_node != -1 && mouse_within_panel())) ? (
           button_scale.is_mouse_number_button() ? (Scale = button_scale.db = 100;) : 
@@ -3845,63 +3836,75 @@ do_general_mouse ? (
               button_mid_gain.is_mouse_number_button() ? (MLGain = button_mid_gain.db = 0;) :
                 button_side_gain.is_mouse_number_button() ? (SRGain = button_side_gain.db = 0;) :
                   dial_gain.is_mouse_number_dial() ? (Band_Gain[selected_node] = 0; ) : 
-                    dial_q.is_mouse_number_dial() ? (Band_Q[selected_node] = 0.707);
+                    dial_freq.is_mouse_number_dial() ? (Band_Frequency[selected_node] = 500; ) : 
+                      dial_q.is_mouse_number_dial() ? (Band_Q[selected_node] = 0.707);
           
           filters_to_sliders();
           // Flag all filters for updating
           flag_filter_update_all();
         ) : (
-          // Delete band?
-          mouse_cap & 16 ? (
-            band = 0;
-            while( 
-              Band_Enabled[band]!=BAND_STATE_OFF && is_node_selected(Band_Frequency[band], Band_Gain[band]) ? (
-                selected_node = -1;
-                listen_node = -1;
-                Band_Enabled[band] = BAND_STATE_OFF;
-
-                band == 0 ? gfx_band1.filter.zdf_bypass() :
-                band == 1 ? gfx_band2.filter.zdf_bypass() :
-                band == 2 ? gfx_band3.filter.zdf_bypass() :
-                band == 3 ? gfx_band4.filter.zdf_bypass() :
-                band == 4 ? gfx_band5.filter.zdf_bypass() :
-                band == 5 ? gfx_band6.filter.zdf_bypass() :
-                band == 6 ? gfx_band7.filter.zdf_bypass() :
-                band == 7 ? gfx_band8.filter.zdf_bypass();
-
-                flag_filter_update(band);
-
-                filters_to_sliders();
-
-                band = NUM_BANDS;
-              );
-              band += 1;
-              band < NUM_BANDS;
+          mouse_within_panel() ? (
+            dial_freq.is_mouse_number_dial() ? (
+              // TODO: comment back in for text input development
+              //textField.text_field_init();
+              //showTextInput = 1;
+              0;
             );
-          ) : (
-            // Band toggle?
-            toggled_band = 0;
-            band = 0;
-            while( 
-              Band_Enabled[band]!=BAND_STATE_OFF && is_node_selected(Band_Frequency[band], Band_Gain[band]) ? (
-                Band_Enabled[band]==BAND_STATE_DISABLED ? Band_Enabled[band] = BAND_STATE_ENABLED : Band_Enabled[band] = BAND_STATE_DISABLED;
-                toggled_band = 1;
-                band = NUM_BANDS;
-              );
-              band += 1;
-              band < NUM_BANDS;
-            );
-
-            // Create band?
-            !toggled_band && mouse_y < gfx_h - BOTTOM_MARGIN - gfx_texth ? ( 
+          );
+          // Handle general double click cases
+          !mouse_within_panel() ? (
+            // Delete band?
+            mouse_cap & 16 ? (
               band = 0;
-              while(
-                Band_Enabled[band]==BAND_STATE_OFF ? (                
-                  create_band(band, mouse_x+1, mouse_y);
+              while( 
+                Band_Enabled[band]!=BAND_STATE_OFF && is_node_selected(Band_Frequency[band], Band_Gain[band]) ? (
+                  selected_node = -1;
+                  listen_node = -1;
+                  Band_Enabled[band] = BAND_STATE_OFF;
+
+                  band == 0 ? gfx_band1.filter.zdf_bypass() :
+                  band == 1 ? gfx_band2.filter.zdf_bypass() :
+                  band == 2 ? gfx_band3.filter.zdf_bypass() :
+                  band == 3 ? gfx_band4.filter.zdf_bypass() :
+                  band == 4 ? gfx_band5.filter.zdf_bypass() :
+                  band == 5 ? gfx_band6.filter.zdf_bypass() :
+                  band == 6 ? gfx_band7.filter.zdf_bypass() :
+                  band == 7 ? gfx_band8.filter.zdf_bypass();
+
+                  flag_filter_update(band);
+
+                  filters_to_sliders();
+
                   band = NUM_BANDS;
                 );
                 band += 1;
                 band < NUM_BANDS;
+              );
+            ) : (
+              // Band toggle?
+              toggled_band = 0;
+              band = 0;
+              while( 
+                 Band_Enabled[band]!=BAND_STATE_OFF && is_node_selected(Band_Frequency[band], Band_Gain[band]) ? (
+                  Band_Enabled[band]==BAND_STATE_DISABLED ? Band_Enabled[band] = BAND_STATE_ENABLED : Band_Enabled[band] = BAND_STATE_DISABLED;
+                  toggled_band = 1;
+                  band = NUM_BANDS;
+                );
+                band += 1;
+                band < NUM_BANDS;
+              );
+
+              // Create band?
+              !toggled_band && mouse_y < gfx_h - BOTTOM_MARGIN - gfx_texth ? ( 
+                band = 0;
+                while(
+                  Band_Enabled[band]==BAND_STATE_OFF ? (                
+                    create_band(band, mouse_x+1, mouse_y);
+                    band = NUM_BANDS;
+                  );
+                  band += 1;
+                  band < NUM_BANDS;
+                );
               );
             );
           );
@@ -3912,7 +3915,7 @@ do_general_mouse ? (
 
     click_up = 0;
 
-    node_drag_mode == 0 && button_focus == -1 ? (
+    !mouse_within_panel() && node_drag_mode == 0 && button_focus == -1 ? (
       band = get_nearest_node();
       band != -1 ? (
         selected_node = band;
@@ -3928,8 +3931,10 @@ do_general_mouse ? (
         ) : mouse_cap & 16 ? (
           node_drag_lock = 2;
         ) : node_drag_lock = 0;
-      ) : ( 
-        selected_node = -1;
+      ) : (
+        mouse_y < gfx_h - BOTTOM_MARGIN - gfx_texth ? (
+          selected_node = -1;
+        );
         listen_node = -1;        
       );
     );
