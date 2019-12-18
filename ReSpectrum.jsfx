@@ -1,13 +1,31 @@
 desc: ReSpectrum
 /*
- * Spectrum Analyzer
- * Copyright (C) 2018 Justin Johnson
- * License: LGPL - http://www.gnu.org/licenses/lgpl.html
- *
- * A spectrum analyzer supporting multiple spectrums.
- * 
- * https://www.dcode.fr/equation-solver
- */
+ReSpectrum - A spectrum analyzer
+Version: v1.0.1
+
+The MIT License (MIT)
+
+Copyright (c) 2019 Justin Johnson
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
 
 slider1:Spectrum_Mode=3<0,5,1{Full,Mid,Side,Mid / Side,Left,Right,Left / Right}>-Spectrum
 slider2:Display_Mode=0<0,2,1{Fill,Line,None}>-Display
@@ -126,7 +144,7 @@ function draw_filled_rect(x, y, w, h, rad, alias) (
  * Draw the info panel showing frequency, note, cent and dB
  */
 function draw_info_panel(note_select)
-  local(read_freq, read_amp, q, band, C0, semi, octave, note, cent, keys, nn, note_freq, centstr, width)
+  local(read_freq, read_amp, q, band, C0, semi, octave, note, cent, keys, nn, note_freq, centstr, width, xpos, xpos2, ypos)
  (
   mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
 
@@ -135,10 +153,21 @@ function draw_info_panel(note_select)
     read_freq = note_select == 0 ? spectrum.x_to_freq(mouse_x) : note_select;
     read_amp = spectrum.y_to_db(mouse_y);
 
-    gfx_x = 100;
-    gfx_ext_retina != 2 ? gfx_x -= 50;
+    !((very_compact_width) | (very_compact_height)) ? (
+      xpos = 100;
+      xpos2 = 155;
+      gfx_ext_retina != 2 ? (xpos -= 50; xpos2 -= 70);
+      ypos = gfx_h - (gfx_texth*6) - spectrum.bottom_margin;
+    ) : (
+      xpos = 30;
+      xpos2 = 80;
+      gfx_ext_retina != 2 ? (xpos = 15; xpos2 -= 30);
+      ypos = gfx_h - (gfx_texth*4);
+    );
 
-    gfx_y = gfx_h - (gfx_texth*6) - spectrum.bottom_margin;
+    gfx_x = xpos;
+    gfx_y = ypos;
+
     gfx_r = 0; gfx_g = 0; gfx_b = 0; gfx_a = 1.0;
 
     width = 130;
@@ -194,15 +223,15 @@ function draw_info_panel(note_select)
 
     strcat(centstr, sprintf(#, "%d", abs(cent)));
 
-    gfx_x = 100;
-    gfx_ext_retina != 2 ? gfx_x -= 50;
+    gfx_x = xpos;
+    //gfx_ext_retina != 2 ? gfx_x -= 50;
     gfx_y += gfx_texth+2;
     gfx_drawstr(nn);
-    gfx_x = 155;
-    gfx_ext_retina != 2 ? gfx_x -= 70;
+    gfx_x = xpos2;
+    //gfx_ext_retina != 2 ? gfx_x -= 70;
     gfx_drawstr(centstr);
-    gfx_x = 100;
-    gfx_ext_retina != 2 ? gfx_x -= 50;
+    gfx_x = xpos;
+    //gfx_ext_retina != 2 ? gfx_x -= 50;
     gfx_y += gfx_texth+2;
     gfx_drawstr(sprintf(#,"%.1f DB", read_amp));
   );
@@ -601,16 +630,53 @@ do_listen ? (
 gfx_ext_retina != last_gfx_ext_retina ? (
   last_gfx_ext_retina = gfx_ext_retina;
   
-  //gfx_ext_retina > 1 ? gfx_setfont(1,"Verdana",9 * gfx_ext_retina,'b') : gfx_setfont(0);
-  gfx_ext_retina > 1 ? gfx_setfont(1,"Verdana",18,'b') : gfx_setfont(0);
+  gfx_ext_retina > 1 ? (
+    gfx_setfont(1,"Arial",20,'b');
+    gfx_setfont(2,"Arial",18,'b');
+  ) : (
+    gfx_setfont(1,"Arial",12,'b');
+    gfx_setfont(2,"Arial",10,'b');
+  );
+  gfx_setfont(1);
 );
+
+actual_width = gfx_w / gfx_ext_retina;
+actual_height = gfx_h / gfx_ext_retina;
+
+// Calculage compact view flags
+// These are used to disable certain elements for graceful visual shrinking
+compact_width = actual_width < 600;
+compact_height = actual_height < 320;
+
+gfx_ext_retina != 2 ? (
+  very_compact_width = (actual_width < 450);
+  very_compact_height = (actual_height < 240);
+) : (
+  very_compact_width = (actual_width < 300);
+  very_compact_height = (actual_height < 160);
+);
+
+very_compact_width | very_compact_height ? (
+  spectrum.bottom_margin = -18 * gfx_ext_retina;
+) : ( 
+  spectrum.bottom_margin = 0;
+);
+
+
 
 Display_Mode < 2 ? (
   spectrum.draw(0);
   Spectrum_Mode == 3 || Spectrum_Mode == 6 ? spectrum.draw(1);
 );
 
-spectrum.draw_grid(0);
+ht = (gfx_h - spectrum.bottom_margin - gfx_texth) + 2;
+
+dst_a = 0.55 / ht;
+gfx_gradrect(0, ht/2, gfx_w, ht/2, 0,0,0,0,    0, 0, 0, 0, 0, 0, 0, dst_a*2); 
+
+!((very_compact_width) | (very_compact_height)) ? (
+  spectrum.draw_grid(0);
+);
 
 chr = gfx_getchar();
 
@@ -628,9 +694,11 @@ mouse_cap & 8 ? (
 
 ) : do_listen = 0;
 
-mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
-  note_select = Show_Piano ? spectrum.draw_piano() : 0;
-) : note_select = 0;
+!((compact_width) | (compact_height)) ? (
+  mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
+    note_select = Show_Piano ? spectrum.draw_piano() : 0;
+  ) : note_select = 0;
+);
 
 draw_info_panel(note_select);
 
@@ -638,14 +706,16 @@ note_select == 0 ? (
   draw_mouse_crosshair();
 );
 
-gfx_ext_retina == 2 ? (menu.x = gfx_w - 140; menu.width = 120;) : (menu.x = gfx_w - 100; menu.width = 80;);
-menu.draw_menu_button();
-menu.handle_menu_button();
+!((very_compact_width) | (very_compact_height)) ? (
+  gfx_ext_retina == 2 ? (menu.x = gfx_w - 140; menu.width = 120;) : (menu.x = gfx_w - 100; menu.width = 80;);
+  menu.draw_menu_button();
+  menu.handle_menu_button();
 
-gfx_ext_retina == 2 ? (piano.x = gfx_w - 280; piano.width = 100;) : (piano.x = gfx_w - 190; piano.width = 60;);
-piano.draw_piano_button();
-piano.handle_piano_button();
+  gfx_ext_retina == 2 ? (piano.x = gfx_w - 280; piano.width = 100;) : (piano.x = gfx_w - 190; piano.width = 60;);
+  piano.draw_piano_button();
+  piano.handle_piano_button();
 
-gfx_ext_retina == 2 ? (peaks.x = gfx_w - 420; peaks.width = 100;) : (peaks.x = gfx_w - 280; peaks.width = 60;);
-peaks.draw_peak_button();
-peaks.handle_peak_button();
+  gfx_ext_retina == 2 ? (peaks.x = gfx_w - 420; peaks.width = 100;) : (peaks.x = gfx_w - 280; peaks.width = 60;);
+  peaks.draw_peak_button();
+  peaks.handle_peak_button();
+);

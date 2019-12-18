@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.6
+Version: v1.0.7
 
 The MIT License (MIT)
 
@@ -28,6 +28,12 @@ SOFTWARE.
 DONE:
 
 TODO:
+  - Get rid of settings menu on very compact width
+  - Get rid of number axis on very compact width and height
+  - Shrink node sizes on very compact width and height
+  - Fade grid lines on very compact width and height (remove?)
+  - On very compact width and height replace info box with fixed top or bottom info
+
 
 */
  
@@ -770,6 +776,13 @@ init_rate != srate ? (
   // Automatic Gain Control
   agcControl = 0;
   agcOverride = 0;
+
+  compact_width = 0;
+  compact_height = 0;
+  very_compact_width = 0;
+  very_compact_height = 0;
+
+  ShowPanel = PanelEnabled;
 );
 
 @slider
@@ -1242,17 +1255,33 @@ LimitOutput ? (
   spl1 = min(max(spl1,-1.0),1.0);
 );
 
-
 @gfx 922 564
 
 gfx_mode = 0;
+
+gfx_set(1,1,1,1);
+
+gfx_x = 100; gfx_y = 100;
+
+actual_width = gfx_w / gfx_ext_retina;
+actual_height = gfx_h / gfx_ext_retina;
+
+// Calculage compact view flags
+// These are used to disable certain elements for graceful visual shrinking
+compact_width = actual_width < 600;
+compact_height = actual_height < 320;
+very_compact_width = actual_width < 300;
+very_compact_height = actual_height < 160;
 
 TOP_MARGIN = 10;
 BOTTOM_MARGIN = gfx_ext_retina == 2 ? 64 : 32;
 RAISED_BOTTOM = gfx_ext_retina == 2 ? 240 : 120;
 
-ENABLE_RAISED_BOTTOM = PanelEnabled;
-//ENABLE_RAISED_BOTTOM = 0;
+compact_width || compact_height ? BOTTOM_MARGIN = 0;
+
+ShowPanel = PanelEnabled && !compact_width && !compact_height;
+
+ENABLE_RAISED_BOTTOM = ShowPanel;
 
 LEFT_MARGIN = 0;
 RIGHT_MARGIN = 0;
@@ -1881,7 +1910,7 @@ function mouse_within_window() (
  * Return true if mouse is within panel
  */
 function mouse_within_panel() ( 
-  PanelEnabled && (mouse_x >= panel_x && mouse_x < panel_x+panel_w && mouse_y >= panel_y && mouse_y < panel_y+panel_h);
+  ShowPanel && (mouse_x >= panel_x && mouse_x < panel_x+panel_w && mouse_y >= panel_y && mouse_y < panel_y+panel_h);
 );
 
 /*
@@ -3496,12 +3525,13 @@ function handle_dbscale_button() instance (x, y, width, pressed, height)
   last_clicked_item;
 );
 
-// Main rendering
+////////////////////////////////////////////////////////////////////////////////////////////
+// Main execution loop for input and rendering
+////////////////////////////////////////////////////////////////////////////////////////////
 
 gfx_ext_retina != last_gfx_ext_retina ? (
   last_gfx_ext_retina = gfx_ext_retina;
   
-  //gfx_ext_retina > 1 ? gfx_setfont(1,"Verdana",18,'b') : gfx_setfont(0);
   gfx_ext_retina > 1 ? (
     gfx_setfont(1,"Arial",20,'b');
     gfx_setfont(2,"Arial",18,'b');
@@ -3539,8 +3569,10 @@ ht = (gfx_h - BOTTOM_MARGIN - gfx_texth) + 2;
 dst_a = 0.55 / ht;
 gfx_gradrect(0, ht/2, gfx_w, ht/2, 0,0,0,0,    0, 0, 0, 0, 0, 0, 0, dst_a*2); 
 
-
-draw_grid();
+// Draw the lined grid
+!very_compact_height && !very_compact_width ? (
+  draw_grid();
+);
 
 draw_filter_bands();
 
@@ -3583,7 +3615,9 @@ mouse_within_window() ? (
 
   draw_mouse_crosshair();
 
-  draw_info_panel();
+  !very_compact_height && !very_compact_width ? (
+    draw_info_panel();
+  );
 
   draw_nodes();
 ) : ( 
@@ -4233,99 +4267,104 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
   button_agcset_toggle.x = px+button_agcset_toggle_xoffset; button_agcset_toggle.y = py;
   button_panel_toggle.x = px+button_panel_toggle_xoffset; button_panel_toggle.y = py;
 
-  mb = button_oversample.handle_options_button();
-  mb > 0 ? (
+  !compact_height && !compact_width ? (
+    mb = button_oversample.handle_options_button();
+    mb > 0 ? (
 
-    Quality = mb - 1;
-    set_oversample(Quality);
+      Quality = mb - 1;
+      set_oversample(Quality);
 
-    flag_filter_update_all();
+      flag_filter_update_all();
 
-    filters_to_sliders();
-  );
-
-  button_oversample.draw_options_button();
-
-  mb = button_stereo_mode.handle_options_button();
-  mb > 0 ? Stereo_Mode = mb - 1;
-
-  button_stereo_mode.draw_options_button();
-
-  last_scale = Scale;
-  button_scale.db = Scale;
-  Scale = button_scale.handle_number_button();
-  Scale != last_scale ? flag_filter_update_all();
-
-  button_scale.draw_number_button();
-
-  button_gain.db = Gain;
-  Gain = button_gain.handle_number_button();
-
-  button_gain.draw_number_button();
-
-  button_mid_gain.label = Stereo_Mode ? "L: " : "M: ";
-  button_mid_gain.db = MLGain;
-  MLGain = button_mid_gain.handle_number_button();
-
-  button_mid_gain.draw_number_button();
-
-  button_side_gain.label = Stereo_Mode ? "R: " : "S: ";
-  button_side_gain.db = SRGain;
-  SRGain = button_side_gain.handle_number_button();
-
-  button_side_gain.draw_number_button();
-
-  button_mid_toggle.select = MidPolarity;
-  MidPolarity = button_mid_toggle.handle_toggle_button();
-  button_mid_toggle.draw_toggle_button();
-
-  button_side_toggle.select = SidePolarity;
-  SidePolarity = button_side_toggle.handle_toggle_button();
-  button_side_toggle.draw_toggle_button();
-
-  button_limit_toggle.select = LimitOutput;
-  LimitOutput = button_limit_toggle.handle_toggle_button();
-  button_limit_toggle.draw_toggle_button();
-
-  button_agc_toggle.select = AGCEnabled;
-  AGCEnabled = button_agc_toggle.handle_toggle_button();
-  button_agc_toggle.draw_toggle_button();
-
-  AGCEnabled ? (
-    button_agcset_toggle.select = 0;
-    agc_set = button_agcset_toggle.handle_toggle_button();
-    button_agcset_toggle.draw_toggle_button();
-    agc_set == 1 ? ( 
-      agcOverride = 10;
-      agcControl = 0;
-      AGCEnabled = 0;
+      filters_to_sliders();
     );
+
+    button_oversample.draw_options_button();
+
+    mb = button_stereo_mode.handle_options_button();
+    mb > 0 ? Stereo_Mode = mb - 1;
+
+    button_stereo_mode.draw_options_button();
+
+    last_scale = Scale;
+    button_scale.db = Scale;
+    Scale = button_scale.handle_number_button();
+    Scale != last_scale ? flag_filter_update_all();
+
+    button_scale.draw_number_button();
+
+    button_gain.db = Gain;
+    Gain = button_gain.handle_number_button();
+
+    button_gain.draw_number_button();
+
+    button_mid_gain.label = Stereo_Mode ? "L: " : "M: ";
+    button_mid_gain.db = MLGain;
+    MLGain = button_mid_gain.handle_number_button();
+
+    button_mid_gain.draw_number_button();
+
+    button_side_gain.label = Stereo_Mode ? "R: " : "S: ";
+    button_side_gain.db = SRGain;
+    SRGain = button_side_gain.handle_number_button();
+
+    button_side_gain.draw_number_button();
+
+    button_mid_toggle.select = MidPolarity;
+    MidPolarity = button_mid_toggle.handle_toggle_button();
+    button_mid_toggle.draw_toggle_button();
+
+    button_side_toggle.select = SidePolarity;
+    SidePolarity = button_side_toggle.handle_toggle_button();
+    button_side_toggle.draw_toggle_button();
+
+    button_limit_toggle.select = LimitOutput;
+    LimitOutput = button_limit_toggle.handle_toggle_button();
+    button_limit_toggle.draw_toggle_button();
+
+    button_agc_toggle.select = AGCEnabled;
+    AGCEnabled = button_agc_toggle.handle_toggle_button();
+    button_agc_toggle.draw_toggle_button();
+
+    AGCEnabled ? (
+      button_agcset_toggle.select = 0;
+      agc_set = button_agcset_toggle.handle_toggle_button();
+      button_agcset_toggle.draw_toggle_button();
+      agc_set == 1 ? ( 
+        agcOverride = 10;
+        agcControl = 0;
+        AGCEnabled = 0;
+      );
+    );
+
+    button_panel_toggle.select = PanelEnabled;
+    PanelEnabled = button_panel_toggle.handle_toggle_button();
+    button_panel_toggle.draw_toggle_button();
+
+    gfx_ext_retina == 2 ? (
+      dbscale.x = gfx_w - 60;
+      dbscale.width = gfx_w - (gfx_w - 60);
+    ) : (
+      dbscale.x = gfx_w - 40;
+      dbscale.width = gfx_w - (gfx_w - 40);
+    );
+
+    dbscale.handle_dbscale_button();
   );
 
-  button_panel_toggle.select = PanelEnabled;
-  PanelEnabled = button_panel_toggle.handle_toggle_button();
-  button_panel_toggle.draw_toggle_button();
+  !compact_height ? ( 
+    gfx_ext_retina == 2 ? (
+      menu.x = gfx_w - 200; 
+      menu.width = 120;
+    ) : (
+      menu.x = gfx_w - 120; 
+      menu.width = 60;
+    );
 
-  gfx_ext_retina == 2 ? (
-    menu.x = gfx_w - 200; 
-    menu.width = 120;
-
-    dbscale.x = gfx_w - 60;
-    dbscale.width = gfx_w - (gfx_w - 60);
-  ) : (
-    menu.x = gfx_w - 120; 
-    menu.width = 60;
-
-    dbscale.x = gfx_w - 40;
-    dbscale.width = gfx_w - (gfx_w - 40);
+    menu.draw_menu_button();
+    menu.handle_menu_button();
   );
-
-  menu.draw_menu_button();
-  menu.handle_menu_button();
-
-  dbscale.handle_dbscale_button();
-
-
+  
 
   /*
 
@@ -4347,7 +4386,7 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
 
   */
 
-  PanelEnabled && selected_node != -1 ? (
+  ShowPanel && selected_node != -1 ? (
     // Draw node panel background
     gfx_r = 0; gfx_g = 0; gfx_b = 0; gfx_a = 0.5;
     gfx_rect(panel_x, panel_y, panel_w, panel_h);
