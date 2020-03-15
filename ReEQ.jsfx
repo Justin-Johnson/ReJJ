@@ -1,11 +1,11 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.7
+Version: v1.0.8
 
 The MIT License (MIT)
 
-Copyright (c) 2019 Justin Johnson
+Copyright (c) 2020 Justin Johnson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,12 +28,7 @@ SOFTWARE.
 DONE:
 
 TODO:
-  - Get rid of settings menu on very compact width
-  - Get rid of number axis on very compact width and height
-  - Shrink node sizes on very compact width and height
-  - Fade grid lines on very compact width and height (remove?)
-  - On very compact width and height replace info box with fixed top or bottom info
-
+  
 
 */
  
@@ -1496,7 +1491,24 @@ function draw_nodes() local (band) (
   );
 );
 
+/*
+ * Draw a normal line
+ */
 function draw_line(x1, y1, x2, y2)
+(
+  x1 = floor(x1);
+  x2 = floor(x2);
+  x2 = floor(x2);
+  y2 = floor(y2);
+  
+  gfx_a = 1;
+  gfx_line(x1, y1, x2, y2, 1); 
+);
+
+/*
+ * Draw a thick line
+ */
+function draw_thick_line(x1, y1, x2, y2)
 (
   x1 = floor(x1);
   x2 = floor(x2);
@@ -1579,28 +1591,23 @@ function draw_filter_bands()
                 y0 = bottom;
               );
 
-              /*
-              gfx_line(x1, y1, x0, y0, 1);
-              gfx_ext_retina == 2 ? (
-                gfx_line(x1, y1+1, x0, y0+1, 1);
-                gfx_line(x1, y1+2, x0, y0+2, 1);
-              );
-              */
-              draw_line(x1, y1, x0, y0);
+              // Thinner line in very compact mode, thicker if not
+              (very_compact_width || very_compact_height) ? draw_line(x0, y0, x1, y1) :
+                draw_thick_line(x0, y0, x1, y1);
             );
 
             // Fill in
-              gfx_a = 0.5;
-              tx0=xf|0;
-              lx0=xo1|0;
-              y1 = min(scy, bottom);
-              y0 = min(yo1, bottom);
-              state == BAND_STATE_ENABLED ? (
-                tx0>lx0 ? (
-                  gfx_ext_retina == 2 ? gfx_triangle(xo1, y0+2, xf-1, y1+2, xf-1, midp, xo1, midp) :
-                    gfx_triangle(xo1, y0+1, xf-1, y1+1, xf-1, midp, xo1, midp);
-                );
+            gfx_a = 0.5;
+            tx0=xf|0;
+            lx0=xo1|0;
+            y1 = min(scy, bottom);
+            y0 = min(yo1, bottom);
+            state == BAND_STATE_ENABLED ? (
+              tx0>lx0 ? (
+                gfx_ext_retina == 2 ? gfx_triangle(xo1, y0+2, xf-1, y1+2, xf-1, midp, xo1, midp) :
+                  gfx_triangle(xo1, y0+1, xf-1, y1+1, xf-1, midp, xo1, midp);
               );
+            );
           );
 
           xo1 = xf; yo1 = scy;
@@ -1684,18 +1691,24 @@ function draw_filter_response(group, red, green, blue)
 
       gfx_a = 1;
 
-      draw_line(x0, y0, x1, y1);
-
       gfx_ext_retina == 2 ? (
-        // Thicken the line up
-        abs(x1 - x0) > abs(y1 - y0) ? (
-          draw_line(x0, y0+1, x1, y1+1);
-          draw_line(x0, y0-1, x1, y1-1);
-        ) : ( 
-          draw_line(x0+1, y0, x1+1, y1);
-          draw_line(x0-1, y0, x1-1, y1);
+        draw_thick_line(x0, y0, x1, y1);
+
+        // If we're not in very compact mode then thicken the line up more
+        (!very_compact_width && !very_compact_height) ? (
+          abs(x1 - x0) > abs(y1 - y0) ? (
+            draw_thick_line(x0, y0+1, x1, y1+1);
+            draw_thick_line(x0, y0-1, x1, y1-1);
+          ) : ( 
+            draw_thick_line(x0+1, y0, x1+1, y1);
+            draw_thick_line(x0-1, y0, x1-1, y1);
+          );
         );
-      );
+      ) : (
+        // Thinner line in very compact mode, thicker if not
+        (very_compact_width || very_compact_height) ? draw_line(x0, y0, x1, y1) :
+          draw_thick_line(x0, y0, x1, y1);
+      )
 
       /*
       midp = (gfx_h - gfx_texth) / 2;
@@ -3621,6 +3634,7 @@ mouse_within_window() ? (
 
   draw_nodes();
 ) : ( 
+  listen_node != -1 ? draw_listen_helper();
   node_drag_mode != 0 ? draw_nodes();
 );
 
@@ -4653,10 +4667,6 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     );
 
     panel_delete_toggle.draw_close_button();
-
-
-
-
 
     gfx_setfont(1);
 
