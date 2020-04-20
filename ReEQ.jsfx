@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.8
+Version: v1.0.9
 
 The MIT License (MIT)
 
@@ -2594,6 +2594,26 @@ local(x, y, x1, x2, x3, x4, y1, y2, y3, y4, x1r, y1r, x2r, y2r, x3r, y3r, x4r, y
 );
 
 /*
+ * Draw button capsule
+ */
+function draw_capsule(x, y, w, h)
+  local(radius, diameter, halfh)
+(
+  x = floor(x);
+  y = floor(y);
+
+  radius = h * 0.5;
+  diameter = h;
+  halfh = h * 0.5;
+
+
+  gfx_rect(x, y, w, h+1);
+
+  gfx_circle(x, y + halfh, radius, 1);
+  gfx_circle(x + w, y + halfh, radius, 1);
+);
+
+/*
  * Init the close style button
  */
 function init_close_button(xpos, ypos, buttonwidth, select, label) instance (x, y, width, menutext, label, select, select_r, select_g, select_b, small) (
@@ -2613,12 +2633,19 @@ function init_close_button(xpos, ypos, buttonwidth, select, label) instance (x, 
  */
 function draw_close_button() instance (x, y, width, menutext, label, pressed, height, select, small, select_r, select_g, select_b) ( 
   gfx_a = 1;
+  x = floor(x); y =floor(y);
 
   small == 1 ? gfx_setfont(2) : gfx_setfont(1);
 
   strlen(label) == 0 ? gfx_measurestr("*", w, h) : gfx_measurestr(label, w, h);
 
-  height = h;
+  height = small == 1 ? (
+    gfx_ext_retina == 1 ? 16 : 30;
+  ) : (
+    gfx_ext_retina == 1 ? 20 : 32;  
+  );
+
+  h = height;
 
   button_focus == -1 && node_drag_mode == 0 &&
     mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
@@ -2631,15 +2658,7 @@ function draw_close_button() instance (x, y, width, menutext, label, pressed, he
     gfx_b = (32 / 255) * 0.80;
   );
 
-  gfx_ext_retina == 2 ? (
-    gfx_rect(x, y, width, h+9);
-    gfx_circle(x, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-  ) : ( 
-    small == 1 ? gfx_rect(x, y, width, h+4) : gfx_rect(x, y, width, h+5);    
-    gfx_circle(x, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
-  );
+  draw_capsule(x, y, width, height);
 
   gfx_r = (114 / 255);
   gfx_g = (215 / 255);
@@ -2698,40 +2717,6 @@ function handle_close_button() instance (x, y, width, menutext, label, pressed, 
   select;
 );
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
  * Init the toggle style button
  */
@@ -2760,12 +2745,19 @@ function init_toggle_button_small(xpos, ypos, buttonwidth, select, label) instan
  */
 function draw_toggle_button() instance (x, y, width, menutext, label, pressed, height, select, small, select_r, select_g, select_b) ( 
   gfx_a = 1;
+  x = floor(x); y =floor(y);
 
   small == 1 ? gfx_setfont(2) : gfx_setfont(1);
 
   strlen(label) == 0 ? gfx_measurestr("*", w, h) : gfx_measurestr(label, w, h);
 
-  height = h;
+  height = small == 1 ? (
+    gfx_ext_retina == 1 ? 16 : 30;
+  ) : (
+    gfx_ext_retina == 1 ? 20 : 32;  
+  );
+
+  h = height;
 
   button_focus == -1 && node_drag_mode == 0 &&
     mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
@@ -2783,15 +2775,7 @@ function draw_toggle_button() instance (x, y, width, menutext, label, pressed, h
       ( gfx_r = select_r; gfx_g = select_g; gfx_b = select_b; );
   );
 
-  gfx_ext_retina == 2 ? (
-    gfx_rect(x, y, width, h+9);
-    gfx_circle(x, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-  ) : ( 
-    small == 1 ? gfx_rect(x, y, width, h+4) : gfx_rect(x, y, width, h+5);
-    gfx_circle(x, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
-  );
+  draw_capsule(x, y, width, height);
 
   gfx_r = (114 / 255);
   gfx_g = (215 / 255);
@@ -2809,11 +2793,11 @@ function draw_toggle_button() instance (x, y, width, menutext, label, pressed, h
 
   strlen(label) == 0 ? (
     gfx_ext_retina == 2 ? (
-      gfx_circle(gfx_x+6, gfx_y+11, 7, 0, 1);
-      gfx_line(gfx_x, gfx_y+20, gfx_x+13, gfx_y+2);
+      gfx_circle(gfx_x+3, gfx_y+11, 7, 0, 1);
+      gfx_line(gfx_x-3, gfx_y+20, gfx_x+10, gfx_y+2);
     ) : (
-      gfx_circle(gfx_x+3, gfx_y+5, 4, 0, 1);
-      gfx_line(gfx_x-1, gfx_y+10, gfx_x+7, gfx_y);
+      gfx_circle(gfx_x+3, gfx_y+6, 4, 0, 1);
+      gfx_line(gfx_x-1, gfx_y+11, gfx_x+7, gfx_y+1);
     );
   ) : (
     select == 1 ? gfx_set(0.9, 0.9, 0.9, 1);
@@ -2872,6 +2856,7 @@ function init_options_button_small2(xpos, ypos, buttonwidth, select, nOptions, o
  */
 function draw_options_button2() instance (x, y, width, menutext, label, pressed, height, select, small, nOptions, options) ( 
   gfx_a = 1;
+  x = floor(x); y =floor(y);
 
   small == 1 ? gfx_setfont(2) : gfx_setfont(1);
 
@@ -2879,7 +2864,13 @@ function draw_options_button2() instance (x, y, width, menutext, label, pressed,
 
   gfx_measurestr(label, w, h);
 
-  height = h;
+  height = small == 1 ? (
+    gfx_ext_retina == 1 ? 16 : 30;
+  ) : (
+    gfx_ext_retina == 1 ? 20 : 32;  
+  );
+
+  h = height;
 
   button_focus == -1 && node_drag_mode == 0 &&
     mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
@@ -2892,15 +2883,7 @@ function draw_options_button2() instance (x, y, width, menutext, label, pressed,
     gfx_b = (253 / 255) * 0.4;
   );
 
-  gfx_ext_retina == 2 ? (
-    gfx_rect(x, y, width, h+9);
-    gfx_circle(x, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-  ) : ( 
-    small == 1 ? gfx_rect(x, y, width, h+4) : gfx_rect(x, y, width, h+5);
-    gfx_circle(x, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
-  );
+  draw_capsule(x, y, width, height);
 
   gfx_r = (114 / 255);
   gfx_g = (215 / 255);
@@ -2961,8 +2944,6 @@ function handle_options_button2() instance (x, y, width, menutext, label, presse
   last_clicked_item;
 );
 
-
-
 /*
  * Init the options style button
  */
@@ -2988,6 +2969,7 @@ function init_options_button_small(xpos, ypos, buttonwidth, select, m1, m2, mf1,
  */
 function draw_options_button() instance (x, y, width, menutext, label, pressed, height, select, m1, m2, mf1, mf2, small) ( 
   gfx_a = 1;
+  x = floor(x); y =floor(y);
 
   small == 1 ? gfx_setfont(2) : gfx_setfont(1);
 
@@ -2995,7 +2977,13 @@ function draw_options_button() instance (x, y, width, menutext, label, pressed, 
 
   gfx_measurestr(label, w, h);
 
-  height = h;
+  height = small == 1 ? (
+    gfx_ext_retina == 1 ? 16 : 30;
+  ) : (
+    gfx_ext_retina == 1 ? 20 : 32;  
+  );
+
+  h = height;
 
   button_focus == -1 && node_drag_mode == 0 &&
     mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
@@ -3008,15 +2996,7 @@ function draw_options_button() instance (x, y, width, menutext, label, pressed, 
     gfx_b = (253 / 255) * 0.4;
   );
 
-  gfx_ext_retina == 2 ? (
-    gfx_rect(x, y, width, h+9);
-    gfx_circle(x, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-  ) : ( 
-    small == 1 ? gfx_rect(x, y, width, h+4) : gfx_rect(x, y, width, h+5);
-    gfx_circle(x, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
-  );
+  draw_capsule(x, y, width, height);
 
   gfx_r = (114 / 255);
   gfx_g = (215 / 255);
@@ -3093,6 +3073,8 @@ function init_number_button(xpos, ypos, buttonwidth, label, type, db) instance (
  */
 function draw_number_button() instance (x, y, width, label, drag, height, db, type) local (txt) ( 
   gfx_a = 1;
+  x = floor(x); y =floor(y);
+
   txt = #;
   type == 0 ? ( 
     db > 0 ? sprintf(txt, "%s+%.1f dB", label, db) : sprintf(txt, "%s%.1f dB", label, db);
@@ -3102,7 +3084,13 @@ function draw_number_button() instance (x, y, width, label, drag, height, db, ty
 
   gfx_measurestr(txt, w, h);
 
-  height = h;
+  height = small == 1 ? (
+    gfx_ext_retina == 1 ? 16 : 30;
+  ) : (
+    gfx_ext_retina == 1 ? 20 : 32;  
+  );
+
+  h = height;
 
   (button_focus == -1 || button_focus == x) && node_drag_mode == 0 &&
     (mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9) || drag ? ( 
@@ -3115,15 +3103,7 @@ function draw_number_button() instance (x, y, width, label, drag, height, db, ty
     gfx_b = (253 / 255) * 0.4;
   );
 
-  gfx_ext_retina == 2 ? (
-    gfx_rect(x, y, width, h+9);
-    gfx_circle(x, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-  ) : ( 
-    gfx_rect(x, y, width, h+5);
-    gfx_circle(x, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+4)*0.5), floor((h+4)*0.5), 1);
-  );
+  draw_capsule(x, y, width, height);
 
   gfx_r = (114 / 255);
   gfx_g = (215 / 255);
@@ -3327,10 +3307,6 @@ function handle_number_dial(val) instance (x, y, r, v, width, menutext, label, d
 );
 
 
-
-
-
-
 /*
  * Initialise the menu style button
  */
@@ -3348,10 +3324,15 @@ function init_menu_button(xpos, ypos, buttonwidth, buttonlabel, menutext) instan
 function draw_menu_button() instance (x, y, width, menutext, label, pressed, height, label) ( 
   mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h ? (
   gfx_a = 1;
+  x = floor(x); y =floor(y);
 
   gfx_measurestr(label, w, h);
 
-  height = h + 8;
+  height = small == 1 ? (
+    gfx_ext_retina == 1 ? 16 : 30;
+  ) : (
+    gfx_ext_retina == 1 ? 20 : 32;  
+  );
 
   node_drag_mode == 0 && mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
     gfx_r = (114 / 255) * 0.6;
@@ -3363,15 +3344,7 @@ function draw_menu_button() instance (x, y, width, menutext, label, pressed, hei
     gfx_b = (253 / 255) * 0.4;
   );
 
-  gfx_ext_retina == 2 ? (
-    gfx_rect(x, y, width, h+9);
-    gfx_circle(x, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+8)*0.5), floor((h+8)*0.5), 1);
-  ) : ( 
-    gfx_rect(x, y, width, h+5);
-    gfx_circle(x, y + floor((h+5)*0.5), floor((h+5)*0.5), 1);
-    gfx_circle(x + width, y + floor((h+5)*0.5), floor((h+5)*0.5), 1);
-  );
+  draw_capsule(x, y, width, height);
 
   gfx_r = (114 / 255);
   gfx_g = (215 / 255);
@@ -3550,7 +3523,7 @@ gfx_ext_retina != last_gfx_ext_retina ? (
     gfx_setfont(2,"Arial",18,'b');
   ) : (
     gfx_setfont(1,"Arial",12,'b');
-    gfx_setfont(2,"Arial",10,'b');
+    gfx_setfont(2,"Arial",11,'b');
   );
   gfx_setfont(1);
 );
@@ -4379,7 +4352,6 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     menu.handle_menu_button();
   );
   
-
   /*
 
   Filter node panel features:
@@ -4394,9 +4366,6 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     Listen
     Next
     Prev
-
-
-
 
   */
 
