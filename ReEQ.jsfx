@@ -2648,7 +2648,7 @@ function draw_close_button() instance (x, y, width, menutext, label, pressed, he
   h = height;
 
   button_focus == -1 && node_drag_mode == 0 &&
-    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 4 ? ( 
     gfx_r = (221 / 255);
     gfx_g = (119 / 255);
     gfx_b = (108 / 255);
@@ -2702,7 +2702,7 @@ function handle_close_button() instance (x, y, width, menutext, label, pressed, 
   last_clicked_item = 0;
   button_focus == -1 && node_drag_mode == 0 ? (
     mouse_cap & 1 && !pressed ? (
-      mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+      mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 4 ? ( 
         pressed = 1;
 
         select == 0 ? select = 1 : select = 0;
@@ -2760,7 +2760,7 @@ function draw_toggle_button() instance (x, y, width, menutext, label, pressed, h
   h = height;
 
   button_focus == -1 && node_drag_mode == 0 &&
-    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 4 ? ( 
     gfx_r = (114 / 255) * 0.6;
     gfx_g = (215 / 255) * 0.6;
     gfx_b = (253 / 255) * 0.6;
@@ -2816,7 +2816,7 @@ function handle_toggle_button() instance (x, y, width, menutext, label, pressed,
   last_clicked_item = 0;
   button_focus == -1 && node_drag_mode == 0 ? (
     mouse_cap & 1 && !pressed ? (
-      mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+      mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 4 ? ( 
         pressed = 1;
 
         select == 0 ? select = 1 : select = 0;
@@ -2873,7 +2873,7 @@ function draw_options_button2() instance (x, y, width, menutext, label, pressed,
   h = height;
 
   button_focus == -1 && node_drag_mode == 0 &&
-    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 4 ? ( 
     gfx_r = (114 / 255) * 0.6;
     gfx_g = (215 / 255) * 0.6;
     gfx_b = (253 / 255) * 0.6;
@@ -2914,7 +2914,7 @@ function handle_options_button2() instance (x, y, width, menutext, label, presse
   last_clicked_item = -1;
   button_focus == -1 && node_drag_mode == 0 ? (
     mouse_cap & 1 && !pressed ? (
-      mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+      mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 4 ? ( 
         pressed = 1;
 
         #menu = "";
@@ -2986,7 +2986,7 @@ function draw_options_button() instance (x, y, width, menutext, label, pressed, 
   h = height;
 
   button_focus == -1 && node_drag_mode == 0 &&
-    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 9 ? ( 
+    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height + 4 ? ( 
     gfx_r = (114 / 255) * 0.6;
     gfx_g = (215 / 255) * 0.6;
     gfx_b = (253 / 255) * 0.6;
@@ -4151,6 +4151,15 @@ gfx_ext_retina == 2 ? (
   py = gfx_h - (gfx_texth);
 );
 
+// TODO: work in progress for panel to track selected node
+/*
+selected_node != -1 ? (
+  panel_x = freq_to_scx(Band_Frequency[selected_node]) - floor(panel_w/2);
+) : (
+  panel_x = floor(gfx_w/2 - panel_w/2);
+);
+*/
+
 buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
   button_oversample.init_options_button(button_oversample_xoffset, py, button_oversample_width, Quality, "ECO", "HQ", "Economy - Fastest, No Latency", "High Quality - Accurate, Latency");
   button_stereo_mode.init_options_button(button_stereo_mode_xoffset, py, button_stereo_mode_width, Stereo_Mode, "M/S", "L/R", "Mid / Side", "Left / Right");
@@ -4193,7 +4202,7 @@ buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
   panel_bypass_toggle.init_toggle_button_small(panel_bypass_xoffset, panel_y+panel_vert_margin, panel_bypass_width, 0, "BYPASS");
 
   panel_shape_xoffset = panel_x + panel_side_margin;
-  panel_shape_width = 100 * gfx_ext_retina;
+  panel_shape_width = 112 * gfx_ext_retina;
   panel_shape_options.init_options_button_small2(panel_shape_xoffset, panel_y+panel_vert_margin+panel_gap1, panel_shape_width, 0, 12, FilterTypes);
 
   panel_slope_xoffset = panel_x + panel_side_margin;
@@ -4598,10 +4607,6 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     );
 
     panel_listen_toggle.draw_toggle_button();
-
-
-
-
 
     // Delete
     panel_delete_xoffset = 750;
