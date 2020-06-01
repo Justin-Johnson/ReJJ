@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.9
+Version: v1.0.10   <--- Make sure you change VERSION below if this changes!!
 
 The MIT License (MIT)
 
@@ -28,7 +28,7 @@ SOFTWARE.
 DONE:
 
 TODO:
-  
+
 
 */
 
@@ -53,7 +53,7 @@ slider17:Db_Range=2<0,4,1{6dB,12dB,18dB,24dB,30dB}>-dB Range
 
 slider18:Node1_Enabled=<0,2,1{Off,Disabled,Enabled}>-Filter1 Mode
 slider19:Node1_Group=0<0,2,1{Stereo,Mid,Side,Left,Right}>-Filter1 Group
-slider20:Node1_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter1 Type
+slider20:Node1_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter1 Type
 slider21:Node1_Frequency=50.81<0,100,0.01>-Filter1 Frequency
 slider22:Node1_Gain=8.0<-18.0,18.0,0.01>-Filter1 Gain
 slider23:Node1_Q=32.647<0,100.0,0.01>-Filter1 Q
@@ -61,7 +61,7 @@ slider24:Node1_Slope=0<0,15,1>-Filter1 Slope
 
 slider25:Node2_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter2 Mode
 slider26:Node2_Group=0<0,2,1{Stereo,Mid,Side,Left,Right}>-Filter2 Group
-slider27:Node2_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter2 Type
+slider27:Node2_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter2 Type
 slider28:Node2_Frequency=30<0,100,0.01>-Filter2 Frequency
 slider29:Node2_Gain=0.0<-18.0,18.0,0.01>-Filter2 Gain
 slider30:Node2_Q=32.647<0,100.0,0.01>-Filter2 Q
@@ -69,7 +69,7 @@ slider31:Node2_Slope=0<0,15,1>-Filter2 Slope
 
 slider32:Node3_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter3 Mode
 slider33:Node3_Group=0<0,2,1{Stereo,Mid,Side,Left,Right}>-Filter3 Group
-slider34:Node3_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter3 Type
+slider34:Node3_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter3 Type
 slider35:Node3_Frequency=40<0,100,0.01>-Filter3 Frequency
 slider36:Node3_Gain=0.0<-18.0,18.0,0.01>-Filter3 Gain
 slider37:Node3_Q=32.647<0,100.0,0.01>-Filter3 Q
@@ -77,7 +77,7 @@ slider38:Node3_Slope=0<0,15,1>-Filter3 Slope
 
 slider39:Node4_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter4 Mode
 slider40:Node4_Group=0<0,2,1{Stereo,Mid,Side,Left,Right}>-Filter4 Group
-slider41:Node4_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter4 Type
+slider41:Node4_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter4 Type
 slider42:Node4_Frequency=70<0,100,0.01>-Filter4 Frequency
 slider43:Node4_Gain=0.0<-18.0,18.0,0.01>-Filter4 Gain
 slider44:Node4_Q=32.647<0,100.0,0.01>-Filter4 Q
@@ -85,7 +85,7 @@ slider45:Node4_Slope=0<0,15,1>-Filter4 Slope
 
 slider46:Node5_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter5 Mode
 slider47:Node5_Group=0<0,2,1{Stereo,Mid,Side,Left,Right}>-Filter5 Group
-slider48:Node5_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass}>-Filter5 Type
+slider48:Node5_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter5 Type
 slider49:Node5_Frequency=70<0,100,0.01>-Filter5 Frequency
 slider50:Node5_Gain=0.0<-18.0,18.0,0.01>-Filter5 Gain
 slider51:Node5_Q=32.647<0,100.0,0.01>-Filter5 Q
@@ -112,6 +112,10 @@ out_pin:right output
 options:no_meter
 
 @init
+
+// This should be the same as in the comment header
+VERSION = "1.0.10";
+
 gfx_ext_retina  = 1;
 ext_nodenorm    = 1;
 ext_noinit = 1;
@@ -415,18 +419,20 @@ function band_set_enabled(e)
 function band_set_filter(t, f, g, qval, slope)
   instance (enabled, type, frequency, gain, q, filter, color) (
   type = t; frequency = f; gain = g; q = qval;
-    type == 0 ? filter.zdf_eq(frequency, q, db_to_gain(gain)) :
-      type == 1 ? filter.zdf_hp(frequency, q, slope) :
-        type == 2 ? filter.zdf_hpb(frequency, slope) :
-          type == 3 ? filter.zdf_ls(frequency, q, db_to_gain(gain)) :
-            type == 4 ? filter.zdf_hs(frequency, q, db_to_gain(gain)) :
-              type == 5 ? filter.zdf_lp(frequency, q, slope) :
-                type == 6 ? filter.zdf_lpb(frequency, slope) :
-                  type == 7 ? filter.zdf_bs(frequency, q) :
-                    type == 8 ? filter.zdf_bp2(frequency, q) :
-                      type == 9 ? filter.zdf_st(frequency, q, gain) :
-                        type == 10 ? filter.zdf_pultecls(frequency, q, gain) :
-                          type == 11 ? filter.zdf_ap(frequency, q);
+  type == 0 ? filter.zdf_eq(frequency, q, db_to_gain(gain)) :
+    type == 1 ? filter.zdf_hp(frequency, q, slope) :
+      type == 2 ? filter.zdf_hpb(frequency, slope) :
+        type == 3 ? filter.zdf_ls(frequency, q, db_to_gain(gain)) :
+          type == 4 ? filter.zdf_hs(frequency, q, db_to_gain(gain)) :
+            type == 5 ? filter.zdf_lp(frequency, q, slope) :
+              type == 6 ? filter.zdf_lpb(frequency, slope) :
+                type == 7 ? filter.zdf_bs(frequency, q) :
+                  type == 8 ? filter.zdf_bp2(frequency, q) :
+                    type == 9 ? filter.zdf_st(frequency, q, gain) :
+                      type == 10 ? filter.zdf_pultecls(frequency, q, gain) :
+                        type == 11 ? filter.zdf_ap(frequency, q) :
+                          type == 12 ? filter.zdf_analog_lowcut(frequency, q, gain) :
+                            type == 13 ? filter.zdf_analog_highcut(frequency, q, gain);
 );
 
 /*
@@ -782,19 +788,73 @@ init_rate != srate ? (
   listen_filter.m2 = listen_filter.t_m2;
   listen_filter.iter_t = 1.0;
 
-  FilterTypes = MEMORY.alloc_memory(12);
+//jj
+  // Define filter index numbers
+  FILTER_PEAK = 0;
+  FILTER_LOW_CUT = 1;
+  FILTER_LOW_CUT_BUTTERWORTH = 2;
+  FILTER_LOW_SHELF = 3;
+  FILTER_HIGH_SHELF = 4;
+  FILTER_HIGH_CUT = 5;
+  FILTER_HIGH_CUT_BUTTERWORTH = 6;
+  FILTER_NOTCH = 7;
+  FILTER_BAND_PASS = 8;
+  FILTER_TILT_SHELF = 9;
+  FILTER_PULTEC_LOW_SHELF = 10;
+  FILTER_ALL_PASS = 11;
+  FILTER_LOW_CUT_ANALOG = 12;
+  FILTER_HIGH_CUT_ANALOG = 13;
+
+  // Define filter display order
+  FilterTypes = MEMORY.alloc_memory(14);
   FilterTypes[0] = "Peak";
   FilterTypes[1] = "Low Cut";
   FilterTypes[2] = "Low Cut (Butterworth)";
-  FilterTypes[3] = "Low Shelf";
-  FilterTypes[4] = "High Shelf";
-  FilterTypes[5] = "High Cut";
-  FilterTypes[6] = "High Cut (Butterworth)";
-  FilterTypes[7] = "Notch";
-  FilterTypes[8] = "Band Pass";
-  FilterTypes[9] = "Tilt Shelf";
-  FilterTypes[10] = "Pultec Low Shelf";
-  FilterTypes[11] = "All Pass";
+  FilterTypes[3] = "Low Channel (Analog)";
+  FilterTypes[4] = "Low Shelf";
+  FilterTypes[5] = "High Shelf";
+  FilterTypes[6] = "High Cut";
+  FilterTypes[7] = "High Cut (Butterworth)";
+  FilterTypes[8] = "High Channel (Analog)";
+  FilterTypes[9] = "Notch";
+  FilterTypes[10] = "Band Pass";
+  FilterTypes[11] = "Tilt Shelf";
+  FilterTypes[12] = "Pultec Low Shelf";
+  FilterTypes[13] = "All Pass";
+
+  // Define mapping from display order to index
+  FilterMappingTo = MEMORY.alloc_memory(14);
+  FilterMappingTo[0] = 0;
+  FilterMappingTo[1] = 1;
+  FilterMappingTo[2] = 2;
+  FilterMappingTo[3] = 12;
+  FilterMappingTo[4] = 3;
+  FilterMappingTo[5] = 4;
+  FilterMappingTo[6] = 5;
+  FilterMappingTo[7] = 6;
+  FilterMappingTo[8] = 13;
+  FilterMappingTo[9] = 7;
+  FilterMappingTo[10] = 8;
+  FilterMappingTo[11] = 9;
+  FilterMappingTo[12] = 10;
+  FilterMappingTo[13] = 11;
+
+  // Define mapping from index to display order
+  FilterMappingFrom = MEMORY.alloc_memory(14);
+  FilterMappingFrom[0] = 0;
+  FilterMappingFrom[1] = 1;
+  FilterMappingFrom[2] = 2;
+  FilterMappingFrom[3] = 4;
+  FilterMappingFrom[4] = 5;
+  FilterMappingFrom[5] = 6;
+  FilterMappingFrom[6] = 7;
+  FilterMappingFrom[7] = 9;
+  FilterMappingFrom[8] = 10;
+  FilterMappingFrom[9] = 11;
+  FilterMappingFrom[10] = 12;
+  FilterMappingFrom[11] = 13;
+  FilterMappingFrom[12] = 3;
+  FilterMappingFrom[13] = 8;
 
   NumFilterSlopes = 10;
   FilterSlopes = MEMORY.alloc_memory(10);
@@ -1197,16 +1257,6 @@ DO_OVERSAMPLE ? (
         Band_Group15 == 0 || Band_Group15 == 4 ? (y2 = band16.filter.zdf_svf1(y2); y3 = band16.filter.zdf_svf1(y3))
       )
     );
-
-
-
-
-
-
-
-
-
-
 
     // Unoptimised
     // spl0 = firL.do_FIR_filter(y0) * 2;
@@ -1990,6 +2040,7 @@ function draw_filter_response(group, red, green, blue)
   xf = 0;
   while (
     freq = scx_to_freq(xf);
+    freq > 22049 ? freq = 22049;
 
     // Apply the filters
     m = 1.0;
@@ -2509,7 +2560,7 @@ function draw_listen_helper()
     width = listen_filter.zdf_qtobw(listen_q);
 
     // Peak or notch? - Has a wider band range
-    Band_Type[node] == 0 || Band_Type[node] == 7 ? ( 
+    Band_Type[node] == FILTER_PEAK || Band_Type[node] == FILTER_NOTCH ? ( 
       width *= 2;
     );
 
@@ -2525,13 +2576,13 @@ function draw_listen_helper()
     listen_q = listen_filter.zdf_bwtoq(width);
 
     // Peak, Band Pass or Notch?
-    Band_Type[node] == 0 || Band_Type[node] == 7 || Band_Type[node] == 8 ? ( 
+    Band_Type[node] == FILTER_PEAK || Band_Type[node] == FILTER_BAND_PASS || Band_Type[node] == FILTER_NOTCH ? ( 
 
-      Band_Type[node] == 0 ? (
+      Band_Type[node] == FILTER_PEAK ? (
         gain = Band_Enabled[node] == BAND_STATE_ENABLED ? Band_Gain[node] : 0;
         listen_filter.zdf_listen_eq(lfreq, rfreq, Band_Frequency[node], Band_Q[node], db_to_gain(gain));
       ) : (
-        Band_Type[node] == 7 ? (
+        Band_Type[node] == FILTER_BAND_PASS ? (
           listen_filter.zdf_listen_bs(lfreq, rfreq, Band_Frequency[node], Band_Q[node]);
         ) : ( 
           listen_filter.zdf_bp2(listen_freq, Band_Q[node]);
@@ -2557,43 +2608,50 @@ function draw_listen_helper()
       gfx_a = 1.0;
       lx = spectrum.freq_to_x(listen_freq);
 
-      Band_Type[node] == 1 ? (
+      Band_Type[node] == FILTER_LOW_CUT ? (
         listen_filter.zdf_lp(listen_freq, Band_Q[node], Band_Slope[node]);
       );
-      Band_Type[node] == 2 ? (
+      Band_Type[node] == FILTER_LOW_CUT_BUTTERWORTH ? (
         listen_filter.zdf_lpb(listen_freq, Band_Slope[node]);
       );
 
-      Band_Type[node] == 3 ? (
+      Band_Type[node] == FILTER_LOW_CUT_ANALOG ? (
+        listen_filter.zdf_lp(listen_freq, 0.701, 3);
+      );
+      Band_Type[node] == FILTER_HIGH_CUT_ANALOG ? (
+        listen_filter.zdf_hp(listen_freq, 0.701, 3);
+      );
+
+      Band_Type[node] == FILTER_LOW_SHELF ? (
         lx = spectrum.freq_to_x(rfreq);
         rfreq = min(max(rfreq, 10), 44000);
         listen_filter.zdf_lpb(rfreq, 3);
       );
-      Band_Type[node] == 4 ? (
+      Band_Type[node] == FILTER_HIGH_SHELF ? (
         lx = spectrum.freq_to_x(lfreq);
         lfreq = min(max(lfreq, 10), 44000);
         listen_filter.zdf_hpb(lfreq, 3);
       );
 
-      Band_Type[node] == 5 ? (
+      Band_Type[node] == FILTER_HIGH_CUT ? (
         listen_filter.zdf_hp(listen_freq, Band_Q[node], Band_Slope[node]);
       );
-      Band_Type[node] == 6 ? (
+      Band_Type[node] == FILTER_HIGH_CUT_BUTTERWORTH ? (
         listen_filter.zdf_hpb(listen_freq, Band_Slope[node]);
       );
 
-      Band_Type[node] == 9 || Band_Type[node] == 11 ? (
+      Band_Type[node] == FILTER_TILT_SHELF || Band_Type[node] == FILTER_ALL_PASS ? (
         listen_filter.zdf_bypass();
       );
 
-      Band_Type[node] == 10 ? (
+      Band_Type[node] == FILTER_PULTEC_LOW_SHELF ? (
         // Pultec style - maybe we can do better?
         lx = spectrum.freq_to_x(rfreq);
         rfreq = min(max(rfreq, 10), 44000);
         listen_filter.zdf_lpb(rfreq, 3);
       );
 
-      Band_Type[node] != 9 && Band_Type[node] != 11 ? gfx_line(lx, 0, lx, gfx_h - BOTTOM_MARGIN);
+      Band_Type[node] != FILTER_TILT_SHELF && Band_Type[node] != FILTER_ALL_PASS ? gfx_line(lx, 0, lx, gfx_h - BOTTOM_MARGIN);
     );
 
   ) : (
@@ -3723,7 +3781,7 @@ function draw_menu_button() instance (x, y, width, menutext, label, pressed, hei
  * Handle the menu style button
  */
 function handle_menu_button() instance (x, y, width, menutext, label, pressed, height, label)
-  local (last_clicked_item)
+  local (last_clicked_item, menu, vtext)
 (
   last_clicked_item = 0;
   mouse_cap & 1 && node_drag_mode == 0 && !pressed ? (
@@ -3731,6 +3789,8 @@ function handle_menu_button() instance (x, y, width, menutext, label, pressed, h
       pressed = 1;
 
       #menu = "";
+      sprintf(#menu, "#Version: %s ||", VERSION);
+
       #menu += ">Spectrum|";
       Spectrum_Mode == 0 ? #menu += "!"; #menu += "Full|";
       Spectrum_Mode == 1 ? #menu += "!"; #menu += "Mid|";
@@ -3779,7 +3839,7 @@ function handle_menu_button() instance (x, y, width, menutext, label, pressed, h
       gfx_x = mouse_x;
       gfx_y = mouse_y;
 
-      last_clicked_item = gfx_showmenu(#menu);
+      last_clicked_item = gfx_showmenu(#menu) - 1;
 
       pressed = 0;
 
@@ -4050,10 +4110,12 @@ do_general_mouse ? (
         Band_Type[band] == 0 ? #menu += "!"; #menu += "Peak|";
         Band_Type[band] == 1 ? #menu += "!"; #menu += "Low Cut|";
         Band_Type[band] == 2 ? #menu += "!"; #menu += "Low Cut (Butterworth)|";
+        Band_Type[band] == 12 ? #menu += "!"; #menu += "Low Channel (Analog)|";
         Band_Type[band] == 3 ? #menu += "!"; #menu += "Low Shelf|";
         Band_Type[band] == 4 ? #menu += "!"; #menu += "High Shelf|";
         Band_Type[band] == 5 ? #menu += "!"; #menu += "High Cut|";
         Band_Type[band] == 6 ? #menu += "!"; #menu += "High Cut (Butterworth)|";
+        Band_Type[band] == 13 ? #menu += "!"; #menu += "High Channel (Analog)|";
         Band_Type[band] == 7 ? #menu += "!"; #menu += "Notch|";
         Band_Type[band] == 8 ? #menu += "!"; #menu += "Band Pass|";
         Band_Type[band] == 9 ? #menu += "!"; #menu += "Tilt Shelf|";
@@ -4062,7 +4124,7 @@ do_general_mouse ? (
 
         // Only slope for cut filters
         has_slope_menu = 0;
-        Band_Type[band] == 1 || Band_Type[band] == 2 || Band_Type[band] == 5 || Band_Type[band] == 6 ? (
+        Band_Type[band] == FILTER_LOW_CUT || Band_Type[band] == FILTER_LOW_CUT_BUTTERWORTH || Band_Type[band] == FILTER_HIGH_CUT || Band_Type[band] == FILTER_HIGH_CUT_BUTTERWORTH ? (
           #menu += ">Slope|";
 
           slope = 0;
@@ -4117,11 +4179,11 @@ do_general_mouse ? (
           filters_to_sliders();
         );
 
-        last_clicked_item >= 4 && last_clicked_item <= 15 ? (
+        last_clicked_item >= 4 && last_clicked_item <= 17 ? (
           !has_slope_menu ? Band_Slope[band] = 0;
-          Band_Type[band] = last_clicked_item - 4;
+          Band_Type[band] = FilterMappingTo[last_clicked_item - 4];   //jj
 
-          Band_Type[band] == 10 ? Band_Q[band] = 20 :
+          Band_Type[band] == FILTER_PULTEC_LOW_SHELF ? Band_Q[band] = 20 :
             Band_Q[band] = 0.7071;
 
           flag_filter_update(band);
@@ -4130,8 +4192,8 @@ do_general_mouse ? (
         );
 
         has_slope_menu ? (
-          last_clicked_item >= 16 && last_clicked_item <= 25 ? (
-            match("%ddB", FilterSlopes[last_clicked_item - 16], value);
+          last_clicked_item >= 18 && last_clicked_item <= 27 ? (
+            match("%ddB", FilterSlopes[last_clicked_item - 18], value);
             Band_Slope[band] = (value / 6) - 1;
 
             flag_filter_update(band);
@@ -4140,8 +4202,8 @@ do_general_mouse ? (
           );
         ) : last_clicked_item += 10;
 
-        last_clicked_item >= 26 && last_clicked_item <= 30 ? (
-          Band_Group[band] = last_clicked_item - 26;
+        last_clicked_item >= 28 && last_clicked_item <= 32 ? (
+          Band_Group[band] = last_clicked_item - 28;
           selected_node_group = Band_Group[band];
 
           flag_filter_update(band);
@@ -4149,7 +4211,7 @@ do_general_mouse ? (
           filters_to_sliders();
         );
 
-        last_clicked_item == 31 ? (
+        last_clicked_item == 33 ? (
           // Split band
           fband = 0;
           while(
@@ -4164,8 +4226,8 @@ do_general_mouse ? (
           filters_to_sliders();
         );
 
-        last_clicked_item == 32 ? (
-          // Split band
+        last_clicked_item == 34 ? (
+          // Duplicate band
           fband = 0;
           while(
             Band_Enabled[fband]==BAND_STATE_OFF ? (                
@@ -4179,7 +4241,7 @@ do_general_mouse ? (
           filters_to_sliders();
         );
 
-        last_clicked_item == 33 ? (
+        last_clicked_item == 35 ? (
           // Delete band
           selected_node = -1;
           listen_node = -1;
@@ -4788,31 +4850,35 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     panel_bypass_toggle.draw_toggle_button();
 
     // Shape
-    panel_shape_options.select = Band_Type[selected_node];
+    panel_shape_options.select = FilterMappingFrom[Band_Type[selected_node]];
 
     panel_shape_options.draw_options_button2();
 
     new_shape = panel_shape_options.handle_options_button2();
 
-    new_shape != -1 && new_shape != Band_Type[selected_node] ? (
+    new_shape != -1 ? (
+      new_shape = FilterMappingTo[new_shape];
 
-      Band_Type[selected_node] = new_shape;
+      new_shape != Band_Type[selected_node] ? (
 
-      !(Band_Type[selected_node] == 1 || Band_Type[selected_node] == 2 || Band_Type[selected_node] == 5 || Band_Type[selected_node] == 6) ? (
-        Band_Slope[selected_node] = 0;
+        Band_Type[selected_node] = new_shape;
+
+        !(Band_Type[selected_node] == FILTER_LOW_CUT || Band_Type[selected_node] == FILTER_LOW_CUT_BUTTERWORTH || Band_Type[selected_node] == FILTER_HIGH_CUT || Band_Type[selected_node] == FILTER_HIGH_CUT_BUTTERWORTH) ? (
+          Band_Slope[selected_node] = 0;
+        );
+
+        Band_Type[selected_node] == FILTER_PULTEC_LOW_SHELF ? Band_Q[selected_node] = 20 :
+          Band_Q[selected_node] = 0.7071;
+
+        flag_filter_update(selected_node);
+
+        filters_to_sliders();
       );
-
-      Band_Type[selected_node] == 10 ? Band_Q[selected_node] = 20 :
-        Band_Q[selected_node] = 0.7071;
-
-      flag_filter_update(selected_node);
-
-      filters_to_sliders();
     );
 
 
     // Slope
-    Band_Type[selected_node] == 1 || Band_Type[selected_node] == 2 || Band_Type[selected_node] == 5 || Band_Type[selected_node] == 6 ? (
+    Band_Type[selected_node] == FILTER_LOW_CUT || Band_Type[selected_node] == FILTER_LOW_CUT_BUTTERWORTH || Band_Type[selected_node] == FILTER_HIGH_CUT || Band_Type[selected_node] == FILTER_HIGH_CUT_BUTTERWORTH ? (
       cur_slope = Band_Slope[selected_node];
       cur_slope == 7 ? cur_slope = 6 :
         cur_slope == (72/6)-1 ? cur_slope = 7 :
