@@ -598,7 +598,7 @@ function zdf_st(freq, q, gain)
  * Pultec boost and cut
  */
 function zdf_pultecls(freq, q, gain)
-  instance(nlp, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, onepole, gain2, amm, freq)
+  instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, onepole, gain2, amm, freq)
 (
   freq *= 1.5;  // Puts the frequency in a better place for adjustments
   amm = gain;
@@ -621,6 +621,69 @@ function zdf_pultecls(freq, q, gain)
 function db_to_gain(db) ( 
     10^(db / 40);
 );
+
+/*
+ * Low cut analog (low cut and shelf)
+ */
+function zdf_analog_lowcut(freq, q, gain)
+  instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, gain2, amm, freq, op0, op1, cutoff)
+(
+  gain = 10^(gain / 40);
+
+  // Low shelf
+  // 1.25 so, 80Hz for high pass is 80Hz for low shelf
+  this.zdf_ls(freq * 1.25, 0.701, gain);
+
+  // High pass onepole
+  cutoff = freq;
+  op0.zdf_onepole(1, cutoff);
+  op1.zdf_onepole(1, cutoff);
+
+  nlp = 1;
+  onepole = 1;
+);
+
+/*
+ * High cut analog (high cut and shelf)
+ */
+function zdf_analog_highcut(freq, q, gain)
+  local(gg)
+  instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, gain2, amm, freq, op0, op1, cutoff)
+(
+  gg = gain;
+  gain = 10^(gain / 40);
+
+  // High shelf
+  this.zdf_hs(freq, 0.701, gain);
+
+  // Low pass onepole
+  // The low pass 12dB filter starts off higher than the high shelf and gets
+  // closer to the node frequency with decreased negative gain.
+  gg > 0 ? cutoff = 22000 : (
+    cutoff = freq * 4.25;
+
+    gg < -12 ? gg = -12;
+    t = 1 - (-gg / 12);
+
+    cutoff = freq + ((cutoff - freq) * t);
+  );
+
+
+  // Clamp to a high safe frequency
+  cutoff > 22040 ? cutoff = 22040;
+
+  cas1.zdf_single_lp(cutoff, 0.701);
+
+  nlp = 3;
+  onepole = 0;
+  // jj
+);
+
+
+function db_to_gain(db) ( 
+    10^(db / 40);
+);
+
 
 /*
  * Listen filter for peak/bell eq
@@ -993,7 +1056,7 @@ function zdf_reset()
  * should boil down to the same thing.
  */
 function zdf_magnitude(freq)
-  instance(rbj, nlp, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, cutoff, op0, op1)
+  instance(rbj, nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, cutoff, op0, op1)
   local(m)
 (
   // Our svf magnitude maps to the same magnitude z transfer function as biquad
@@ -1013,7 +1076,8 @@ function zdf_magnitude(freq)
   nlp > 18 ? m *= cas9.rbj.magnitude(freq); //120
 
   // Apply one pole (6dB)
-  nlp * 0.5 == floor(nlp * 0.5) ? (
+//  nlp * 0.5 == floor(nlp * 0.5) ? (
+  onepole == 1 ? (
     // TODO: optimize!
     wdcutoff = $pi * (cutoff / SAMPLE_RATE);
     coff = tan(wdcutoff);
