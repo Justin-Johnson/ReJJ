@@ -113,9 +113,9 @@ options:no_meter
 
 @init
 
-// This should be the same as in the comment header
-VERSION = "1.0.10";
+#VERSION = "1.0.10";
 
+// This should be the same as in the comment header
 gfx_ext_retina  = 1;
 ext_nodenorm    = 1;
 ext_noinit = 1;
@@ -3781,15 +3781,18 @@ function draw_menu_button() instance (x, y, width, menutext, label, pressed, hei
  * Handle the menu style button
  */
 function handle_menu_button() instance (x, y, width, menutext, label, pressed, height, label)
-  local (last_clicked_item, menu, vtext)
+  local (last_clicked_item, menu)
 (
   last_clicked_item = 0;
   mouse_cap & 1 && node_drag_mode == 0 && !pressed ? (
     mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
       pressed = 1;
 
-      #menu = "";
-      sprintf(#menu, "#Version: %s ||", VERSION);
+      #menu = "#Version: ";
+      #menu += #VERSION;
+      #menu += " ||";
+
+      // sprintf(#menu, "#Version: %s ||", VERSION);
 
       #menu += ">Spectrum|";
       Spectrum_Mode == 0 ? #menu += "!"; #menu += "Full|";
