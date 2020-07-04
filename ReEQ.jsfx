@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.10   <--- Make sure you change VERSION below if this changes!!
+Version: v1.0.11   <--- Make sure you change VERSION below if this changes!!
 
 The MIT License (MIT)
 
@@ -113,9 +113,9 @@ options:no_meter
 
 @init
 
-// This should be the same as in the comment header
-VERSION = "1.0.10";
+#VERSION = "1.0.11";
 
+// This should be the same as in the comment header
 gfx_ext_retina  = 1;
 ext_nodenorm    = 1;
 ext_noinit = 1;
@@ -3781,15 +3781,18 @@ function draw_menu_button() instance (x, y, width, menutext, label, pressed, hei
  * Handle the menu style button
  */
 function handle_menu_button() instance (x, y, width, menutext, label, pressed, height, label)
-  local (last_clicked_item, menu, vtext)
+  local (last_clicked_item, menu)
 (
   last_clicked_item = 0;
   mouse_cap & 1 && node_drag_mode == 0 && !pressed ? (
     mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
       pressed = 1;
 
-      #menu = "";
-      sprintf(#menu, "#Version: %s ||", VERSION);
+      #menu = "#Version: ";
+      #menu += #VERSION;
+      #menu += " ||";
+
+      // sprintf(#menu, "#Version: %s ||", VERSION);
 
       #menu += ">Spectrum|";
       Spectrum_Mode == 0 ? #menu += "!"; #menu += "Full|";
@@ -4644,7 +4647,7 @@ buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
 
   panel_shape_xoffset = panel_x + panel_side_margin;
   panel_shape_width = 112 * gfx_ext_retina;
-  panel_shape_options.init_options_button_small2(panel_shape_xoffset, panel_y+panel_vert_margin+panel_gap1, panel_shape_width, 0, 12, FilterTypes);
+  panel_shape_options.init_options_button_small2(panel_shape_xoffset, panel_y+panel_vert_margin+panel_gap1, panel_shape_width, 0, 14, FilterTypes);
 
   panel_slope_xoffset = panel_x + panel_side_margin;
   panel_slope_width = 50 * gfx_ext_retina;
