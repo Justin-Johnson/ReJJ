@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.10   <--- Make sure you change VERSION below if this changes!!
+Version: v1.0.11   <--- Make sure you change VERSION below if this changes!!
 
 The MIT License (MIT)
 
@@ -113,7 +113,7 @@ options:no_meter
 
 @init
 
-#VERSION = "1.0.10";
+#VERSION = "1.0.11";
 
 // This should be the same as in the comment header
 gfx_ext_retina  = 1;
@@ -4647,7 +4647,7 @@ buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
 
   panel_shape_xoffset = panel_x + panel_side_margin;
   panel_shape_width = 112 * gfx_ext_retina;
-  panel_shape_options.init_options_button_small2(panel_shape_xoffset, panel_y+panel_vert_margin+panel_gap1, panel_shape_width, 0, 12, FilterTypes);
+  panel_shape_options.init_options_button_small2(panel_shape_xoffset, panel_y+panel_vert_margin+panel_gap1, panel_shape_width, 0, 14, FilterTypes);
 
   panel_slope_xoffset = panel_x + panel_side_margin;
   panel_slope_width = 50 * gfx_ext_retina;
