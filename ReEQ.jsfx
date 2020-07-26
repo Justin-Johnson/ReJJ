@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.11   <--- Make sure you change VERSION below if this changes!!
+Version: v1.1.0   <--- Make sure you change VERSION below if this changes!!
 
 The MIT License (MIT)
 
@@ -113,7 +113,7 @@ options:no_meter
 
 @init
 
-#VERSION = "1.0.11";
+#VERSION = "1.1.0";
 
 // This should be the same as in the comment header
 gfx_ext_retina  = 1;
@@ -653,10 +653,18 @@ init_rate != srate ? (
   Band_Gain = MEMORY.alloc_memory(NUM_BANDS);
   Band_Q = MEMORY.alloc_memory(NUM_BANDS);
   Band_Slope = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Dynamic_Range = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Deprecated0 = MEMORY.alloc_memory(NUM_BANDS);
   Band_Red = MEMORY.alloc_memory(NUM_BANDS);
   Band_Green = MEMORY.alloc_memory(NUM_BANDS);
   Band_Blue = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dynamic_Enabled = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Threshold = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Ratio = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Attack = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Release = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Sidechain = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dynamic_Mode = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dynamic_Offset = MEMORY.alloc_memory(NUM_BANDS);
 
   // Filters for @slider, @block and @sample
   band1.band_init();
@@ -928,10 +936,20 @@ file_avail(handle) >= 0 ? (
     file_mem(0, Band_Gain, numBands);
     file_mem(0, Band_Q, numBands);
     file_mem(0, Band_Slope, numBands);
-    file_mem(0, Band_Dynamic_Range, numBands);
+    file_mem(0, Band_Deprecated0, numBands);
     file_mem(0, Band_Red, numBands);
     file_mem(0, Band_Green, numBands);
     file_mem(0, Band_Blue, numBands);
+
+    version >= 110 ? (
+      file_mem(0, Band_Dynamic_Enabled, numBands);
+      file_mem(0, Band_Threshold, numBands);
+      file_mem(0, Band_Ratio, numBands);
+      file_mem(0, Band_Attack, numBands);
+      file_mem(0, Band_Release, numBands);
+      file_mem(0, Band_Sidechain, numBands);
+      file_mem(0, Band_Dynamic_Mode, numBands);
+    );
 
   ) : (
     // Old version that has no version number
@@ -945,7 +963,7 @@ file_avail(handle) >= 0 ? (
     file_mem(0, Band_Gain, 8);
     file_mem(0, Band_Q, 8);
     file_mem(0, Band_Slope, 8);
-    file_mem(0, Band_Dynamic_Range, 8);
+    file_mem(0, Band_Deprecated0, 8);
     file_mem(0, Band_Red, 8);
     file_mem(0, Band_Green, 8);
     file_mem(0, Band_Blue, 8);
@@ -955,7 +973,7 @@ file_avail(handle) >= 0 ? (
   // Write mode
   // The version number should reflect the ReEQ version when the file
   // format changed.
-  version = 109;
+  version = 110;
 
   file_var(0, version);
   file_var(0, NUM_BANDS);
@@ -966,10 +984,18 @@ file_avail(handle) >= 0 ? (
   file_mem(0, Band_Gain, NUM_BANDS);
   file_mem(0, Band_Q, NUM_BANDS);
   file_mem(0, Band_Slope, NUM_BANDS);
-  file_mem(0, Band_Dynamic_Range, NUM_BANDS);
+  file_mem(0, Band_Deprecated0, NUM_BANDS);
   file_mem(0, Band_Red, NUM_BANDS);
   file_mem(0, Band_Green, NUM_BANDS);
   file_mem(0, Band_Blue, NUM_BANDS);
+  // 110
+  file_mem(0, Band_Dynamic_Enabled, numBands);
+  file_mem(0, Band_Threshold, numBands);
+  file_mem(0, Band_Ratio, numBands);
+  file_mem(0, Band_Attack, numBands);
+  file_mem(0, Band_Release, numBands);
+  file_mem(0, Band_Sidechain, numBands);
+  file_mem(0, Band_Dynamic_Mode, numBands);
 );
 
 flag_filter_update_all();
@@ -1033,6 +1059,38 @@ function decodeMS(mid, side, l*, r*) (
   r = mid - side;
 );
 
+// Apply oversampled filter to signal
+function apply_filter_oversample(group, filter*, y0*, y1*, y2*, y3*)
+(
+  filter.zdf_tick();
+
+  group == 1 || group == 2 ? ( // Mid or Side
+    mid0 = (y0 + y2) * 0.5; side0 = (y0 - y2) * 0.5;
+    mid1 = (y1 + y3) * 0.5; side1 = (y1 - y3) * 0.5;
+    group == 1 ? (mid0 = filter.zdf_svf0(mid0); mid1 = filter.zdf_svf0(mid1)) : (side0 = filter.zdf_svf1(side0); side1 = filter.zdf_svf1(side1));
+    y0 = mid0 + side0; y2 = mid0 - side0;
+    y1 = mid1 + side1; y3 = mid1 - side1;
+  ) : ( // Left and/or Right
+    group == 0 || group == 3 ? (y0 = filter.zdf_svf0(y0); y1 = filter.zdf_svf0(y1));
+    group == 0 || group == 4 ? (y2 = filter.zdf_svf1(y2); y3 = filter.zdf_svf1(y3))
+  )
+);
+
+// Apply filter to signal
+function apply_filter(group, filter*, y0*, y1*)
+(
+  filter.zdf_tick();
+
+  group == 1 || group == 2 ? ( // Mid or Side
+    mid0 = (y0 + y1) * 0.5; side0 = (y0 - y1) * 0.5;
+    group == 1 ? mid0 = filter.zdf_svf0(mid0) : side0 = filter.zdf_svf1(side0);
+    y0 = mid0 + side0; y1 = mid0 - side0;
+  ) : ( // Left and/or Right
+    group == 0 || group == 3 ? y0 = filter.zdf_svf0(y0);
+    group == 0 || group == 4 ? y1 = filter.zdf_svf1(y1);
+  )
+);
+
 spl0 += 0.00000001; // DeNorm fix
 spl1 += 0.00000001; // DeNorm fix
 
@@ -1054,24 +1112,6 @@ Show_PreEQ ? (
 );
 
 // Interpolate filter coefficients
-
-Band_Process0 ? band1.filter.zdf_tick();
-Band_Process1 ? band2.filter.zdf_tick();
-Band_Process2 ? band3.filter.zdf_tick();
-Band_Process3 ? band4.filter.zdf_tick();
-Band_Process4 ? band5.filter.zdf_tick();
-Band_Process5 ? band6.filter.zdf_tick();
-Band_Process6 ? band7.filter.zdf_tick();
-Band_Process7 ? band8.filter.zdf_tick();
-Band_Process8 ? band9.filter.zdf_tick();
-Band_Process9 ? band10.filter.zdf_tick();
-Band_Process10 ? band11.filter.zdf_tick();
-Band_Process11 ? band12.filter.zdf_tick();
-Band_Process12 ? band13.filter.zdf_tick();
-Band_Process13 ? band14.filter.zdf_tick();
-Band_Process14 ? band15.filter.zdf_tick();
-Band_Process15 ? band16.filter.zdf_tick();
-
 Listen_Process ? listen_filter.zdf_tick();
 
 DO_OVERSAMPLE ? (
@@ -1081,182 +1121,23 @@ DO_OVERSAMPLE ? (
     // Mid/Left
     y0 = spl0; y1 = 0;
     y2 = spl1; y3 = 0;
-
-    Band_Process0 ? (
-      Band_Group0 == 1 || Band_Group0 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group0 == 1 ? (mid0 = band1.filter.zdf_svf0(mid0); mid1 = band1.filter.zdf_svf0(mid1)) : (side0 = band1.filter.zdf_svf1(side0); side1 = band1.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group0 == 0 || Band_Group0 == 3 ? (y0 = band1.filter.zdf_svf0(y0); y1 = band1.filter.zdf_svf0(y1));
-        Band_Group0 == 0 || Band_Group0 == 4 ? (y2 = band1.filter.zdf_svf1(y2); y3 = band1.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process1 ? (
-      Band_Group1 == 1 || Band_Group1 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group1 == 1 ? (mid0 = band2.filter.zdf_svf0(mid0); mid1 = band2.filter.zdf_svf0(mid1)) : (side0 = band2.filter.zdf_svf1(side0); side1 = band2.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group1 == 0 || Band_Group1 == 3 ? (y0 = band2.filter.zdf_svf0(y0); y1 = band2.filter.zdf_svf0(y1));
-        Band_Group1 == 0 || Band_Group1 == 4 ? (y2 = band2.filter.zdf_svf1(y2); y3 = band2.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process2 ? (
-      Band_Group2 == 1 || Band_Group2 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group2 == 1 ? (mid0 = band3.filter.zdf_svf0(mid0); mid1 = band3.filter.zdf_svf0(mid1)) : (side0 = band3.filter.zdf_svf1(side0); side1 = band3.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group2 == 0 || Band_Group2 == 3 ? (y0 = band3.filter.zdf_svf0(y0); y1 = band3.filter.zdf_svf0(y1));
-        Band_Group2 == 0 || Band_Group2 == 4 ? (y2 = band3.filter.zdf_svf1(y2); y3 = band3.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process3 ? (
-      Band_Group3 == 1 || Band_Group3 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group3 == 1 ? (mid0 = band4.filter.zdf_svf0(mid0); mid1 = band4.filter.zdf_svf0(mid1)) : (side0 = band4.filter.zdf_svf1(side0); side1 = band4.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group3 == 0 || Band_Group3 == 3 ? (y0 = band4.filter.zdf_svf0(y0); y1 = band4.filter.zdf_svf0(y1));
-        Band_Group3 == 0 || Band_Group3 == 4 ? (y2 = band4.filter.zdf_svf1(y2); y3 = band4.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process4 ? (
-      Band_Group4 == 1 || Band_Group4 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group4 == 1 ? (mid0 = band5.filter.zdf_svf0(mid0); mid1 = band5.filter.zdf_svf0(mid1)) : (side0 = band5.filter.zdf_svf1(side0); side1 = band5.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group4 == 0 || Band_Group4 == 3 ? (y0 = band5.filter.zdf_svf0(y0); y1 = band5.filter.zdf_svf0(y1));
-        Band_Group4 == 0 || Band_Group4 == 4 ? (y2 = band5.filter.zdf_svf1(y2); y3 = band5.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process5 ? (
-      Band_Group5 == 1 || Band_Group5 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group5 == 1 ? (mid0 = band6.filter.zdf_svf0(mid0); mid1 = band6.filter.zdf_svf0(mid1)) : (side0 = band6.filter.zdf_svf1(side0); side1 = band6.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group5 == 0 || Band_Group5 == 3 ? (y0 = band6.filter.zdf_svf0(y0); y1 = band6.filter.zdf_svf0(y1));
-        Band_Group5 == 0 || Band_Group5 == 4 ? (y2 = band6.filter.zdf_svf1(y2); y3 = band6.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process6 ? (
-      Band_Group6 == 1 || Band_Group6 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group6 == 1 ? (mid0 = band7.filter.zdf_svf0(mid0); mid1 = band7.filter.zdf_svf0(mid1)) : (side0 = band7.filter.zdf_svf1(side0); side1 = band7.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group6 == 0 || Band_Group6 == 3 ? (y0 = band7.filter.zdf_svf0(y0); y1 = band7.filter.zdf_svf0(y1));
-        Band_Group6 == 0 || Band_Group6 == 4 ? (y2 = band7.filter.zdf_svf1(y2); y3 = band7.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process7 ? (
-      Band_Group7 == 1 || Band_Group7 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group7 == 1 ? (mid0 = band8.filter.zdf_svf0(mid0); mid1 = band8.filter.zdf_svf0(mid1)) : (side0 = band8.filter.zdf_svf1(side0); side1 = band8.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group7 == 0 || Band_Group7 == 3 ? (y0 = band8.filter.zdf_svf0(y0); y1 = band8.filter.zdf_svf0(y1));
-        Band_Group7 == 0 || Band_Group7 == 4 ? (y2 = band8.filter.zdf_svf1(y2); y3 = band8.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process8 ? (
-      Band_Group8 == 1 || Band_Group8 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group8 == 1 ? (mid0 = band9.filter.zdf_svf0(mid0); mid1 = band9.filter.zdf_svf0(mid1)) : (side0 = band9.filter.zdf_svf1(side0); side1 = band9.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group8 == 0 || Band_Group8 == 3 ? (y0 = band9.filter.zdf_svf0(y0); y1 = band9.filter.zdf_svf0(y1));
-        Band_Group8 == 0 || Band_Group8 == 4 ? (y2 = band9.filter.zdf_svf1(y2); y3 = band9.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process9 ? (
-      Band_Group9 == 1 || Band_Group9 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group9 == 1 ? (mid0 = band10.filter.zdf_svf0(mid0); mid1 = band10.filter.zdf_svf0(mid1)) : (side0 = band10.filter.zdf_svf1(side0); side1 = band10.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group9 == 0 || Band_Group9 == 3 ? (y0 = band10.filter.zdf_svf0(y0); y1 = band10.filter.zdf_svf0(y1));
-        Band_Group9 == 0 || Band_Group9 == 4 ? (y2 = band10.filter.zdf_svf1(y2); y3 = band10.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process10 ? (
-      Band_Group10 == 1 || Band_Group10 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group10 == 1 ? (mid0 = band11.filter.zdf_svf0(mid0); mid1 = band11.filter.zdf_svf0(mid1)) : (side0 = band11.filter.zdf_svf1(side0); side1 = band11.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group10 == 0 || Band_Group10 == 3 ? (y0 = band11.filter.zdf_svf0(y0); y1 = band11.filter.zdf_svf0(y1));
-        Band_Group10 == 0 || Band_Group10 == 4 ? (y2 = band11.filter.zdf_svf1(y2); y3 = band11.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process11 ? (
-      Band_Group11 == 1 || Band_Group11 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group11 == 1 ? (mid0 = band12.filter.zdf_svf0(mid0); mid1 = band12.filter.zdf_svf0(mid1)) : (side0 = band12.filter.zdf_svf1(side0); side1 = band12.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group11 == 0 || Band_Group11 == 3 ? (y0 = band12.filter.zdf_svf0(y0); y1 = band12.filter.zdf_svf0(y1));
-        Band_Group11 == 0 || Band_Group11 == 4 ? (y2 = band12.filter.zdf_svf1(y2); y3 = band12.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process12 ? (
-      Band_Group12 == 1 || Band_Group12 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group12 == 1 ? (mid0 = band13.filter.zdf_svf0(mid0); mid1 = band13.filter.zdf_svf0(mid1)) : (side0 = band13.filter.zdf_svf1(side0); side1 = band13.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group12 == 0 || Band_Group12 == 3 ? (y0 = band13.filter.zdf_svf0(y0); y1 = band13.filter.zdf_svf0(y1));
-        Band_Group12 == 0 || Band_Group12 == 4 ? (y2 = band13.filter.zdf_svf1(y2); y3 = band13.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process13 ? (
-      Band_Group13 == 1 || Band_Group13 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group13 == 1 ? (mid0 = band14.filter.zdf_svf0(mid0); mid1 = band14.filter.zdf_svf0(mid1)) : (side0 = band14.filter.zdf_svf1(side0); side1 = band14.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group13 == 0 || Band_Group13 == 3 ? (y0 = band14.filter.zdf_svf0(y0); y1 = band14.filter.zdf_svf0(y1));
-        Band_Group13 == 0 || Band_Group13 == 4 ? (y2 = band14.filter.zdf_svf1(y2); y3 = band14.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process14 ? (
-      Band_Group14 == 1 || Band_Group14 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group14 == 1 ? (mid0 = band15.filter.zdf_svf0(mid0); mid1 = band15.filter.zdf_svf0(mid1)) : (side0 = band15.filter.zdf_svf1(side0); side1 = band15.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group14 == 0 || Band_Group14 == 3 ? (y0 = band15.filter.zdf_svf0(y0); y1 = band15.filter.zdf_svf0(y1));
-        Band_Group14 == 0 || Band_Group14 == 4 ? (y2 = band15.filter.zdf_svf1(y2); y3 = band15.filter.zdf_svf1(y3))
-      )
-    );
-
-    Band_Process15 ? (
-      Band_Group15 == 1 || Band_Group15 == 2 ? ( // Mid or Side
-        encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group15 == 1 ? (mid0 = band16.filter.zdf_svf0(mid0); mid1 = band16.filter.zdf_svf0(mid1)) : (side0 = band16.filter.zdf_svf1(side0); side1 = band16.filter.zdf_svf1(side1));
-        decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
-      ) : ( // Left and/or Right
-        Band_Group15 == 0 || Band_Group15 == 3 ? (y0 = band16.filter.zdf_svf0(y0); y1 = band16.filter.zdf_svf0(y1));
-        Band_Group15 == 0 || Band_Group15 == 4 ? (y2 = band16.filter.zdf_svf1(y2); y3 = band16.filter.zdf_svf1(y3))
-      )
-    );
+    
+    Band_Process0 ? apply_filter_oversample(Band_Group0, band1.filter, y0, y1, y2, y3);
+    Band_Process1 ? apply_filter_oversample(Band_Group1, band2.filter, y0, y1, y2, y3);
+    Band_Process2 ? apply_filter_oversample(Band_Group2, band3.filter, y0, y1, y2, y3);
+    Band_Process3 ? apply_filter_oversample(Band_Group3, band4.filter, y0, y1, y2, y3);
+    Band_Process4 ? apply_filter_oversample(Band_Group4, band5.filter, y0, y1, y2, y3);
+    Band_Process5 ? apply_filter_oversample(Band_Group5, band6.filter, y0, y1, y2, y3);
+    Band_Process6 ? apply_filter_oversample(Band_Group6, band7.filter, y0, y1, y2, y3);
+    Band_Process7 ? apply_filter_oversample(Band_Group7, band8.filter, y0, y1, y2, y3);
+    Band_Process8 ? apply_filter_oversample(Band_Group8, band9.filter, y0, y1, y2, y3);
+    Band_Process9 ? apply_filter_oversample(Band_Group9, band10.filter, y0, y1, y2, y3);
+    Band_Process10 ? apply_filter_oversample(Band_Group10, band11.filter, y0, y1, y2, y3);
+    Band_Process11 ? apply_filter_oversample(Band_Group11, band12.filter, y0, y1, y2, y3);
+    Band_Process12 ? apply_filter_oversample(Band_Group12, band13.filter, y0, y1, y2, y3);
+    Band_Process13 ? apply_filter_oversample(Band_Group13, band14.filter, y0, y1, y2, y3);
+    Band_Process14 ? apply_filter_oversample(Band_Group14, band15.filter, y0, y1, y2, y3);
+    Band_Process15 ? apply_filter_oversample(Band_Group15, band16.filter, y0, y1, y2, y3);
 
     // Unoptimised
     // spl0 = firL.do_FIR_filter(y0) * 2;
@@ -1296,183 +1177,22 @@ DO_OVERSAMPLE ? (
 
   !Listen_Process ? (
 
-    Band_Process0 ? (
-      Band_Group0 == 1 || Band_Group0 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group0 == 1 ? mid0 = band1.filter.zdf_svf0(mid0) : side0 = band1.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group0 == 0 || Band_Group0 == 3 ? spl0 = band1.filter.zdf_svf0(spl0);
-        Band_Group0 == 0 || Band_Group0 == 4 ? spl1 = band1.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process1 ? (
-      Band_Group1 == 1 || Band_Group1 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group1 == 1 ? mid0 = band2.filter.zdf_svf0(mid0) : side0 = band2.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group1 == 0 || Band_Group1 == 3 ? spl0 = band2.filter.zdf_svf0(spl0);
-        Band_Group1 == 0 || Band_Group1 == 4 ? spl1 = band2.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process2 ? (
-      Band_Group2 == 1 || Band_Group2 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group2 == 1 ? mid0 = band3.filter.zdf_svf0(mid0) : side0 = band3.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group2 == 0 || Band_Group2 == 3 ? spl0 = band3.filter.zdf_svf0(spl0);
-        Band_Group2 == 0 || Band_Group2 == 4 ? spl1 = band3.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process3 ? (
-      Band_Group3 == 1 || Band_Group3 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group3 == 1 ? mid0 = band4.filter.zdf_svf0(mid0) : side0 = band4.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group3 == 0 || Band_Group3 == 3 ? spl0 = band4.filter.zdf_svf0(spl0);
-        Band_Group3 == 0 || Band_Group3 == 4 ? spl1 = band4.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process4 ? (
-      Band_Group4 == 1 || Band_Group4 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group4 == 1 ? mid0 = band5.filter.zdf_svf0(mid0) : side0 = band5.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group4 == 0 || Band_Group4 == 3 ? spl0 = band5.filter.zdf_svf0(spl0);
-        Band_Group4 == 0 || Band_Group4 == 4 ? spl1 = band5.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process5 ? (
-      Band_Group5 == 1 || Band_Group5 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group5 == 1 ? mid0 = band6.filter.zdf_svf0(mid0) : side0 = band6.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group5 == 0 || Band_Group5 == 3 ? spl0 = band6.filter.zdf_svf0(spl0);
-        Band_Group5 == 0 || Band_Group5 == 4 ? spl1 = band6.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process6 ? (
-      Band_Group6 == 1 || Band_Group6 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group6 == 1 ? mid0 = band7.filter.zdf_svf0(mid0) : side0 = band7.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group6 == 0 || Band_Group6 == 3 ? spl0 = band7.filter.zdf_svf0(spl0);
-        Band_Group6 == 0 || Band_Group6 == 4 ? spl1 = band7.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process7 ? (
-      Band_Group7 == 1 || Band_Group7 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group7 == 1 ? mid0 = band8.filter.zdf_svf0(mid0) : side0 = band8.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group7 == 0 || Band_Group7 == 3 ? spl0 = band8.filter.zdf_svf0(spl0);
-        Band_Group7 == 0 || Band_Group7 == 4 ? spl1 = band8.filter.zdf_svf1(spl1);
-      )
-    );
-
-
-    Band_Process8 ? (
-      Band_Group8 == 1 || Band_Group8 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group8 == 1 ? mid0 = band9.filter.zdf_svf0(mid0) : side0 = band9.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group8 == 0 || Band_Group8 == 3 ? spl0 = band9.filter.zdf_svf0(spl0);
-        Band_Group8 == 0 || Band_Group8 == 4 ? spl1 = band9.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process9 ? (
-      Band_Group9 == 1 || Band_Group9 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group9 == 1 ? mid0 = band10.filter.zdf_svf0(mid0) : side0 = band10.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group9 == 0 || Band_Group9 == 3 ? spl0 = band10.filter.zdf_svf0(spl0);
-        Band_Group9 == 0 || Band_Group9 == 4 ? spl1 = band10.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process10 ? (
-      Band_Group10 == 1 || Band_Group10 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group10 == 1 ? mid0 = band11.filter.zdf_svf0(mid0) : side0 = band11.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group10 == 0 || Band_Group10 == 3 ? spl0 = band11.filter.zdf_svf0(spl0);
-        Band_Group10 == 0 || Band_Group10 == 4 ? spl1 = band11.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process11 ? (
-      Band_Group11 == 1 || Band_Group11 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group11 == 1 ? mid0 = band12.filter.zdf_svf0(mid0) : side0 = band12.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group11 == 0 || Band_Group11 == 3 ? spl0 = band12.filter.zdf_svf0(spl0);
-        Band_Group11 == 0 || Band_Group11 == 4 ? spl1 = band12.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process12 ? (
-      Band_Group12 == 1 || Band_Group12 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group12 == 1 ? mid0 = band13.filter.zdf_svf0(mid0) : side0 = band13.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group12 == 0 || Band_Group12 == 3 ? spl0 = band13.filter.zdf_svf0(spl0);
-        Band_Group12 == 0 || Band_Group12 == 4 ? spl1 = band13.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process13 ? (
-      Band_Group13 == 1 || Band_Group13 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group13 == 1 ? mid0 = band14.filter.zdf_svf0(mid0) : side0 = band14.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group13 == 0 || Band_Group13 == 3 ? spl0 = band14.filter.zdf_svf0(spl0);
-        Band_Group13 == 0 || Band_Group13== 4 ? spl1 = band14.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process14 ? (
-      Band_Group14 == 1 || Band_Group14 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group14 == 1 ? mid0 = band15.filter.zdf_svf0(mid0) : side0 = band15.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group14 == 0 || Band_Group14 == 3 ? spl0 = band15.filter.zdf_svf0(spl0);
-        Band_Group14 == 0 || Band_Group14 == 4 ? spl1 = band15.filter.zdf_svf1(spl1);
-      )
-    );
-
-    Band_Process15 ? (
-      Band_Group15 == 1 || Band_Group7 == 2 ? ( // Mid or Side
-        encodeMS(spl0, spl1, mid0, side0);
-        Band_Group15 == 1 ? mid0 = band16.filter.zdf_svf0(mid0) : side0 = band16.filter.zdf_svf1(side0);
-        decodeMS(mid0, side0, spl0, spl1);
-      ) : ( // Left and/or Right
-        Band_Group15 == 0 || Band_Group15 == 3 ? spl0 = band16.filter.zdf_svf0(spl0);
-        Band_Group15 == 0 || Band_Group15 == 4 ? spl1 = band16.filter.zdf_svf1(spl1);
-      )
-    );
-
+    Band_Process0 ? apply_filter(Band_Group0, band1.filter, spl0, spl1);
+    Band_Process1 ? apply_filter(Band_Group1, band2.filter, spl0, spl1);
+    Band_Process2 ? apply_filter(Band_Group2, band3.filter, spl0, spl1);
+    Band_Process3 ? apply_filter(Band_Group3, band4.filter, spl0, spl1);
+    Band_Process4 ? apply_filter(Band_Group4, band5.filter, spl0, spl1);
+    Band_Process5 ? apply_filter(Band_Group5, band6.filter, spl0, spl1);
+    Band_Process6 ? apply_filter(Band_Group6, band7.filter, spl0, spl1);
+    Band_Process7 ? apply_filter(Band_Group7, band8.filter, spl0, spl1);
+    Band_Process8 ? apply_filter(Band_Group8, band9.filter, spl0, spl1);
+    Band_Process9 ? apply_filter(Band_Group9, band10.filter, spl0, spl1);
+    Band_Process10 ? apply_filter(Band_Group10, band11.filter, spl0, spl1);
+    Band_Process11 ? apply_filter(Band_Group11, band12.filter, spl0, spl1);
+    Band_Process12 ? apply_filter(Band_Group12, band13.filter, spl0, spl1);
+    Band_Process13 ? apply_filter(Band_Group13, band14.filter, spl0, spl1);
+    Band_Process14 ? apply_filter(Band_Group14, band15.filter, spl0, spl1);
+    Band_Process15 ? apply_filter(Band_Group15, band16.filter, spl0, spl1);
 
   ) : (
     // Listen/Solo mode
@@ -2006,8 +1726,7 @@ function draw_filter_bands()
  */
 function draw_filter_response(group, red, green, blue)
   local(xf, step, xo1, yo1, freq, m, scy, midp, tx0, lx0, x0, y0, x1, y1, delta, bottom,
-    be0, be1, be2, be3, be4, be5, be6, be7, be8, be9, be10, be11, be12, be13, be14, be15,
-    bg0, bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8, bg9, bg10, bg11, bg12, bg13, bg14, bg15)
+    be0, be1, be2, be3, be4, be5, be6, be7, be8, be9, be10, be11, be12, be13, be14, be15)
 (
   // Go across the screen in these steps
   step = gfx_w / 1000;
@@ -2733,6 +2452,17 @@ function create_band(band, x, y) local (m, g, f, i, enabledBands) (
   ) : ( 
     Band_Type[band] = 5;
   );
+
+  // Dynamic EQ settings
+  Band_Dynamic_Enabled[band] = 0;
+  Band_Threshold[band] = 0;
+  Band_Ratio[band] = 0;
+  Band_Attack[band] = 0;
+  Band_Release[band] = 0;
+
+  Band_Sidechain[band] = 0;  // 0 = internal, 1 = external
+  Band_Dynamic_Mode[band] = 0;  // 0 = wide, 1 = narrow
+  Band_Dynamic_Offset[band] = 0;
 
   flag_filter_update(band);
 
