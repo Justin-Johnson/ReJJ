@@ -1,7 +1,7 @@
 desc: FFT Spectrum Analyzer
 /*
  * Spectrum Analyzer Library
- * Copyright (C) 2018 Justin Johnson
+ * Copyright (C) 2020 Justin Johnson
  * License: LGPL - http://www.gnu.org/licenses/lgpl.html
  * TODO:
  *
