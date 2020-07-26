@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.1.0   <--- Make sure you change VERSION below if this changes!!
+Version: v1.0.11   <--- Make sure you change VERSION below if this changes!!
 
 The MIT License (MIT)
 
@@ -113,7 +113,7 @@ options:no_meter
 
 @init
 
-#VERSION = "1.1.0";
+#VERSION = "1.0.11";
 
 // This should be the same as in the comment header
 gfx_ext_retina  = 1;
@@ -653,18 +653,10 @@ init_rate != srate ? (
   Band_Gain = MEMORY.alloc_memory(NUM_BANDS);
   Band_Q = MEMORY.alloc_memory(NUM_BANDS);
   Band_Slope = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Deprecated0 = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dynamic_Range = MEMORY.alloc_memory(NUM_BANDS);
   Band_Red = MEMORY.alloc_memory(NUM_BANDS);
   Band_Green = MEMORY.alloc_memory(NUM_BANDS);
   Band_Blue = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Dynamic_Enabled = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Threshold = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Ratio = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Attack = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Release = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Sidechain = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Dynamic_Mode = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Dynamic_Offset = MEMORY.alloc_memory(NUM_BANDS);
 
   // Filters for @slider, @block and @sample
   band1.band_init();
@@ -936,19 +928,10 @@ file_avail(handle) >= 0 ? (
     file_mem(0, Band_Gain, numBands);
     file_mem(0, Band_Q, numBands);
     file_mem(0, Band_Slope, numBands);
-    file_mem(0, Band_Deprecated0, numBands);
+    file_mem(0, Band_Dynamic_Range, numBands);
     file_mem(0, Band_Red, numBands);
     file_mem(0, Band_Green, numBands);
     file_mem(0, Band_Blue, numBands);
-    version >= 110 ? (
-      file_mem(0, Band_Dynamic_Enabled, numBands);
-      file_mem(0, Band_Threshold, numBands);
-      file_mem(0, Band_Ratio, numBands);
-      file_mem(0, Band_Attack, numBands);
-      file_mem(0, Band_Release, numBands);
-      file_mem(0, Band_Sidechain, numBands);
-      file_mem(0, Band_Dynamic_Mode, numBands);
-    );
 
   ) : (
     // Old version that has no version number
@@ -962,7 +945,7 @@ file_avail(handle) >= 0 ? (
     file_mem(0, Band_Gain, 8);
     file_mem(0, Band_Q, 8);
     file_mem(0, Band_Slope, 8);
-    file_mem(0, Band_Deprecated0, 8);
+    file_mem(0, Band_Dynamic_Range, 8);
     file_mem(0, Band_Red, 8);
     file_mem(0, Band_Green, 8);
     file_mem(0, Band_Blue, 8);
@@ -972,8 +955,8 @@ file_avail(handle) >= 0 ? (
   // Write mode
   // The version number should reflect the ReEQ version when the file
   // format changed.
-  version = 110;
-  // 109
+  version = 109;
+
   file_var(0, version);
   file_var(0, NUM_BANDS);
   file_mem(0, Band_Enabled, NUM_BANDS);
@@ -983,18 +966,10 @@ file_avail(handle) >= 0 ? (
   file_mem(0, Band_Gain, NUM_BANDS);
   file_mem(0, Band_Q, NUM_BANDS);
   file_mem(0, Band_Slope, NUM_BANDS);
-  file_mem(0, Band_Deprecated0, NUM_BANDS);
+  file_mem(0, Band_Dynamic_Range, NUM_BANDS);
   file_mem(0, Band_Red, NUM_BANDS);
   file_mem(0, Band_Green, NUM_BANDS);
   file_mem(0, Band_Blue, NUM_BANDS);
-  // 110
-  file_mem(0, Band_Dynamic_Enabled, numBands);
-  file_mem(0, Band_Threshold, numBands);
-  file_mem(0, Band_Ratio, numBands);
-  file_mem(0, Band_Attack, numBands);
-  file_mem(0, Band_Release, numBands);
-  file_mem(0, Band_Sidechain, numBands);
-  file_mem(0, Band_Dynamic_Mode, numBands);
 );
 
 flag_filter_update_all();
@@ -1065,7 +1040,7 @@ spl0orig = spl0;
 spl1orig = spl1;
 
 // Sidechain RMS
-RMSSidechain.RMS_process(spl2, spl3);
+// RMSSidechain.RMS_process(spl2, spl3);
 
 // Feed the correct buffers depending on spectrum modes
 Show_PreEQ ? (
@@ -1633,9 +1608,6 @@ LimitOutput ? (
   spl1 = min(max(spl1,-1.0),1.0);
 );
 
-spl0 = spl2;
-spl1 = spl3;
-
 @gfx 922 564
 
 gfx_mode = 0;
@@ -2034,7 +2006,8 @@ function draw_filter_bands()
  */
 function draw_filter_response(group, red, green, blue)
   local(xf, step, xo1, yo1, freq, m, scy, midp, tx0, lx0, x0, y0, x1, y1, delta, bottom,
-    be0, be1, be2, be3, be4, be5, be6, be7, be8, be9, be10, be11, be12, be13, be14, be15)
+    be0, be1, be2, be3, be4, be5, be6, be7, be8, be9, be10, be11, be12, be13, be14, be15,
+    bg0, bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8, bg9, bg10, bg11, bg12, bg13, bg14, bg15)
 (
   // Go across the screen in these steps
   step = gfx_w / 1000;
@@ -2739,7 +2712,7 @@ function create_band(band, x, y) local (m, g, f, i, enabledBands) (
   // No bands exist, default group is stereo
   enabledBands == 0 ? selected_node_group = 0;
 
-  Band_Enabled[band] = BAND_STATE_ENABLED; 
+  Band_Enabled[band] = BAND_STATE_ENABLED;
   Band_Group[band] = selected_node_group;
   Band_Frequency[band] = f;
   Band_Gain[band] = g;
@@ -2760,17 +2733,6 @@ function create_band(band, x, y) local (m, g, f, i, enabledBands) (
   ) : ( 
     Band_Type[band] = 5;
   );
-
-  // Dynamic EQ settings
-  Band_Dynamic_Enabled[band] = 0;
-  Band_Threshold[band] = 0;
-  Band_Ratio[band] = 0;
-  Band_Attack[band] = 0;
-  Band_Release[band] = 0;
-
-  Band_Sidechain[band] = 0;  // 0 = internal, 1 = external
-  Band_Dynamic_Mode[band] = 0;  // 0 = wide, 1 = narrow
-  Band_Dynamic_Offset[band] = 0;
 
   flag_filter_update(band);
 
@@ -5148,8 +5110,7 @@ gfx_r = gfx_g = gfx_b = gfx_a = 1.0; gfx_x = 100; gfx_y = 120;
 //gfx_printf("Global = %d", _global.test);  gfx_x = 100; gfx_y += 30;
 
 
-rms = RMSSidechain.RMS_getDB();
-gfx_printf("RMS Sidechain = %f", RMSSidechain.RMS_getDB());  gfx_x = 100; gfx_y += 30;
+//rms = RMSSidechain.RMS_getDB();
 //gfx_printf("RMS pre = %f", RMSPre.RMS_getDB());  gfx_x = 100; gfx_y += 30;
 //gfx_printf("RMS post = %f", RMSPost.RMS_getDB());  gfx_x = 100; gfx_y += 30;
 
