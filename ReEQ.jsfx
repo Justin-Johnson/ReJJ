@@ -581,33 +581,76 @@ function flag_filter_update_all() (
  );
 
 /*
+  Update individual graphic filter
+ */
+function update_visual_filter(index, gfx_band*, dyn_band*, gain_scalar)
+(
+  Band_GfxUpdate[index] ? (
+    Band_GfxUpdate[index] = 0;
+    gfx_band.band_set_filter(Band_Type[index], Band_Frequency[index], Band_Gain[index] * gain_scalar, Band_Q[index], Band_Slope[index]);
+    dyn_band.band_set_filter(Band_Type[index], Band_Frequency[index], Band_Dynamic_Gain[index] + Band_Gain[index] * gain_scalar, Band_Q[index], Band_Slope[index]);
+  );
+);
+
+/*
  * Update the filter parameters
  */
 function update_visual_filters() local (band_scalar) (
   band_scalar = Scale / 100.0;
 
-  Band_GfxUpdate[0] ? (Band_GfxUpdate[0] = 0; gfx_band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
-  Band_GfxUpdate[1] ? (Band_GfxUpdate[1] = 0; gfx_band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); );
-  Band_GfxUpdate[2] ? (Band_GfxUpdate[2] = 0; gfx_band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); );
-  Band_GfxUpdate[3] ? (Band_GfxUpdate[3] = 0; gfx_band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); );
-  Band_GfxUpdate[4] ? (Band_GfxUpdate[4] = 0; gfx_band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); );
-  Band_GfxUpdate[5] ? (Band_GfxUpdate[5] = 0; gfx_band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); );
-  Band_GfxUpdate[6] ? (Band_GfxUpdate[6] = 0; gfx_band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); );
-  Band_GfxUpdate[7] ? (Band_GfxUpdate[7] = 0; gfx_band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); );
-  Band_GfxUpdate[8] ? (Band_GfxUpdate[8] = 0; gfx_band9.band_set_filter(Band_Type[8], Band_Frequency[8], Band_Gain[8] * band_scalar, Band_Q[8], Band_Slope[8]); );
-  Band_GfxUpdate[9] ? (Band_GfxUpdate[9] = 0; gfx_band10.band_set_filter(Band_Type[9], Band_Frequency[9], Band_Gain[9] * band_scalar, Band_Q[9], Band_Slope[9]); );
-  Band_GfxUpdate[10] ? (Band_GfxUpdate[10] = 0; gfx_band11.band_set_filter(Band_Type[10], Band_Frequency[10], Band_Gain[10] * band_scalar, Band_Q[10], Band_Slope[10]); );
-  Band_GfxUpdate[11] ? (Band_GfxUpdate[11] = 0; gfx_band12.band_set_filter(Band_Type[11], Band_Frequency[11], Band_Gain[11] * band_scalar, Band_Q[11], Band_Slope[11]); );
-  Band_GfxUpdate[12] ? (Band_GfxUpdate[12] = 0; gfx_band13.band_set_filter(Band_Type[12], Band_Frequency[12], Band_Gain[12] * band_scalar, Band_Q[12], Band_Slope[12]); );
-  Band_GfxUpdate[13] ? (Band_GfxUpdate[13] = 0; gfx_band14.band_set_filter(Band_Type[13], Band_Frequency[13], Band_Gain[13] * band_scalar, Band_Q[13], Band_Slope[13]); );
-  Band_GfxUpdate[14] ? (Band_GfxUpdate[14] = 0; gfx_band15.band_set_filter(Band_Type[14], Band_Frequency[14], Band_Gain[14] * band_scalar, Band_Q[14], Band_Slope[14]); );
-  Band_GfxUpdate[15] ? (Band_GfxUpdate[15] = 0; gfx_band16.band_set_filter(Band_Type[15], Band_Frequency[15], Band_Gain[15] * band_scalar, Band_Q[15], Band_Slope[15]); );
+  update_visual_filter(0, gfx_band1, dyn_band1, band_scalar);
+  update_visual_filter(1, gfx_band2, dyn_band2, band_scalar);
+  update_visual_filter(2, gfx_band3, dyn_band3, band_scalar);
+  update_visual_filter(3, gfx_band4, dyn_band4, band_scalar);
+  update_visual_filter(4, gfx_band5, dyn_band5, band_scalar);
+  update_visual_filter(5, gfx_band6, dyn_band6, band_scalar);
+  update_visual_filter(6, gfx_band7, dyn_band7, band_scalar);
+  update_visual_filter(7, gfx_band8, dyn_band8, band_scalar);
+  update_visual_filter(8, gfx_band9, dyn_band9, band_scalar);
+  update_visual_filter(9, gfx_band10, dyn_band10, band_scalar);
+  update_visual_filter(10, gfx_band11, dyn_band11, band_scalar);
+  update_visual_filter(11, gfx_band12, dyn_band12, band_scalar);
+  update_visual_filter(12, gfx_band13, dyn_band13, band_scalar);
+  update_visual_filter(13, gfx_band14, dyn_band14, band_scalar);
+  update_visual_filter(14, gfx_band15, dyn_band15, band_scalar);
+  update_visual_filter(15, gfx_band16, dyn_band16, band_scalar);
 );
 
+/*
+ * Update individual audio filter
+ */
+function update_audio_filter(index, band*, gain_scalar)
+(
+  Band_Update[index] ? (
+    Band_Update[index] = 0;
+    Band_Enabled[index] != BAND_STATE_ENABLED ? band.filter.zdf_bypass() : band.band_set_filter(Band_Type[index], Band_Frequency[index], Band_Gain[index] * gain_scalar, Band_Q[index], Band_Slope[index]);
+  );
+);
+
+/*
+ * Update audio filters
+ */
 function update_audio_filters() local (band_scalar) (
   band_scalar = Scale / 100.0;
 
-  Band_Update[0] ? (Band_Update[0] = 0; Band_Enabled[0] != BAND_STATE_ENABLED ? band1.filter.zdf_bypass() : band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
+  update_audio_filter(0, band1, band_scalar);
+  update_audio_filter(1, band2, band_scalar);
+  update_audio_filter(2, band3, band_scalar);
+  update_audio_filter(3, band4, band_scalar);
+  update_audio_filter(4, band5, band_scalar);
+  update_audio_filter(5, band6, band_scalar);
+  update_audio_filter(6, band7, band_scalar);
+  update_audio_filter(7, band8, band_scalar);
+  update_audio_filter(8, band9, band_scalar);
+  update_audio_filter(9, band10, band_scalar);
+  update_audio_filter(10, band11, band_scalar);
+  update_audio_filter(11, band12, band_scalar);
+  update_audio_filter(12, band13, band_scalar);
+  update_audio_filter(13, band14, band_scalar);
+  update_audio_filter(14, band15, band_scalar);
+  update_audio_filter(15, band16, band_scalar);
+
+  //Band_Update[0] ? (Band_Update[0] = 0; Band_Enabled[0] != BAND_STATE_ENABLED ? band1.filter.zdf_bypass() : band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
   Band_Update[1] ? (Band_Update[1] = 0; Band_Enabled[1] != BAND_STATE_ENABLED ? band2.filter.zdf_bypass() : band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); );
   Band_Update[2] ? (Band_Update[2] = 0; Band_Enabled[2] != BAND_STATE_ENABLED ? band3.filter.zdf_bypass() : band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); );
   Band_Update[3] ? (Band_Update[3] = 0; Band_Enabled[3] != BAND_STATE_ENABLED ? band4.filter.zdf_bypass() : band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); );
@@ -664,7 +707,7 @@ init_rate != srate ? (
   Band_Release = MEMORY.alloc_memory(NUM_BANDS);
   Band_Sidechain = MEMORY.alloc_memory(NUM_BANDS);
   Band_Dynamic_Mode = MEMORY.alloc_memory(NUM_BANDS);
-  Band_Dynamic_Offset = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dynamic_Gain = MEMORY.alloc_memory(NUM_BANDS);
 
   // Filters for @slider, @block and @sample
   band1.band_init();
@@ -701,6 +744,24 @@ init_rate != srate ? (
   gfx_band14.band_init();
   gfx_band15.band_init();
   gfx_band16.band_init();
+
+  // Filters for @gfx dynamic filter response
+  dyn_band1.band_init();
+  dyn_band2.band_init();
+  dyn_band3.band_init();
+  dyn_band4.band_init();
+  dyn_band5.band_init();
+  dyn_band6.band_init();
+  dyn_band7.band_init();
+  dyn_band8.band_init();
+  dyn_band9.band_init();
+  dyn_band10.band_init();
+  dyn_band11.band_init();
+  dyn_band12.band_init();
+  dyn_band13.band_init();
+  dyn_band14.band_init();
+  dyn_band15.band_init();
+  dyn_band16.band_init();
 
   color_band0.create_color(231, 33, 75);
   color_band1.create_color(241, 111, 50);
@@ -1764,22 +1825,22 @@ function draw_filter_response(group, red, green, blue)
     // Apply the filters
     m = 1.0;
 
-    be0 ? m *= gfx_band1.filter.zdf_magnitude(freq);
-    be1 ? m *= gfx_band2.filter.zdf_magnitude(freq);
-    be2 ? m *= gfx_band3.filter.zdf_magnitude(freq);
-    be3 ? m *= gfx_band4.filter.zdf_magnitude(freq);
-    be4 ? m *= gfx_band5.filter.zdf_magnitude(freq);
-    be5 ? m *= gfx_band6.filter.zdf_magnitude(freq);
-    be6 ? m *= gfx_band7.filter.zdf_magnitude(freq);
-    be7 ? m *= gfx_band8.filter.zdf_magnitude(freq);
-    be8 ? m *= gfx_band9.filter.zdf_magnitude(freq);
-    be9 ? m *= gfx_band10.filter.zdf_magnitude(freq);
-    be10 ? m *= gfx_band11.filter.zdf_magnitude(freq);
-    be11 ? m *= gfx_band12.filter.zdf_magnitude(freq);
-    be12 ? m *= gfx_band13.filter.zdf_magnitude(freq);
-    be13 ? m *= gfx_band14.filter.zdf_magnitude(freq);
-    be14 ? m *= gfx_band15.filter.zdf_magnitude(freq);
-    be15 ? m *= gfx_band16.filter.zdf_magnitude(freq);
+    be0 ? m *= dyn_band1.filter.zdf_magnitude(freq);
+    be1 ? m *= dyn_band2.filter.zdf_magnitude(freq);
+    be2 ? m *= dyn_band3.filter.zdf_magnitude(freq);
+    be3 ? m *= dyn_band4.filter.zdf_magnitude(freq);
+    be4 ? m *= dyn_band5.filter.zdf_magnitude(freq);
+    be5 ? m *= dyn_band6.filter.zdf_magnitude(freq);
+    be6 ? m *= dyn_band7.filter.zdf_magnitude(freq);
+    be7 ? m *= dyn_band8.filter.zdf_magnitude(freq);
+    be8 ? m *= dyn_band9.filter.zdf_magnitude(freq);
+    be9 ? m *= dyn_band10.filter.zdf_magnitude(freq);
+    be10 ? m *= dyn_band11.filter.zdf_magnitude(freq);
+    be11 ? m *= dyn_band12.filter.zdf_magnitude(freq);
+    be12 ? m *= dyn_band13.filter.zdf_magnitude(freq);
+    be13 ? m *= dyn_band14.filter.zdf_magnitude(freq);
+    be14 ? m *= dyn_band15.filter.zdf_magnitude(freq);
+    be15 ? m *= dyn_band16.filter.zdf_magnitude(freq);
 
     // Convert from scalar to db
     m = 20 * log10(m);
@@ -2462,7 +2523,7 @@ function create_band(band, x, y) local (m, g, f, i, enabledBands) (
 
   Band_Sidechain[band] = 0;  // 0 = internal, 1 = external
   Band_Dynamic_Mode[band] = 0;  // 0 = wide, 1 = narrow
-  Band_Dynamic_Offset[band] = 0;
+  Band_Dynamic_Gain[band] = 0;
 
   flag_filter_update(band);
 
