@@ -1033,8 +1033,8 @@ function decodeMS(mid, side, l*, r*) (
   r = mid - side;
 );
 
-spl0 += 0.00000001; // DeNorm fix
-spl1 += 0.00000001; // DeNorm fix
+spl0 += 0.0000000001; // DeNorm fix
+spl1 += 0.0000000001; // DeNorm fix
 
 spl0orig = spl0;
 spl1orig = spl1;
@@ -1531,26 +1531,6 @@ Listen_Process ? (
   // Overall gains
   spl0list *= gainDb;
   spl1list *= gainDb;
-
-/* 
-  // Stereo gains
-  spl0list *= gainML;
-  spl1list *= gainSR;
-
-  MidPolarity ? spl0list = -spl0list;
-  SidePolarity ? spl1list = -spl1list;
-
-  // Mid/Side decode
-  Stereo_Mode == 0 ? (
-    tmp = spl0list;
-    spl0list = tmp + spl1list;
-    spl1list = tmp - spl1list;
-  );
-
-  // Overall gains
-  spl0list *= gainDb;
-  spl1list *= gainDb;
-*/
 );
 
 // Feed the correct buffers depending on spectrum modes
