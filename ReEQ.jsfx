@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.11   <--- Make sure you change VERSION below if this changes!!
+Version: v1.0.12   <--- Make sure you change VERSION below if this changes!!
 
 The MIT License (MIT)
 
@@ -28,7 +28,6 @@ SOFTWARE.
 DONE:
 
 TODO:
-
 
 */
 
@@ -113,9 +112,9 @@ options:no_meter
 
 @init
 
-#VERSION = "1.0.11";
-
 // This should be the same as in the comment header
+#VERSION = "1.0.12";
+
 gfx_ext_retina  = 1;
 ext_nodenorm    = 1;
 ext_noinit = 1;
@@ -762,6 +761,9 @@ init_rate != srate ? (
   node_drag = 0;
   node_drag_offx = 0;
   node_drag_offy = 0;
+  node_drag_stablex = 0;
+  node_drag_stabley = 0;
+  node_drag_mouse_speed = 6;
   node_drag_lock = 0;
 
   gainDb = 1;
@@ -788,7 +790,6 @@ init_rate != srate ? (
   listen_filter.m2 = listen_filter.t_m2;
   listen_filter.iter_t = 1.0;
 
-//jj
   // Define filter index numbers
   FILTER_PEAK = 0;
   FILTER_LOW_CUT = 1;
@@ -2309,7 +2310,7 @@ function draw_info_panel(note_select)
   local(x, y, xbase, read_freq, read_amp, q, band, C0, semi, octave, note, cent, keys, nn, note_freq, centstr, width, rect_height, slope, panel_offset_x)
  (
   hide = 0;
-  mouse_within_window() ? 
+  mouse_within_window() || node_drag_mode ? 
   (
     gfx_set(0, 0.5, 1);
     read_freq = note_select == 0 ? spectrum.x_to_freq(mouse_x) : note_select;
@@ -2319,6 +2320,7 @@ function draw_info_panel(note_select)
     (
       read_freq = Band_Frequency[node_drag];
       read_amp = Band_Gain[node_drag];
+      q = Band_Q[node_drag];
     );
     
     node_drag_mode == 0 ? (
@@ -4014,7 +4016,11 @@ mouse_within_window() ? (
   draw_nodes();
 ) : ( 
   listen_node != -1 ? draw_listen_helper();
-  node_drag_mode != 0 ? draw_nodes();
+  node_drag_mode != 0 ? (
+    draw_info_panel();
+    
+    draw_nodes();
+  );
 );
 
 // Set the colors for the bands
@@ -4371,10 +4377,11 @@ do_general_mouse ? (
         node_drag_offy = mouse_y - db_to_y(Band_Gain[band]);
         node_drag_offx = mouse_x - freq_to_scx(Band_Frequency[band]);
 
+        node_drag_stablex = mouse_x;
+        node_drag_stabley = mouse_y;
+
         mouse_cap & 4 ? ( 
           node_drag_lock = 1;
-        ) : mouse_cap & 16 ? (
-          node_drag_lock = 2;
         ) : node_drag_lock = 0;
       ) : (
         mouse_y < gfx_h - BOTTOM_MARGIN - gfx_texth ? (
@@ -4386,15 +4393,53 @@ do_general_mouse ? (
 
     node_drag_mode ? (
 
-      mouse_cap & 4 ? (
-        node_drag_lock = 1;
-      ) : mouse_cap & 16 ? (
-        node_drag_lock = 2;
+      mouse_cap & 16 ? (
+        node_drag_mouse_speed == 1 ? (
+          // Changing speed - reset offsets
+          node_drag_offx = mouse_x - freq_to_scx(Band_Frequency[node_drag]);
+          node_drag_offy = mouse_y - db_to_y(Band_Gain[node_drag]);
+          node_drag_stablex = mouse_x;
+          node_drag_stabley = mouse_y;
+        );
+
+        node_drag_mouse_speed = 6;
+      ) : (
+        node_drag_mouse_speed == 6 ? (
+          // Changing speed - reset offsets
+          node_drag_offx = mouse_x - freq_to_scx(Band_Frequency[node_drag]);
+          node_drag_offy = mouse_y - db_to_y(Band_Gain[node_drag]);
+          node_drag_stablex = mouse_x;
+          node_drag_stabley = mouse_y;
+          0;
+        );
+
+        node_drag_mouse_speed = 1;
       );
 
+      mouse_cap & 4 ? (
+        node_drag_lock = 1;
+      ) : (
+        node_drag_lock != 0 ? (
+          node_drag_offx = mouse_x - freq_to_scx(Band_Frequency[node_drag]);
+          node_drag_offy = mouse_y - db_to_y(Band_Gain[node_drag]);
+          node_drag_stablex = mouse_x;
+          node_drag_stabley = mouse_y;
+        );
+        node_drag_lock = 0;
+      );
+
+      // Normal drag?
       node_drag_lock == 0 ? (
-        Band_Gain[node_drag] = y_to_db(mouse_y - node_drag_offy);
-        Band_Frequency[node_drag] = scx_to_freq(mouse_x - node_drag_offx);
+
+        diffx = ((mouse_x - node_drag_stablex) / node_drag_mouse_speed) + ofx;
+        diffy = (node_drag_stabley - mouse_y) / node_drag_mouse_speed;
+
+        mmx = (node_drag_stablex + diffx) - node_drag_offx;
+        mmy = (node_drag_stabley - diffy) - node_drag_offy;
+
+        Band_Frequency[node_drag] = scx_to_freq(mmx);
+        Band_Gain[node_drag] = y_to_db(mmy);
+
         node_drag_origy = mouse_y;
 
         filters_to_sliders();
@@ -4404,31 +4449,27 @@ do_general_mouse ? (
         notify_touched_frequency(node_drag);
       );
 
-      node_drag_lock == 2 ? (
-        Band_Gain[node_drag] = y_to_db(mouse_y - node_drag_offy);
+      // Fixed gain with Q control drag?
+      node_drag_lock == 1 ? (
+
+        diffx = (mouse_x - node_drag_stablex) / node_drag_mouse_speed;
+        diffy = (node_drag_stabley - mouse_y) / node_drag_mouse_speed;
+
+        mmx = (node_drag_stablex + diffx) - node_drag_offx;
+        mmy = (node_drag_stabley - diffy) - node_drag_offy;
+
+        Band_Frequency[node_drag] = scx_to_freq(mmx);
+
+        // Alter Q according to drag
+        md = (node_drag_origy - mouse_y) / node_drag_mouse_speed;
         node_drag_origy = mouse_y;
 
-        filters_to_sliders();
+        scalar = 0.5 / gfx_ext_retina;
+
+        Band_Q[node_drag] = max(0.10, min(40, per_to_q(q_to_per(Band_Q[node_drag], 100) + md * scalar, 100)));
 
         // Notify Reaper that a parameter change has happened
-        notify_touched_gain(node_drag);
-      );
-
-      node_drag_lock == 1 ? (
-        Band_Frequency[node_drag] = scx_to_freq(mouse_x - node_drag_offx);
-
-        // If we're not pressing ALT then we can alter Q
-        !(mouse_cap & 16) ? (
-          
-          md = node_drag_origy - mouse_y;
-          node_drag_origy = mouse_y;
-
-          scalar = 0.5 / gfx_ext_retina;
-
-          Band_Q[node_drag] = max(0.10, min(40, per_to_q(q_to_per(Band_Q[node_drag], 100) + md * scalar, 100)));
-
-          notify_touched_Q(node_drag);
-        );
+        notify_touched_Q(node_drag);
 
         filters_to_sliders();
 
