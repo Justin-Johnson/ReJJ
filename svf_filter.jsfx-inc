@@ -1,8 +1,30 @@
 desc: State Variable Filter
 /*
   SVF - State Variable Filter
-  Author: Justin Johnson
-  License: LGPL - http://www.gnu.org/licenses/lgpl.html
+
+  The MIT License (MIT)
+
+  Copyright (c) 2021 Justin Johnson
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+  --------
 
   SVF filter math taken from Andy Simper's (Cytomic) SVF paper.
 
@@ -18,18 +40,17 @@ desc: State Variable Filter
   high pass.
 */
 
-import rbj_filter.jsfx-inc
-
 @init
 
 SAMPLE_RATE = srate;
+ONE_OVER_SAMPLE_RATE = 1.0 / srate;
 
 SMOOTHING_TIME_MS = 30;
 
 /*
  * Check if all our interpolating coefficients at rest
  */
-function zdf_is_resting() local(resting) instance(onepole)
+function svf_is_resting() local(resting) instance(onepole)
 ( 
   resting = this.iter_t == 1.0;
   nlp > 2 ? (
@@ -66,45 +87,46 @@ function zdf_is_resting() local(resting) instance(onepole)
 /*
  * Set the sample rate.  Adjusts the low pass interpolators
  */
-function zdf_set_sample_rate_single(rate)
-  instance(rbj, iter_step)
+function svf_set_sample_rate_single(rate)
+  instance(iter_step)
 (
   SAMPLE_RATE = rate;
+  ONE_OVER_SAMPLE_RATE = 1.0 / rate;
 
   // Assumption: using 'srate' here on the basis that we'll
   // only call tick() once per @sample
   iter_step = 1.0 / (SMOOTHING_TIME_MS * 0.001 * srate);
-
-  rbj.rbj_set_sample_rate(rate);
 );
 
 /*
  * Set the sample rate for all filters
  */
-function zdf_set_sample_rate(rate)
+function svf_set_sample_rate(rate)
   instance(cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9)
 (
-  this.zdf_set_sample_rate_single(rate); //12
-  cas1.zdf_set_sample_rate_single(rate); //24
-  cas2.zdf_set_sample_rate_single(rate); //36
-  cas3.zdf_set_sample_rate_single(rate); //48
-  cas4.zdf_set_sample_rate_single(rate); //60
-  cas5.zdf_set_sample_rate_single(rate); //72
-  cas6.zdf_set_sample_rate_single(rate); //84
-  cas7.zdf_set_sample_rate_single(rate); //96
-  cas8.zdf_set_sample_rate_single(rate); //108
-  cas9.zdf_set_sample_rate_single(rate); //120
+  this.svf_set_sample_rate_single(rate); //12
+  cas1.svf_set_sample_rate_single(rate); //24
+  cas2.svf_set_sample_rate_single(rate); //36
+  cas3.svf_set_sample_rate_single(rate); //48
+  cas4.svf_set_sample_rate_single(rate); //60
+  cas5.svf_set_sample_rate_single(rate); //72
+  cas6.svf_set_sample_rate_single(rate); //84
+  cas7.svf_set_sample_rate_single(rate); //96
+  cas8.svf_set_sample_rate_single(rate); //108
+  cas9.svf_set_sample_rate_single(rate); //120
 );
 
 /*
  * Set the target values for coefficient interpolation
  */
-function zdf_set_coeffs(ta1, ta2, ta3, tm0, tm1, tm2)
-  instance(a1, a2, a3, m0, m1, m2, t_a1, t_a2, t_a3, t_m0, t_m1, t_m2, s_a1, s_a2, s_a3, s_m0, s_m1, s_m2, iter_t)
+function svf_set_coeffs(tg, tk, ta1, ta2, ta3, tm0, tm1, tm2)
+  instance(g, k, a1, a2, a3, m0, m1, m2, t_g, t_k, t_a1, t_a2, t_a3, t_m0, t_m1, t_m2, s_g, s_k, s_a1, s_a2, s_a3, s_m0, s_m1, s_m2, iter_t)
 (
   iter_t = 0.0;
 
   // Start coefficients
+  s_g = g;
+  s_k = k;
   s_a1 = a1;
   s_a2 = a2;
   s_a3 = a3;
@@ -113,6 +135,8 @@ function zdf_set_coeffs(ta1, ta2, ta3, tm0, tm1, tm2)
   s_m2 = m2;
 
   // Target coefficients
+  t_g = tg;
+  t_k = tk;
   t_a1 = ta1;
   t_a2 = ta2;
   t_a3 = ta3;
@@ -124,10 +148,12 @@ function zdf_set_coeffs(ta1, ta2, ta3, tm0, tm1, tm2)
 /*
  * Interpolate coefficients
  */
-function zdf_single_interpolate()
-  instance (a1, a2, a3, m0, m1, m2, t_a1, t_a2, t_a3, t_m0, t_m1, t_m2, s_a1, s_a2, s_a3, s_m0, s_m1, s_m2, iter_step, iter_t)
+function svf_single_interpolate()
+  instance (g, k, a1, a2, a3, m0, m1, m2, t_g, t_k, t_a1, t_a2, t_a3, t_m0, t_m1, t_m2, s_g, s_k, s_a1, s_a2, s_a3, s_m0, s_m1, s_m2, iter_step, iter_t)
 (
   iter_t < 1.0 ? (
+    g = s_g + iter_t * (t_g - s_g);
+    k = s_k + iter_t * (t_k - s_k);
     a1 = s_a1 + iter_t * (t_a1 - s_a1);
     a2 = s_a2 + iter_t * (t_a2 - s_a2);
     a3 = s_a3 + iter_t * (t_a3 - s_a3);
@@ -135,7 +161,9 @@ function zdf_single_interpolate()
     m1 = s_m1 + iter_t * (t_m1 - s_m1);
     m2 = s_m2 + iter_t * (t_m2 - s_m2);
     iter_t = min(1.0, iter_t + iter_step);
-  ) : ( 
+  ) : (
+    g = t_g;
+    k = t_k;
     a1 = t_a1;
     a2 = t_a2;
     a3 = t_a3;
@@ -146,22 +174,60 @@ function zdf_single_interpolate()
 );
 
 /*
+ * Set the coefficients to the target and stop iterating
+ */
+function svf_single_set_to_target()
+  instance (g, k, a1, a2, a3, m0, m1, m2, t_g, t_k, t_a1, t_a2, t_a3, t_m0, t_m1, t_m2, iter_t)
+(
+  iter_t = 1.0;
+  g = t_g;
+  k = t_k;
+  a1 = t_a1;
+  a2 = t_a2;
+  a3 = t_a3;
+  m0 = t_m0;
+  m1 = t_m1;
+  m2 = t_m2;
+);
+
+/*
  * Filter tick
  * Hande interpolation.
  */
-function zdf_tick()
+function svf_set_to_target()
   instance (nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9)
 (
-  nlp > 0 ? this.zdf_single_interpolate();
-  nlp > 2 ? cas1.zdf_single_interpolate();
-  nlp > 4 ? cas2.zdf_single_interpolate();
-  nlp > 6 ? cas3.zdf_single_interpolate();
-  nlp > 8 ? cas4.zdf_single_interpolate();
-  nlp > 10 ? cas5.zdf_single_interpolate();
-  nlp > 12 ? cas6.zdf_single_interpolate();
-  nlp > 14 ? cas7.zdf_single_interpolate();
-  nlp > 16 ? cas8.zdf_single_interpolate();
-  nlp > 18 ? cas9.zdf_single_interpolate();
+  nlp > 0 ? this.svf_single_set_to_target();
+  nlp > 2 ? cas1.svf_single_set_to_target();
+  nlp > 4 ? cas2.svf_single_set_to_target();
+  nlp > 6 ? cas3.svf_single_set_to_target();
+  nlp > 8 ? cas4.svf_single_set_to_target();
+  nlp > 10 ? cas5.svf_single_set_to_target();
+  nlp > 12 ? cas6.svf_single_set_to_target();
+  nlp > 14 ? cas7.svf_single_set_to_target();
+  nlp > 16 ? cas8.svf_single_set_to_target();
+  nlp > 18 ? cas9.svf_single_set_to_target();
+
+  // TODO: need to interpolate one pole filter coefficients too!!
+);
+
+/*
+ * Filter tick
+ * Hande interpolation.
+ */
+function svf_tick()
+  instance (nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9)
+(
+  nlp > 0 ? this.svf_single_interpolate();
+  nlp > 2 ? cas1.svf_single_interpolate();
+  nlp > 4 ? cas2.svf_single_interpolate();
+  nlp > 6 ? cas3.svf_single_interpolate();
+  nlp > 8 ? cas4.svf_single_interpolate();
+  nlp > 10 ? cas5.svf_single_interpolate();
+  nlp > 12 ? cas6.svf_single_interpolate();
+  nlp > 14 ? cas7.svf_single_interpolate();
+  nlp > 16 ? cas8.svf_single_interpolate();
+  nlp > 18 ? cas9.svf_single_interpolate();
 
   // TODO: need to interpolate one pole filter coefficients too!!
 );
@@ -169,7 +235,7 @@ function zdf_tick()
 /*
  * Bandwidth to Q
  */
-function zdf_bwtoq(bw)
+function svf_bwtoq(bw)
   local(x)
 (
   // q = 1/(2 * sinh(log(2) / 2 * bw))
@@ -180,7 +246,7 @@ function zdf_bwtoq(bw)
 /*
  * Q to bandwidth
  */
-function zdf_qtobw(q)
+function svf_qtobw(q)
   local(x)
 (
   // bw = 2 * asinh(1/(2 * q)) / log(2)
@@ -222,18 +288,18 @@ function update_splane(slope)
  * Initialise one pole (6dB) filter
  * 'passtype' is 0 for low pass filter, 1 for high pass filter
  */
-function zdf_onepole(mode, cutoff) instance(Acc, B0, B1, A1, Z0, Z1, passtype) local (W, N) (
+function svf_onepole(mode, cutoff) instance(Acc, B0, B1, A1, Z0, Z1, passtype) local (W, N) (
   passtype = mode;
   passtype == 0 ? (
     // Low pass
-    W = tan($pi * cutoff / SAMPLE_RATE);
+    W = tan($pi * cutoff * ONE_OVER_SAMPLE_RATE);
     N = 1/(1+W);
     B0 = W * N;
     B1 = B0;
     A1 = N * (W-1);  
   ) : (
     // High pass
-    W = tan($pi * cutoff / SAMPLE_RATE);
+    W = tan($pi * cutoff * ONE_OVER_SAMPLE_RATE);
     N = 1/(1+W);
     B0 = N;
     B1 = -B0;
@@ -244,7 +310,7 @@ function zdf_onepole(mode, cutoff) instance(Acc, B0, B1, A1, Z0, Z1, passtype) l
 /*
  * Apply one pole (6dB) filter
  */
-function zdf_onepole_do(in) instance(Acc, B0, B1, A1, Z0, Z1) (
+function svf_onepole_do(in) instance(Acc, B0, B1, A1, Z0, Z1) (
   Acc = in*B0 + Z0*B1 - Z1*A1;
   Z1 = Acc;
   Z0 = in;
@@ -254,8 +320,8 @@ function zdf_onepole_do(in) instance(Acc, B0, B1, A1, Z0, Z1) (
 /*
  * Set low pass filter for single cascade step
  */
-function zdf_single_lp(freq, q)
-  instance(rbj, cutoff, op0, op1)
+function svf_single_lp(freq, q)
+  instance(cutoff, op0, op1)
   local(g, k, a1, a2, a3, m0, m1, m2)
 (
   g = tan($pi * freq/SAMPLE_RATE);
@@ -266,40 +332,39 @@ function zdf_single_lp(freq, q)
   m0 = 0;
   m1 = 0;
   m2 = 1;
-  rbj.rbj_lp(freq, q);
-  this.zdf_set_coeffs(a1, a2, a3, m0, m1, m2);
+  this.svf_set_coeffs(g, k, a1, a2, a3, m0, m1, m2);
 
   cutoff = freq;
 
-  op0.zdf_onepole(0, cutoff);
-  op1.zdf_onepole(0, cutoff);
+  op0.svf_onepole(0, cutoff);
+  op1.svf_onepole(0, cutoff);
 );
 
 /*
  * Set low pass filter
  */
-function zdf_lp(freq, q, slope)
+function svf_lp(freq, q, slope)
   instance(nlp, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, onepole)
 (
   nlp = slope;
   onepole = (slope+1) & 1;
 
-  this.zdf_single_lp(freq, q);
-  cas1.zdf_single_lp(freq, q);
-  cas2.zdf_single_lp(freq, q);
-  cas3.zdf_single_lp(freq, q);
-  cas4.zdf_single_lp(freq, q);
-  cas5.zdf_single_lp(freq, q);
-  cas6.zdf_single_lp(freq, q);
-  cas7.zdf_single_lp(freq, q);
-  cas8.zdf_single_lp(freq, q);
-  cas9.zdf_single_lp(freq, q);
+  this.svf_single_lp(freq, q);
+  cas1.svf_single_lp(freq, q);
+  cas2.svf_single_lp(freq, q);
+  cas3.svf_single_lp(freq, q);
+  cas4.svf_single_lp(freq, q);
+  cas5.svf_single_lp(freq, q);
+  cas6.svf_single_lp(freq, q);
+  cas7.svf_single_lp(freq, q);
+  cas8.svf_single_lp(freq, q);
+  cas9.svf_single_lp(freq, q);
 );
 
 /*
  * Set low pass butterworth filter
  */
-function zdf_lpb(freq, slope)
+function svf_lpb(freq, slope)
   instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, q0, q1, q2, q3, q4, q5, q6, q7, q8, q9)
 (
   nlp = slope;
@@ -307,23 +372,23 @@ function zdf_lpb(freq, slope)
 
   this.update_splane(nlp);
 
-  this.zdf_single_lp(freq, q0);
-  cas1.zdf_single_lp(freq, q1);
-  cas2.zdf_single_lp(freq, q2);
-  cas3.zdf_single_lp(freq, q3);
-  cas4.zdf_single_lp(freq, q4);
-  cas5.zdf_single_lp(freq, q5);
-  cas6.zdf_single_lp(freq, q6);
-  cas7.zdf_single_lp(freq, q7);
-  cas8.zdf_single_lp(freq, q8);
-  cas9.zdf_single_lp(freq, q9);
+  this.svf_single_lp(freq, q0);
+  cas1.svf_single_lp(freq, q1);
+  cas2.svf_single_lp(freq, q2);
+  cas3.svf_single_lp(freq, q3);
+  cas4.svf_single_lp(freq, q4);
+  cas5.svf_single_lp(freq, q5);
+  cas6.svf_single_lp(freq, q6);
+  cas7.svf_single_lp(freq, q7);
+  cas8.svf_single_lp(freq, q8);
+  cas9.svf_single_lp(freq, q9);
 );
 
 /*
  * Set high pass filter for single cascade step
  */
-function zdf_single_hp(freq, q)
-  instance(rbj, cutoff, op0, op1)
+function svf_single_hp(freq, q)
+  instance(cutoff, op0, op1)
   local(g, k, a1, a2, a3, m0, m1, m2)
 (
   g = tan($pi * freq/SAMPLE_RATE);
@@ -334,40 +399,39 @@ function zdf_single_hp(freq, q)
   m0 = 1.0;
   m1 = -k;
   m2 = -1.0;
-  rbj.rbj_hp(freq, q);
-  this.zdf_set_coeffs(a1, a2, a3, m0, m1, m2);
+  this.svf_set_coeffs(g, k, a1, a2, a3, m0, m1, m2);
 
   cutoff = freq;
 
-  op0.zdf_onepole(1, cutoff);
-  op1.zdf_onepole(1, cutoff);
+  op0.svf_onepole(1, cutoff);
+  op1.svf_onepole(1, cutoff);
 );
 
 /*
  * Set high pass filter
  */
-function zdf_hp(freq, q, slope)
+function svf_hp(freq, q, slope)
   instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9)
 (
   nlp = slope;
   onepole = (slope+1) & 1;
 
-  this.zdf_single_hp(freq, q);
-  cas1.zdf_single_hp(freq, q);
-  cas2.zdf_single_hp(freq, q);
-  cas3.zdf_single_hp(freq, q);
-  cas4.zdf_single_hp(freq, q);
-  cas5.zdf_single_hp(freq, q);
-  cas6.zdf_single_hp(freq, q);
-  cas7.zdf_single_hp(freq, q);
-  cas8.zdf_single_hp(freq, q);
-  cas9.zdf_single_hp(freq, q);
+  this.svf_single_hp(freq, q);
+  cas1.svf_single_hp(freq, q);
+  cas2.svf_single_hp(freq, q);
+  cas3.svf_single_hp(freq, q);
+  cas4.svf_single_hp(freq, q);
+  cas5.svf_single_hp(freq, q);
+  cas6.svf_single_hp(freq, q);
+  cas7.svf_single_hp(freq, q);
+  cas8.svf_single_hp(freq, q);
+  cas9.svf_single_hp(freq, q);
 );
 
 /*
  * Set high pass butterworth filter
  */
-function zdf_hpb(freq, slope)
+function svf_hpb(freq, slope)
   instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, q0, q1, q2, q3, q4, q5, q6, q7, q8, q9)
 (
   nlp = slope;
@@ -375,23 +439,22 @@ function zdf_hpb(freq, slope)
 
   this.update_splane(nlp);
 
-  this.zdf_single_hp(freq, q0);
-  cas1.zdf_single_hp(freq, q1);
-  cas2.zdf_single_hp(freq, q2);
-  cas3.zdf_single_hp(freq, q3);
-  cas4.zdf_single_hp(freq, q4);
-  cas5.zdf_single_hp(freq, q5);
-  cas6.zdf_single_hp(freq, q6);
-  cas7.zdf_single_hp(freq, q7);
-  cas8.zdf_single_hp(freq, q8);
-  cas9.zdf_single_hp(freq, q9);
+  this.svf_single_hp(freq, q0);
+  cas1.svf_single_hp(freq, q1);
+  cas2.svf_single_hp(freq, q2);
+  cas3.svf_single_hp(freq, q3);
+  cas4.svf_single_hp(freq, q4);
+  cas5.svf_single_hp(freq, q5);
+  cas6.svf_single_hp(freq, q6);
+  cas7.svf_single_hp(freq, q7);
+  cas8.svf_single_hp(freq, q8);
+  cas9.svf_single_hp(freq, q9);
 );
 
 /*
  * Band-pass (constant skirt gain, peak gain = Q)
  */
-function _zdf_bp(freq, q)
-  instance(rbj)
+function _svf_bp(freq, q)
   local(g, k, a1, a2, a3, m0, m1, m2)  
 (
   g = tan($pi * freq/SAMPLE_RATE);
@@ -402,23 +465,21 @@ function _zdf_bp(freq, q)
   m0 = 0;
   m1 = 1;
   m2 = 0;
-  rbj.rbj_bp(freq, q);
-  this.zdf_set_coeffs(a1, a2, a2, m0, m1, m2);
+  this.svf_set_coeffs(g, k, a1, a2, a2, m0, m1, m2);
 );
 
-function zdf_bp(freq, q)
+function svf_bp(freq, q)
   instance(nlp, onepole)
 (
   nlp = 1;
   onepole = 0;
-  this._zdf_bp(freq, q);
+  this._svf_bp(freq, q);
 );
 
 /*
  * Band-pass (constant 0 dB peak gain)
  */
-function _zdf_bp2(freq, q)
-  instance(rbj)
+function _svf_bp2(freq, q)
   local(g, k, a1, a2, a3, m0, m1, m2)  
 (
   g = tan($pi * freq/SAMPLE_RATE);
@@ -429,23 +490,21 @@ function _zdf_bp2(freq, q)
   m0 = 0;
   m1 = 1/q;
   m2 = 0;
-  rbj.rbj_bp2(freq, q);
-  this.zdf_set_coeffs(a1, a2, a3, m0, m1, m2);
+  this.svf_set_coeffs(g, k, a1, a2, a3, m0, m1, m2);
 );
 
-function zdf_bp2(freq, q)
+function svf_bp2(freq, q)
   instance(nlp, onepole)
 (
   nlp = 1;
   onepole = 0;
-  this._zdf_bp2(freq, q);
+  this._svf_bp2(freq, q);
 );
 
 /*
  * Band-stop (Notch)
  */
-function _zdf_bs(freq, q)
-  instance(rbj)
+function _svf_bs(freq, q)
   local(g, k, a1, a2, a3, m0, m1, m2)
 (
   g = tan($pi * freq/SAMPLE_RATE);
@@ -456,23 +515,21 @@ function _zdf_bs(freq, q)
   m0 = 1;
   m1 = -k;
   m2 = 0;
-  rbj.rbj_bs(freq, q);
-  this.zdf_set_coeffs(a1, a2, a3, m0, m1, m2);
+  this.svf_set_coeffs(g, k, a1, a2, a3, m0, m1, m2);
 );
 
-function zdf_bs(freq, q)
+function svf_bs(freq, q)
   instance(nlp, onepole)
 (
   nlp = 1;
   onepole = 0;
-  this._zdf_bs(freq, q);
+  this._svf_bs(freq, q);
 );
 
 /*
  * All pass
  */
-function _zdf_ap(freq, q)
-  instance(rbj)
+function _svf_ap(freq, q)
   local(g, k, a1, a2, a3, m0, m1, m2)
 (
   g = tan($pi * freq/SAMPLE_RATE);
@@ -483,24 +540,22 @@ function _zdf_ap(freq, q)
   m0 = 1;
   m1 = -2*k;
   m2 = 0;
-  rbj.rbj_ap(freq, q);
-  this.zdf_set_coeffs(a1, a2, a3, m0, m1, m2);
+  this.svf_set_coeffs(g, k, a1, a2, a3, m0, m1, m2);
 );
 
-function zdf_ap(freq, q)
+function svf_ap(freq, q)
   instance(nlp, onepole)
 (
   nlp = 1;
   onepole = 0;
-  this._zdf_ap(freq, q);
+  this._svf_ap(freq, q);
 );
 
 /*
  * Peaking EQ (Bell)
  */
-function _zdf_eq(freq, q, gain)
+function _svf_eq(freq, q, gain)
   local(A, a1, a2, a3, m0, m1, m2, g, k)
-  instance(rbj)
 (
   A = gain; //10.0 ^ (gain / 20.0);
   g = tan($pi * freq/SAMPLE_RATE);
@@ -511,24 +566,22 @@ function _zdf_eq(freq, q, gain)
   m0 = 1;
   m1 = k*(A*A-1);
   m2 = 0;
-  rbj.rbj_eq(freq, q, gain);
-  this.zdf_set_coeffs(a1, a2, a3, m0, m1, m2);
+  this.svf_set_coeffs(g, k, a1, a2, a3, m0, m1, m2);
 );
 
-function zdf_eq(freq, q, gain)
+function svf_eq(freq, q, gain)
   instance(nlp, onepole)
 (
   nlp = 1;
   onepole = 0;
-  this._zdf_eq(freq, q, gain);
+  this._svf_eq(freq, q, gain);
 );
 
 /*
  * Low Shelf
  */
-function _zdf_ls(freq, q, gain)
+function _svf_ls(freq, q, gain)
   local(A, g, k, a1, a2, a3, m0, m1, m2)
-  instance(rbj)
 (
   A = gain; //10 ^ (gain / 40.0);
   g = tan($pi * freq/SAMPLE_RATE) / sqrt(A);
@@ -539,24 +592,22 @@ function _zdf_ls(freq, q, gain)
   m0 = 1;
   m1 = k*(A - 1);
   m2 = (A * A - 1);
-  rbj.rbj_ls(freq, q, gain);
-  this.zdf_set_coeffs(a1, a2, a3, m0, m1, m2);
+  this.svf_set_coeffs(g, k, a1, a2, a3, m0, m1, m2);
 );
 
-function zdf_ls(freq, q, gain)
+function svf_ls(freq, q, gain)
   instance(nlp, onepole)
 (
   nlp = 1;
   onepole = 0;
-  this._zdf_ls(freq, q, gain);
+  this._svf_ls(freq, q, gain);
 );
 
 /*
  * High shelf
  */
-function _zdf_hs(freq, q, gain)
+function _svf_hs(freq, q, gain)
   local(A, g, k, a1, a2, a3, m0, m1, m2)
-  instance(rbj)
 (
   A = gain; //10 ^ (gain / 40.0);
   g = tan($pi * freq/SAMPLE_RATE) * sqrt(A);
@@ -567,37 +618,36 @@ function _zdf_hs(freq, q, gain)
   m0 = A * A;
   m1 = k * (1 - A) * A;
   m2 = (1 - A * A);
-  rbj.rbj_hs(freq, q, gain);
-  this.zdf_set_coeffs(a1, a2, a3, m0, m1, m2);
+  this.svf_set_coeffs(g, k, a1, a2, a3, m0, m1, m2);
 );
 
-function zdf_hs(freq, q, gain)
+function svf_hs(freq, q, gain)
   instance(nlp, onepole)
 (
   nlp = 1;
   onepole = 0;
-  this._zdf_hs(freq, q, gain);
+  this._svf_hs(freq, q, gain);
 );
 
 /*
  * Set shelf tilt filter
  * (A cunning combination of high and low shelf with opposite gains)
  */
-function zdf_st(freq, q, gain)
+function svf_st(freq, q, gain)
   instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, gain2)
 (
   nlp = 3;
   onepole = 0;
   gain2 = 10^(-gain / 40);
   gain = 10^(gain / 40);
-  this._zdf_hs(freq, q, gain);
-  cas1._zdf_ls(freq, q, gain2);
+  this._svf_hs(freq, q, gain);
+  cas1._svf_ls(freq, q, gain2);
 );
 
 /*
  * Pultec boost and cut
  */
-function zdf_pultecls(freq, q, gain)
+function svf_pultecls(freq, q, gain)
   instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, onepole, gain2, amm, freq)
 (
   freq *= 1.5;  // Puts the frequency in a better place for adjustments
@@ -612,8 +662,8 @@ function zdf_pultecls(freq, q, gain)
   gain2 = 10^(-(gain2) / 40);
   gain = 10^(gain / 40);
 
-  this._zdf_ls(freq, 0.701, gain);
-  cas1.zdf_eq(freq, 0.701, gain2);  // Cut!!  Make Q affect depth of this gain
+  this._svf_ls(freq, 0.701, gain);
+  cas1.svf_eq(freq, 0.701, gain2);  // Cut!!  Make Q affect depth of this gain
   nlp = 3;
   onepole = 0;
 );
@@ -625,19 +675,19 @@ function db_to_gain(db) (
 /*
  * Low cut analog (low cut and shelf)
  */
-function zdf_analog_lowcut(freq, q, gain)
+function svf_analog_lowcut(freq, q, gain)
   instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, gain2, amm, freq, op0, op1, cutoff)
 (
   gain = 10^(gain / 40);
 
   // Low shelf
   // 1.25 so, 80Hz for high pass is 80Hz for low shelf
-  this.zdf_ls(freq * 1.25, 0.701, gain);
+  this.svf_ls(freq * 1.25, 0.701, gain);
 
   // High pass onepole
   cutoff = freq;
-  op0.zdf_onepole(1, cutoff);
-  op1.zdf_onepole(1, cutoff);
+  op0.svf_onepole(1, cutoff);
+  op1.svf_onepole(1, cutoff);
 
   nlp = 1;
   onepole = 1;
@@ -646,7 +696,7 @@ function zdf_analog_lowcut(freq, q, gain)
 /*
  * High cut analog (high cut and shelf)
  */
-function zdf_analog_highcut(freq, q, gain)
+function svf_analog_highcut(freq, q, gain)
   local(gg)
   instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, gain2, amm, freq, op0, op1, cutoff)
 (
@@ -654,7 +704,7 @@ function zdf_analog_highcut(freq, q, gain)
   gain = 10^(gain / 40);
 
   // High shelf
-  this.zdf_hs(freq, 0.701, gain);
+  this.svf_hs(freq, 0.701, gain);
 
   // Low pass onepole
   // The low pass 12dB filter starts off higher than the high shelf and gets
@@ -672,7 +722,7 @@ function zdf_analog_highcut(freq, q, gain)
   // Clamp to a high safe frequency
   cutoff > 22040 ? cutoff = 22040;
 
-  cas1.zdf_single_lp(cutoff, 0.701);
+  cas1.svf_single_lp(cutoff, 0.701);
 
   nlp = 3;
   onepole = 0;
@@ -688,7 +738,7 @@ function db_to_gain(db) (
 /*
  * Listen filter for peak/bell eq
  */
-function zdf_listen_eq(leftfreq, rightfreq, bellfreq, bellq, bellgain)
+function svf_listen_eq(leftfreq, rightfreq, bellfreq, bellq, bellgain)
   instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, q0, q1)
 (
   leftfreq = max(leftfreq, 10);
@@ -699,13 +749,13 @@ function zdf_listen_eq(leftfreq, rightfreq, bellfreq, bellq, bellgain)
   this.update_splane(3);
 
   // The main bell filter that we're listening too
-  this._zdf_eq(bellfreq, bellq, bellgain);
+  this._svf_eq(bellfreq, bellq, bellgain);
 
-  cas1.zdf_single_hp(leftfreq, q0);
-  cas2.zdf_single_hp(leftfreq, q1);
+  cas1.svf_single_hp(leftfreq, q0);
+  cas2.svf_single_hp(leftfreq, q1);
 
-  cas3.zdf_single_lp(rightfreq, q0);
-  cas4.zdf_single_lp(rightfreq, q1);
+  cas3.svf_single_lp(rightfreq, q0);
+  cas4.svf_single_lp(rightfreq, q1);
 
   nlp = 9;
   onepole = 0;
@@ -714,7 +764,7 @@ function zdf_listen_eq(leftfreq, rightfreq, bellfreq, bellq, bellgain)
 /*
  * Listen filter for notch
  */
-function zdf_listen_bs(leftfreq, rightfreq, bellfreq, bellq)
+function svf_listen_bs(leftfreq, rightfreq, bellfreq, bellq)
   instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, q0, q1)
 (
   leftfreq = max(leftfreq, 10);
@@ -725,63 +775,58 @@ function zdf_listen_bs(leftfreq, rightfreq, bellfreq, bellq)
   this.update_splane(3);
 
   // The main bell filter that we're listening too
-  this._zdf_bs(bellfreq, bellq);
+  this._svf_bs(bellfreq, bellq);
 
-  cas1.zdf_single_hp(leftfreq, q0);
-  cas2.zdf_single_hp(leftfreq, q1);
+  cas1.svf_single_hp(leftfreq, q0);
+  cas2.svf_single_hp(leftfreq, q1);
 
-  cas3.zdf_single_lp(rightfreq, q0);
-  cas4.zdf_single_lp(rightfreq, q1);
+  cas3.svf_single_lp(rightfreq, q0);
+  cas4.svf_single_lp(rightfreq, q1);
 
   nlp = 9;
   onepole = 0;
 );
 
-
 /*
  * Bypass
  */
-function zdf_bypass()
-  instance(rbj, nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9)
+function svf_bypass()
+  instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9)
 (
   nlp < 1 ? nlp = 1;
   onepole = 0;
 
-  rbj.rbj_bypass();
-
-  this.zdf_set_coeffs(0, 0, 0, 1, 0, 0);
-  cas1.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
-  cas2.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
-  cas3.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
-  cas4.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
-  cas5.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
-  cas6.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
-  cas7.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
-  cas8.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
-  cas9.zdf_set_coeffs(1, 0, 0, 1, 0, 0);
+  this.svf_set_coeffs(0, 0, 0, 0, 0, 1, 0, 0);
+  cas1.svf_set_coeffs(0, 0, 1, 0, 0, 1, 0, 0);
+  cas2.svf_set_coeffs(0, 0, 1, 0, 0, 1, 0, 0);
+  cas3.svf_set_coeffs(0, 0, 1, 0, 0, 1, 0, 0);
+  cas4.svf_set_coeffs(0, 0, 1, 0, 0, 1, 0, 0);
+  cas5.svf_set_coeffs(0, 0, 1, 0, 0, 1, 0, 0);
+  cas6.svf_set_coeffs(0, 0, 1, 0, 0, 1, 0, 0);
+  cas7.svf_set_coeffs(0, 0, 1, 0, 0, 1, 0, 0);
+  cas8.svf_set_coeffs(0, 0, 1, 0, 0, 1, 0, 0);
+  cas9.svf_set_coeffs(0, 0, 1, 0, 0, 1, 0, 0);
 );
 
 /*
  * Mute
  */
-function zdf_mute()
-  instance(rbj, nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9)
+function svf_mute()
+  instance(nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9)
 (
   nlp < 1 ? nlp = 1;
   onepole = 0;
 
-  rbj.rbj_mute();
-
-  this.zdf_set_coeffs(0, 0, 0, 0, 0, 0);
-  cas1.zdf_set_coeffs(0, 0, 0, 0, 0, 0);
-  cas2.zdf_set_coeffs(0, 0, 0, 0, 0, 0);
-  cas3.zdf_set_coeffs(0, 0, 0, 0, 0, 0);
-  cas4.zdf_set_coeffs(0, 0, 0, 0, 0, 0);
-  cas5.zdf_set_coeffs(0, 0, 0, 0, 0, 0);
-  cas6.zdf_set_coeffs(0, 0, 0, 0, 0, 0);
-  cas7.zdf_set_coeffs(0, 0, 0, 0, 0, 0);
-  cas8.zdf_set_coeffs(0, 0, 0, 0, 0, 0);
-  cas9.zdf_set_coeffs(0, 0, 0, 0, 0, 0);
+  this.svf_set_coeffs(0, 0, 0, 0, 0, 0, 0, 0);
+  cas1.svf_set_coeffs(0, 0, 0, 0, 0, 0, 0, 0);
+  cas2.svf_set_coeffs(0, 0, 0, 0, 0, 0, 0, 0);
+  cas3.svf_set_coeffs(0, 0, 0, 0, 0, 0, 0, 0);
+  cas4.svf_set_coeffs(0, 0, 0, 0, 0, 0, 0, 0);
+  cas5.svf_set_coeffs(0, 0, 0, 0, 0, 0, 0, 0);
+  cas6.svf_set_coeffs(0, 0, 0, 0, 0, 0, 0, 0);
+  cas7.svf_set_coeffs(0, 0, 0, 0, 0, 0, 0, 0);
+  cas8.svf_set_coeffs(0, 0, 0, 0, 0, 0, 0, 0);
+  cas9.svf_set_coeffs(0, 0, 0, 0, 0, 0, 0, 0);
 );
 
 /*
@@ -790,8 +835,8 @@ function zdf_mute()
  * bandpass, highpass] of the core SVF in order to achieve various filter
  * modes.
  */
-function zdf_svf0(v0)
-  instance(rbj, ic1eq0, ic2eq0, a1, a2, a3, m0, m1, m2, nlp, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, onepole, cutoff, op0, op1)
+function svf_svf0(v0)
+  instance(ic1eq0, ic2eq0, a1, a2, a3, m0, m1, m2, nlp, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, onepole, cutoff, op0, op1)
   local(v1, v2, v3)
 (
   nlp > 0 ? (
@@ -906,7 +951,7 @@ function zdf_svf0(v0)
   );
 
   onepole ? ( 
-    v0 = op0.zdf_onepole_do(v0);
+    v0 = op0.svf_onepole_do(v0);
   );
 
   v0;
@@ -918,8 +963,8 @@ function zdf_svf0(v0)
  * bandpass, highpass] of the core SVF in order to achieve various filter
  * modes.
  */
-function zdf_svf1(v0)
-  instance(rbj, ic1eq1, ic2eq1, a1, a2, a3, m0, m1, m2, nlp, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, onepole, op0, op1)
+function svf_svf1(v0)
+  instance(ic1eq1, ic2eq1, a1, a2, a3, m0, m1, m2, nlp, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, onepole, op0, op1)
   local(v1, v2, v3)
 (
   nlp > 0 ? (
@@ -1033,7 +1078,7 @@ function zdf_svf1(v0)
   );
 
   onepole ? ( 
-    v0 = op1.zdf_onepole_do(v0);
+    v0 = op1.svf_onepole_do(v0);
   );
 
   v0;
@@ -1042,21 +1087,129 @@ function zdf_svf1(v0)
 /*
  * Reset the SVF filter state for all channels
  */
-function zdf_reset()
-  instance(rbj, ic1eq0, ic2eq0, ic1eq1, ic2eq1)
+function svf_reset()
+  instance(ic1eq0, ic2eq0, ic1eq1, ic2eq1)
 (
   ic1eq0 = ic2eq0 = 0.0;
   ic1eq1 = ic2eq1 = 0.0;
-  rbj.rbj_reset1();
+);
+
+/*
+ * Get magnitude response for single filter
+ */
+function svf_mag(freq)
+  instance(g, k, m0, m1, m2, a1, a2, a3)
+  local(zr, zi, zrr, gsq, gm1, gk, twogsq, a, zsq_i, zsq_r, twoz_r, twoz_i, nr, ni, dr, di, norm, ddi, ddr, x, y, s)
+(
+    // exp(complex(0.0, -2.0 * pi) * frequency / sampleRate)
+    zr = 0.0;
+    zi = -2.0 * $pi;
+    
+    zr = zr * freq * ONE_OVER_SAMPLE_RATE;
+    zi = zi * freq * ONE_OVER_SAMPLE_RATE;
+    zr = exp(zr);
+    
+    zrr = zr;
+    zr = zrr * cos(zi);
+    zi = zrr * sin(zi);
+
+    gsq    = g * g;
+    gm1    = g * m1;
+    gk     = g * k;
+    twogsq = gsq * 2.0;
+
+    // z * z
+    a = zr * zr - zi * zi;
+    zsq_i = zi * zr + zr * zi;
+    zsq_r = a;
+
+    // z * 2.0
+    twoz_r = zr * 2;
+    twoz_i = zi * 2;
+    
+    // Numerator complex
+    nr = gsq * m2 * (zsq_r + twoz_r + 1.0) - gm1 * (zsq_r - 1.0);
+    ni = gsq * m2 * (zsq_i + twoz_i) - gm1 * (zsq_i);
+    
+    // Denominator complex
+    dr = gsq + gk + zsq_r * (gsq - gk + 1.0) + zr * (twogsq - 2.0) + 1.0;
+    di = zsq_i * (gsq - gk + 1.0) + zi * (twogsq - 2.0);
+
+    // Numerator / Denominator
+    norm = dr * dr + di * di;
+    a = (nr * dr + ni * di) / norm;
+    ddi = (ni * dr - nr * di) / norm;
+    ddr = a;
+
+    // abs(m0_ + (Numerator / Denominator)
+    x = m0 + ddr;
+    y = ddi;
+    s = max(abs(x), abs(y));
+    x /= s;
+    y /= s;
+
+    s * sqrt(x * x + y * y);
+);
+
+/*
+ * Get phase response for single filter
+ */
+function svf_phase(freq)
+  instance(g, k, m0, m1, m2, a1, a2, a3)
+  local(zr, zi, zrr, gsq, gm1, gk, twogsq, a, zsq_i, zsq_r, twoz_r, twoz_i, nr, ni, dr, di, norm, ddi, ddr, x, y, s)
+(
+    // exp(complex(0.0, -2.0 * pi) * frequency / sampleRate)
+    zr = 0.0;
+    zi = -2.0 * $pi;
+    
+    zr = zr * freq * ONE_OVER_SAMPLE_RATE;
+    zi = zi * freq * ONE_OVER_SAMPLE_RATE;
+    zr = exp(zr);
+    
+    zrr = zr;
+    zr = zrr * cos(zi);
+    zi = zrr * sin(zi);
+
+    gsq    = g * g;
+    gm1    = g * m1;
+    gk     = g * k;
+    twogsq = gsq * 2.0;
+
+    // z * z
+    a = zr * zr - zi * zi;
+    zsq_i = zi * zr + zr * zi;
+    zsq_r = a;
+
+    // z * 2.0
+    twoz_r = zr * 2;
+    twoz_i = zi * 2;
+    
+    // Numerator complex
+    nr = gsq * m2 * (zsq_r + twoz_r + 1.0) - gm1 * (zsq_r - 1.0);
+    ni = gsq * m2 * (zsq_i + twoz_i) - gm1 * (zsq_i);
+    
+    // Denominator complex
+    dr = gsq + gk + zsq_r * (gsq - gk + 1.0) + zr * (twogsq - 2.0) + 1.0;
+    di = zsq_i * (gsq - gk + 1.0) + zi * (twogsq - 2.0);
+
+    // Numerator / Denominator
+    norm = dr * dr + di * di;
+    a = (nr * dr + ni * di) / norm;
+    ddi = (ni * dr - nr * di) / norm;
+    ddr = a;
+
+    // arg(m0_ + (Numerator / Denominator)
+    x = m0 + ddr;
+    y = ddi;
+
+    atan2(y, x);
 );
 
 /*
  * Get the magnitude of the filters for the given frequency
- * Uses RBJ cookbook magnitude with cascade as the math 
- * should boil down to the same thing.
  */
-function zdf_magnitude(freq)
-  instance(rbj, nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, cutoff, op0, op1)
+function svf_magnitude(freq)
+  instance(a2, t_k, g, k, nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, cutoff, op0, op1)
   local(m)
 (
   // Our svf magnitude maps to the same magnitude z transfer function as biquad
@@ -1064,25 +1217,25 @@ function zdf_magnitude(freq)
   m = 1.0;
 
   // Apply two pole (12dB steps)
-  nlp > 0 ? m *= rbj.magnitude(freq); //12
-  nlp > 2 ? m *= cas1.rbj.magnitude(freq); //24
-  nlp > 4 ? m *= cas2.rbj.magnitude(freq); //36
-  nlp > 6 ? m *= cas3.rbj.magnitude(freq); //48
-  nlp > 8 ? m *= cas4.rbj.magnitude(freq); //60
-  nlp > 10 ? m *= cas5.rbj.magnitude(freq); //72
-  nlp > 12 ? m *= cas6.rbj.magnitude(freq); //84
-  nlp > 14 ? m *= cas7.rbj.magnitude(freq); //96
-  nlp > 16 ? m *= cas8.rbj.magnitude(freq); //108
-  nlp > 18 ? m *= cas9.rbj.magnitude(freq); //120
+  nlp > 0 ? m *= this.svf_mag(freq); //12
+  nlp > 2 ? m *= cas1.svf_mag(freq); //24
+  nlp > 4 ? m *= cas2.svf_mag(freq); //36
+  nlp > 6 ? m *= cas3.svf_mag(freq); //48
+  nlp > 8 ? m *= cas4.svf_mag(freq); //60
+  nlp > 10 ? m *= cas5.svf_mag(freq); //72
+  nlp > 12 ? m *= cas6.svf_mag(freq); //84
+  nlp > 14 ? m *= cas7.svf_mag(freq); //96
+  nlp > 16 ? m *= cas8.svf_mag(freq); //108
+  nlp > 18 ? m *= cas9.svf_mag(freq); //120
 
   // Apply one pole (6dB)
 //  nlp * 0.5 == floor(nlp * 0.5) ? (
   onepole == 1 ? (
     // TODO: optimize!
-    wdcutoff = $pi * (cutoff / SAMPLE_RATE);
+    wdcutoff = $pi * (cutoff * ONE_OVER_SAMPLE_RATE);
     coff = tan(wdcutoff);
 
-    wdeval = $pi * (freq / SAMPLE_RATE);
+    wdeval = $pi * (freq * ONE_OVER_SAMPLE_RATE);
     svalue = tan(wdeval);
 
     op0.passtype == 0 ? ( 

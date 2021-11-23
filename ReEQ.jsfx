@@ -1,11 +1,11 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.0.12   <--- Make sure you change VERSION below if this changes!!
+Version: v1.0.13   <--- Make sure you change VERSION below if this changes!!
 
 The MIT License (MIT)
 
-Copyright (c) 2020 Justin Johnson
+Copyright (c) 2021 Justin Johnson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-DONE:
-
-TODO:
 
 */
 
@@ -99,7 +95,6 @@ slider57:PanelEnabled=1<0,1,1>-Panel Enabled
 import spectrum.jsfx-inc
 import svf_filter.jsfx-inc
 import firhalfband.jsfx-inc
-import textinput.jsfx-inc
 
 in_pin:left input
 in_pin:right input
@@ -113,7 +108,7 @@ options:no_meter
 @init
 
 // This should be the same as in the comment header
-#VERSION = "1.0.12";
+#VERSION = "1.0.13";
 
 gfx_ext_retina  = 1;
 ext_nodenorm    = 1;
@@ -248,6 +243,7 @@ function set_oversample(os) (
   srate < 88200 && os ? (
     DO_OVERSAMPLE = 1;
     SAMPLE_RATE = srate * 2;
+    ONE_OVER_SAMPLE_RATE = 1.0 / SAMPLE_RATE;
 
     // Choose right FIR window for sample rate
     srate == 44100 ? (
@@ -264,6 +260,7 @@ function set_oversample(os) (
   ) : ( 
     DO_OVERSAMPLE = 0;
     SAMPLE_RATE = srate;
+    ONE_OVER_SAMPLE_RATE = 1.0 / srate;
     pdc_delay = 0;
     pdc_bot_ch = 0;
     pdc_top_ch = 2;
@@ -390,8 +387,8 @@ function notify_touched_Q(node) (
 
 function band_init()
   instance (enabled, type, frequency, gain, q, filter, color) ( 
-  filter.zdf_set_sample_rate(SAMPLE_RATE);
-  filter.zdf_bypass();
+  filter.svf_set_sample_rate(SAMPLE_RATE);
+  filter.svf_bypass();
   color.create_color(0,0,0);
 
   filter.a1 = filter.t_a1;
@@ -418,20 +415,20 @@ function band_set_enabled(e)
 function band_set_filter(t, f, g, qval, slope)
   instance (enabled, type, frequency, gain, q, filter, color) (
   type = t; frequency = f; gain = g; q = qval;
-  type == 0 ? filter.zdf_eq(frequency, q, db_to_gain(gain)) :
-    type == 1 ? filter.zdf_hp(frequency, q, slope) :
-      type == 2 ? filter.zdf_hpb(frequency, slope) :
-        type == 3 ? filter.zdf_ls(frequency, q, db_to_gain(gain)) :
-          type == 4 ? filter.zdf_hs(frequency, q, db_to_gain(gain)) :
-            type == 5 ? filter.zdf_lp(frequency, q, slope) :
-              type == 6 ? filter.zdf_lpb(frequency, slope) :
-                type == 7 ? filter.zdf_bs(frequency, q) :
-                  type == 8 ? filter.zdf_bp2(frequency, q) :
-                    type == 9 ? filter.zdf_st(frequency, q, gain) :
-                      type == 10 ? filter.zdf_pultecls(frequency, q, gain) :
-                        type == 11 ? filter.zdf_ap(frequency, q) :
-                          type == 12 ? filter.zdf_analog_lowcut(frequency, q, gain) :
-                            type == 13 ? filter.zdf_analog_highcut(frequency, q, gain);
+  type == 0 ? filter.svf_eq(frequency, q, db_to_gain(gain)) :
+    type == 1 ? filter.svf_hp(frequency, q, slope) :
+      type == 2 ? filter.svf_hpb(frequency, slope) :
+        type == 3 ? filter.svf_ls(frequency, q, db_to_gain(gain)) :
+          type == 4 ? filter.svf_hs(frequency, q, db_to_gain(gain)) :
+            type == 5 ? filter.svf_lp(frequency, q, slope) :
+              type == 6 ? filter.svf_lpb(frequency, slope) :
+                type == 7 ? filter.svf_bs(frequency, q) :
+                  type == 8 ? filter.svf_bp2(frequency, q) :
+                    type == 9 ? filter.svf_st(frequency, q, gain) :
+                      type == 10 ? filter.svf_pultecls(frequency, q, gain) :
+                        type == 11 ? filter.svf_ap(frequency, q) :
+                          type == 12 ? filter.svf_analog_lowcut(frequency, q, gain) :
+                            type == 13 ? filter.svf_analog_highcut(frequency, q, gain);
 );
 
 /*
@@ -459,8 +456,6 @@ function per_to_q(x, range) (
 function q_to_per(q, range) (
   range * log(q / MIN_Q) / Q_LOG_MAX;
 );
-
-
 
 /*
  * Update sliders with filter data
@@ -585,43 +580,43 @@ function flag_filter_update_all() (
 function update_visual_filters() local (band_scalar) (
   band_scalar = Scale / 100.0;
 
-  Band_GfxUpdate[0] ? (Band_GfxUpdate[0] = 0; gfx_band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
-  Band_GfxUpdate[1] ? (Band_GfxUpdate[1] = 0; gfx_band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); );
-  Band_GfxUpdate[2] ? (Band_GfxUpdate[2] = 0; gfx_band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); );
-  Band_GfxUpdate[3] ? (Band_GfxUpdate[3] = 0; gfx_band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); );
-  Band_GfxUpdate[4] ? (Band_GfxUpdate[4] = 0; gfx_band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); );
-  Band_GfxUpdate[5] ? (Band_GfxUpdate[5] = 0; gfx_band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); );
-  Band_GfxUpdate[6] ? (Band_GfxUpdate[6] = 0; gfx_band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); );
-  Band_GfxUpdate[7] ? (Band_GfxUpdate[7] = 0; gfx_band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); );
-  Band_GfxUpdate[8] ? (Band_GfxUpdate[8] = 0; gfx_band9.band_set_filter(Band_Type[8], Band_Frequency[8], Band_Gain[8] * band_scalar, Band_Q[8], Band_Slope[8]); );
-  Band_GfxUpdate[9] ? (Band_GfxUpdate[9] = 0; gfx_band10.band_set_filter(Band_Type[9], Band_Frequency[9], Band_Gain[9] * band_scalar, Band_Q[9], Band_Slope[9]); );
-  Band_GfxUpdate[10] ? (Band_GfxUpdate[10] = 0; gfx_band11.band_set_filter(Band_Type[10], Band_Frequency[10], Band_Gain[10] * band_scalar, Band_Q[10], Band_Slope[10]); );
-  Band_GfxUpdate[11] ? (Band_GfxUpdate[11] = 0; gfx_band12.band_set_filter(Band_Type[11], Band_Frequency[11], Band_Gain[11] * band_scalar, Band_Q[11], Band_Slope[11]); );
-  Band_GfxUpdate[12] ? (Band_GfxUpdate[12] = 0; gfx_band13.band_set_filter(Band_Type[12], Band_Frequency[12], Band_Gain[12] * band_scalar, Band_Q[12], Band_Slope[12]); );
-  Band_GfxUpdate[13] ? (Band_GfxUpdate[13] = 0; gfx_band14.band_set_filter(Band_Type[13], Band_Frequency[13], Band_Gain[13] * band_scalar, Band_Q[13], Band_Slope[13]); );
-  Band_GfxUpdate[14] ? (Band_GfxUpdate[14] = 0; gfx_band15.band_set_filter(Band_Type[14], Band_Frequency[14], Band_Gain[14] * band_scalar, Band_Q[14], Band_Slope[14]); );
-  Band_GfxUpdate[15] ? (Band_GfxUpdate[15] = 0; gfx_band16.band_set_filter(Band_Type[15], Band_Frequency[15], Band_Gain[15] * band_scalar, Band_Q[15], Band_Slope[15]); );
+  Band_GfxUpdate[0] ? (Band_GfxUpdate[0] = 0; gfx_band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); gfx_band1.filter.svf_set_to_target(); );
+  Band_GfxUpdate[1] ? (Band_GfxUpdate[1] = 0; gfx_band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); gfx_band2.filter.svf_set_to_target(); );
+  Band_GfxUpdate[2] ? (Band_GfxUpdate[2] = 0; gfx_band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); gfx_band3.filter.svf_set_to_target(); );
+  Band_GfxUpdate[3] ? (Band_GfxUpdate[3] = 0; gfx_band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); gfx_band4.filter.svf_set_to_target(); );
+  Band_GfxUpdate[4] ? (Band_GfxUpdate[4] = 0; gfx_band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); gfx_band5.filter.svf_set_to_target(); );
+  Band_GfxUpdate[5] ? (Band_GfxUpdate[5] = 0; gfx_band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); gfx_band6.filter.svf_set_to_target(); );
+  Band_GfxUpdate[6] ? (Band_GfxUpdate[6] = 0; gfx_band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); gfx_band7.filter.svf_set_to_target(); );
+  Band_GfxUpdate[7] ? (Band_GfxUpdate[7] = 0; gfx_band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); gfx_band8.filter.svf_set_to_target(); );
+  Band_GfxUpdate[8] ? (Band_GfxUpdate[8] = 0; gfx_band9.band_set_filter(Band_Type[8], Band_Frequency[8], Band_Gain[8] * band_scalar, Band_Q[8], Band_Slope[8]); gfx_band9.filter.svf_set_to_target(); );
+  Band_GfxUpdate[9] ? (Band_GfxUpdate[9] = 0; gfx_band10.band_set_filter(Band_Type[9], Band_Frequency[9], Band_Gain[9] * band_scalar, Band_Q[9], Band_Slope[9]); gfx_band10.filter.svf_set_to_target(); );
+  Band_GfxUpdate[10] ? (Band_GfxUpdate[10] = 0; gfx_band11.band_set_filter(Band_Type[10], Band_Frequency[10], Band_Gain[10] * band_scalar, Band_Q[10], Band_Slope[10]); gfx_band11.filter.svf_set_to_target(); );
+  Band_GfxUpdate[11] ? (Band_GfxUpdate[11] = 0; gfx_band12.band_set_filter(Band_Type[11], Band_Frequency[11], Band_Gain[11] * band_scalar, Band_Q[11], Band_Slope[11]); gfx_band12.filter.svf_set_to_target(); );
+  Band_GfxUpdate[12] ? (Band_GfxUpdate[12] = 0; gfx_band13.band_set_filter(Band_Type[12], Band_Frequency[12], Band_Gain[12] * band_scalar, Band_Q[12], Band_Slope[12]); gfx_band13.filter.svf_set_to_target(); );
+  Band_GfxUpdate[13] ? (Band_GfxUpdate[13] = 0; gfx_band14.band_set_filter(Band_Type[13], Band_Frequency[13], Band_Gain[13] * band_scalar, Band_Q[13], Band_Slope[13]); gfx_band14.filter.svf_set_to_target(); );
+  Band_GfxUpdate[14] ? (Band_GfxUpdate[14] = 0; gfx_band15.band_set_filter(Band_Type[14], Band_Frequency[14], Band_Gain[14] * band_scalar, Band_Q[14], Band_Slope[14]); gfx_band15.filter.svf_set_to_target(); );
+  Band_GfxUpdate[15] ? (Band_GfxUpdate[15] = 0; gfx_band16.band_set_filter(Band_Type[15], Band_Frequency[15], Band_Gain[15] * band_scalar, Band_Q[15], Band_Slope[15]); gfx_band16.filter.svf_set_to_target(); );
 );
 
 function update_audio_filters() local (band_scalar) (
   band_scalar = Scale / 100.0;
 
-  Band_Update[0] ? (Band_Update[0] = 0; Band_Enabled[0] != BAND_STATE_ENABLED ? band1.filter.zdf_bypass() : band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
-  Band_Update[1] ? (Band_Update[1] = 0; Band_Enabled[1] != BAND_STATE_ENABLED ? band2.filter.zdf_bypass() : band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); );
-  Band_Update[2] ? (Band_Update[2] = 0; Band_Enabled[2] != BAND_STATE_ENABLED ? band3.filter.zdf_bypass() : band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); );
-  Band_Update[3] ? (Band_Update[3] = 0; Band_Enabled[3] != BAND_STATE_ENABLED ? band4.filter.zdf_bypass() : band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); );
-  Band_Update[4] ? (Band_Update[4] = 0; Band_Enabled[4] != BAND_STATE_ENABLED ? band5.filter.zdf_bypass() : band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); );
-  Band_Update[5] ? (Band_Update[5] = 0; Band_Enabled[5] != BAND_STATE_ENABLED ? band6.filter.zdf_bypass() : band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); );
-  Band_Update[6] ? (Band_Update[6] = 0; Band_Enabled[6] != BAND_STATE_ENABLED ? band7.filter.zdf_bypass() : band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); );
-  Band_Update[7] ? (Band_Update[7] = 0; Band_Enabled[7] != BAND_STATE_ENABLED ? band8.filter.zdf_bypass() : band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); );
-  Band_Update[8] ? (Band_Update[8] = 0; Band_Enabled[8] != BAND_STATE_ENABLED ? band9.filter.zdf_bypass() : band9.band_set_filter(Band_Type[8], Band_Frequency[8], Band_Gain[8] * band_scalar, Band_Q[8], Band_Slope[8]); );
-  Band_Update[9] ? (Band_Update[9] = 0; Band_Enabled[9] != BAND_STATE_ENABLED ? band10.filter.zdf_bypass() : band10.band_set_filter(Band_Type[9], Band_Frequency[9], Band_Gain[9] * band_scalar, Band_Q[9], Band_Slope[9]); );
-  Band_Update[10] ? (Band_Update[10] = 0; Band_Enabled[10] != BAND_STATE_ENABLED ? band11.filter.zdf_bypass() : band11.band_set_filter(Band_Type[10], Band_Frequency[10], Band_Gain[10] * band_scalar, Band_Q[10], Band_Slope[10]); );
-  Band_Update[11] ? (Band_Update[11] = 0; Band_Enabled[11] != BAND_STATE_ENABLED ? band12.filter.zdf_bypass() : band12.band_set_filter(Band_Type[11], Band_Frequency[11], Band_Gain[11] * band_scalar, Band_Q[11], Band_Slope[11]); );
-  Band_Update[12] ? (Band_Update[12] = 0; Band_Enabled[12] != BAND_STATE_ENABLED ? band13.filter.zdf_bypass() : band13.band_set_filter(Band_Type[12], Band_Frequency[12], Band_Gain[12] * band_scalar, Band_Q[12], Band_Slope[12]); );
-  Band_Update[13] ? (Band_Update[13] = 0; Band_Enabled[13] != BAND_STATE_ENABLED ? band14.filter.zdf_bypass() : band14.band_set_filter(Band_Type[13], Band_Frequency[13], Band_Gain[13] * band_scalar, Band_Q[13], Band_Slope[13]); );
-  Band_Update[14] ? (Band_Update[14] = 0; Band_Enabled[14] != BAND_STATE_ENABLED ? band15.filter.zdf_bypass() : band15.band_set_filter(Band_Type[14], Band_Frequency[14], Band_Gain[14] * band_scalar, Band_Q[14], Band_Slope[14]); );
-  Band_Update[15] ? (Band_Update[15] = 0; Band_Enabled[15] != BAND_STATE_ENABLED ? band16.filter.zdf_bypass() : band16.band_set_filter(Band_Type[15], Band_Frequency[15], Band_Gain[15] * band_scalar, Band_Q[15], Band_Slope[15]); );
+  Band_Update[0] ? (Band_Update[0] = 0; Band_Enabled[0] != BAND_STATE_ENABLED ? band1.filter.svf_bypass() : band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
+  Band_Update[1] ? (Band_Update[1] = 0; Band_Enabled[1] != BAND_STATE_ENABLED ? band2.filter.svf_bypass() : band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); );
+  Band_Update[2] ? (Band_Update[2] = 0; Band_Enabled[2] != BAND_STATE_ENABLED ? band3.filter.svf_bypass() : band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); );
+  Band_Update[3] ? (Band_Update[3] = 0; Band_Enabled[3] != BAND_STATE_ENABLED ? band4.filter.svf_bypass() : band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); );
+  Band_Update[4] ? (Band_Update[4] = 0; Band_Enabled[4] != BAND_STATE_ENABLED ? band5.filter.svf_bypass() : band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); );
+  Band_Update[5] ? (Band_Update[5] = 0; Band_Enabled[5] != BAND_STATE_ENABLED ? band6.filter.svf_bypass() : band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); );
+  Band_Update[6] ? (Band_Update[6] = 0; Band_Enabled[6] != BAND_STATE_ENABLED ? band7.filter.svf_bypass() : band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); );
+  Band_Update[7] ? (Band_Update[7] = 0; Band_Enabled[7] != BAND_STATE_ENABLED ? band8.filter.svf_bypass() : band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); );
+  Band_Update[8] ? (Band_Update[8] = 0; Band_Enabled[8] != BAND_STATE_ENABLED ? band9.filter.svf_bypass() : band9.band_set_filter(Band_Type[8], Band_Frequency[8], Band_Gain[8] * band_scalar, Band_Q[8], Band_Slope[8]); );
+  Band_Update[9] ? (Band_Update[9] = 0; Band_Enabled[9] != BAND_STATE_ENABLED ? band10.filter.svf_bypass() : band10.band_set_filter(Band_Type[9], Band_Frequency[9], Band_Gain[9] * band_scalar, Band_Q[9], Band_Slope[9]); );
+  Band_Update[10] ? (Band_Update[10] = 0; Band_Enabled[10] != BAND_STATE_ENABLED ? band11.filter.svf_bypass() : band11.band_set_filter(Band_Type[10], Band_Frequency[10], Band_Gain[10] * band_scalar, Band_Q[10], Band_Slope[10]); );
+  Band_Update[11] ? (Band_Update[11] = 0; Band_Enabled[11] != BAND_STATE_ENABLED ? band12.filter.svf_bypass() : band12.band_set_filter(Band_Type[11], Band_Frequency[11], Band_Gain[11] * band_scalar, Band_Q[11], Band_Slope[11]); );
+  Band_Update[12] ? (Band_Update[12] = 0; Band_Enabled[12] != BAND_STATE_ENABLED ? band13.filter.svf_bypass() : band13.band_set_filter(Band_Type[12], Band_Frequency[12], Band_Gain[12] * band_scalar, Band_Q[12], Band_Slope[12]); );
+  Band_Update[13] ? (Band_Update[13] = 0; Band_Enabled[13] != BAND_STATE_ENABLED ? band14.filter.svf_bypass() : band14.band_set_filter(Band_Type[13], Band_Frequency[13], Band_Gain[13] * band_scalar, Band_Q[13], Band_Slope[13]); );
+  Band_Update[14] ? (Band_Update[14] = 0; Band_Enabled[14] != BAND_STATE_ENABLED ? band15.filter.svf_bypass() : band15.band_set_filter(Band_Type[14], Band_Frequency[14], Band_Gain[14] * band_scalar, Band_Q[14], Band_Slope[14]); );
+  Band_Update[15] ? (Band_Update[15] = 0; Band_Enabled[15] != BAND_STATE_ENABLED ? band16.filter.svf_bypass() : band16.band_set_filter(Band_Type[15], Band_Frequency[15], Band_Gain[15] * band_scalar, Band_Q[15], Band_Slope[15]); );
 );
 
 init_rate != srate ? (
@@ -777,8 +772,8 @@ init_rate != srate ? (
   listen_q = 0.7071;
   listen_group = 0;
   listen_gain = db_to_gain(0);
-  listen_filter.zdf_set_sample_rate(srate);
-  listen_filter.zdf_bypass();
+  listen_filter.svf_set_sample_rate(srate);
+  listen_filter.svf_bypass();
   listen_node = -1;
 
   listen_filter.a1 = listen_filter.t_a1;
@@ -984,22 +979,22 @@ filters_to_sliders();
 
 update_audio_filters();
 
-Band_Process0 = (Band_Enabled[0] == BAND_STATE_ENABLED) || !band1.filter.zdf_is_resting();
-Band_Process1 = (Band_Enabled[1] == BAND_STATE_ENABLED) || !band2.filter.zdf_is_resting();
-Band_Process2 = (Band_Enabled[2] == BAND_STATE_ENABLED) || !band3.filter.zdf_is_resting();
-Band_Process3 = (Band_Enabled[3] == BAND_STATE_ENABLED) || !band4.filter.zdf_is_resting();
-Band_Process4 = (Band_Enabled[4] == BAND_STATE_ENABLED) || !band5.filter.zdf_is_resting();
-Band_Process5 = (Band_Enabled[5] == BAND_STATE_ENABLED) || !band6.filter.zdf_is_resting();
-Band_Process6 = (Band_Enabled[6] == BAND_STATE_ENABLED) || !band7.filter.zdf_is_resting();
-Band_Process7 = (Band_Enabled[7] == BAND_STATE_ENABLED) || !band8.filter.zdf_is_resting();
-Band_Process8 = (Band_Enabled[8] == BAND_STATE_ENABLED) || !band9.filter.zdf_is_resting();
-Band_Process9 = (Band_Enabled[9] == BAND_STATE_ENABLED) || !band10.filter.zdf_is_resting();
-Band_Process10 = (Band_Enabled[10] == BAND_STATE_ENABLED) || !band11.filter.zdf_is_resting();
-Band_Process11 = (Band_Enabled[11] == BAND_STATE_ENABLED) || !band12.filter.zdf_is_resting();
-Band_Process12 = (Band_Enabled[12] == BAND_STATE_ENABLED) || !band13.filter.zdf_is_resting();
-Band_Process13 = (Band_Enabled[13] == BAND_STATE_ENABLED) || !band14.filter.zdf_is_resting();
-Band_Process14 = (Band_Enabled[14] == BAND_STATE_ENABLED) || !band15.filter.zdf_is_resting();
-Band_Process15 = (Band_Enabled[15] == BAND_STATE_ENABLED) || !band16.filter.zdf_is_resting();
+Band_Process0 = (Band_Enabled[0] == BAND_STATE_ENABLED) || !band1.filter.svf_is_resting();
+Band_Process1 = (Band_Enabled[1] == BAND_STATE_ENABLED) || !band2.filter.svf_is_resting();
+Band_Process2 = (Band_Enabled[2] == BAND_STATE_ENABLED) || !band3.filter.svf_is_resting();
+Band_Process3 = (Band_Enabled[3] == BAND_STATE_ENABLED) || !band4.filter.svf_is_resting();
+Band_Process4 = (Band_Enabled[4] == BAND_STATE_ENABLED) || !band5.filter.svf_is_resting();
+Band_Process5 = (Band_Enabled[5] == BAND_STATE_ENABLED) || !band6.filter.svf_is_resting();
+Band_Process6 = (Band_Enabled[6] == BAND_STATE_ENABLED) || !band7.filter.svf_is_resting();
+Band_Process7 = (Band_Enabled[7] == BAND_STATE_ENABLED) || !band8.filter.svf_is_resting();
+Band_Process8 = (Band_Enabled[8] == BAND_STATE_ENABLED) || !band9.filter.svf_is_resting();
+Band_Process9 = (Band_Enabled[9] == BAND_STATE_ENABLED) || !band10.filter.svf_is_resting();
+Band_Process10 = (Band_Enabled[10] == BAND_STATE_ENABLED) || !band11.filter.svf_is_resting();
+Band_Process11 = (Band_Enabled[11] == BAND_STATE_ENABLED) || !band12.filter.svf_is_resting();
+Band_Process12 = (Band_Enabled[12] == BAND_STATE_ENABLED) || !band13.filter.svf_is_resting();
+Band_Process13 = (Band_Enabled[13] == BAND_STATE_ENABLED) || !band14.filter.svf_is_resting();
+Band_Process14 = (Band_Enabled[14] == BAND_STATE_ENABLED) || !band15.filter.svf_is_resting();
+Band_Process15 = (Band_Enabled[15] == BAND_STATE_ENABLED) || !band16.filter.svf_is_resting();
 
 Band_Group0 = Band_Group[0];
 Band_Group1 = Band_Group[1];
@@ -1018,7 +1013,7 @@ Band_Group13 = Band_Group[13];
 Band_Group14 = Band_Group[14];
 Band_Group15 = Band_Group[15];
 
-Listen_Process = do_listen || listen_node != -1 || !listen_filter.zdf_is_resting();
+Listen_Process = do_listen || listen_node != -1 || !listen_filter.svf_is_resting();
 
 agcControl = AGCEnabled;
 
@@ -1056,24 +1051,24 @@ Show_PreEQ ? (
 
 // Interpolate filter coefficients
 
-Band_Process0 ? band1.filter.zdf_tick();
-Band_Process1 ? band2.filter.zdf_tick();
-Band_Process2 ? band3.filter.zdf_tick();
-Band_Process3 ? band4.filter.zdf_tick();
-Band_Process4 ? band5.filter.zdf_tick();
-Band_Process5 ? band6.filter.zdf_tick();
-Band_Process6 ? band7.filter.zdf_tick();
-Band_Process7 ? band8.filter.zdf_tick();
-Band_Process8 ? band9.filter.zdf_tick();
-Band_Process9 ? band10.filter.zdf_tick();
-Band_Process10 ? band11.filter.zdf_tick();
-Band_Process11 ? band12.filter.zdf_tick();
-Band_Process12 ? band13.filter.zdf_tick();
-Band_Process13 ? band14.filter.zdf_tick();
-Band_Process14 ? band15.filter.zdf_tick();
-Band_Process15 ? band16.filter.zdf_tick();
+Band_Process0 ? band1.filter.svf_tick();
+Band_Process1 ? band2.filter.svf_tick();
+Band_Process2 ? band3.filter.svf_tick();
+Band_Process3 ? band4.filter.svf_tick();
+Band_Process4 ? band5.filter.svf_tick();
+Band_Process5 ? band6.filter.svf_tick();
+Band_Process6 ? band7.filter.svf_tick();
+Band_Process7 ? band8.filter.svf_tick();
+Band_Process8 ? band9.filter.svf_tick();
+Band_Process9 ? band10.filter.svf_tick();
+Band_Process10 ? band11.filter.svf_tick();
+Band_Process11 ? band12.filter.svf_tick();
+Band_Process12 ? band13.filter.svf_tick();
+Band_Process13 ? band14.filter.svf_tick();
+Band_Process14 ? band15.filter.svf_tick();
+Band_Process15 ? band16.filter.svf_tick();
 
-Listen_Process ? listen_filter.zdf_tick();
+Listen_Process ? listen_filter.svf_tick();
 
 DO_OVERSAMPLE ? (
   // Oversampling with zero padding and FIR half band filtering.
@@ -1086,176 +1081,176 @@ DO_OVERSAMPLE ? (
     Band_Process0 ? (
       Band_Group0 == 1 || Band_Group0 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group0 == 1 ? (mid0 = band1.filter.zdf_svf0(mid0); mid1 = band1.filter.zdf_svf0(mid1)) : (side0 = band1.filter.zdf_svf1(side0); side1 = band1.filter.zdf_svf1(side1));
+        Band_Group0 == 1 ? (mid0 = band1.filter.svf_svf0(mid0); mid1 = band1.filter.svf_svf0(mid1)) : (side0 = band1.filter.svf_svf1(side0); side1 = band1.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group0 == 0 || Band_Group0 == 3 ? (y0 = band1.filter.zdf_svf0(y0); y1 = band1.filter.zdf_svf0(y1));
-        Band_Group0 == 0 || Band_Group0 == 4 ? (y2 = band1.filter.zdf_svf1(y2); y3 = band1.filter.zdf_svf1(y3))
+        Band_Group0 == 0 || Band_Group0 == 3 ? (y0 = band1.filter.svf_svf0(y0); y1 = band1.filter.svf_svf0(y1));
+        Band_Group0 == 0 || Band_Group0 == 4 ? (y2 = band1.filter.svf_svf1(y2); y3 = band1.filter.svf_svf1(y3))
       )
     );
 
     Band_Process1 ? (
       Band_Group1 == 1 || Band_Group1 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group1 == 1 ? (mid0 = band2.filter.zdf_svf0(mid0); mid1 = band2.filter.zdf_svf0(mid1)) : (side0 = band2.filter.zdf_svf1(side0); side1 = band2.filter.zdf_svf1(side1));
+        Band_Group1 == 1 ? (mid0 = band2.filter.svf_svf0(mid0); mid1 = band2.filter.svf_svf0(mid1)) : (side0 = band2.filter.svf_svf1(side0); side1 = band2.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group1 == 0 || Band_Group1 == 3 ? (y0 = band2.filter.zdf_svf0(y0); y1 = band2.filter.zdf_svf0(y1));
-        Band_Group1 == 0 || Band_Group1 == 4 ? (y2 = band2.filter.zdf_svf1(y2); y3 = band2.filter.zdf_svf1(y3))
+        Band_Group1 == 0 || Band_Group1 == 3 ? (y0 = band2.filter.svf_svf0(y0); y1 = band2.filter.svf_svf0(y1));
+        Band_Group1 == 0 || Band_Group1 == 4 ? (y2 = band2.filter.svf_svf1(y2); y3 = band2.filter.svf_svf1(y3))
       )
     );
 
     Band_Process2 ? (
       Band_Group2 == 1 || Band_Group2 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group2 == 1 ? (mid0 = band3.filter.zdf_svf0(mid0); mid1 = band3.filter.zdf_svf0(mid1)) : (side0 = band3.filter.zdf_svf1(side0); side1 = band3.filter.zdf_svf1(side1));
+        Band_Group2 == 1 ? (mid0 = band3.filter.svf_svf0(mid0); mid1 = band3.filter.svf_svf0(mid1)) : (side0 = band3.filter.svf_svf1(side0); side1 = band3.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group2 == 0 || Band_Group2 == 3 ? (y0 = band3.filter.zdf_svf0(y0); y1 = band3.filter.zdf_svf0(y1));
-        Band_Group2 == 0 || Band_Group2 == 4 ? (y2 = band3.filter.zdf_svf1(y2); y3 = band3.filter.zdf_svf1(y3))
+        Band_Group2 == 0 || Band_Group2 == 3 ? (y0 = band3.filter.svf_svf0(y0); y1 = band3.filter.svf_svf0(y1));
+        Band_Group2 == 0 || Band_Group2 == 4 ? (y2 = band3.filter.svf_svf1(y2); y3 = band3.filter.svf_svf1(y3))
       )
     );
 
     Band_Process3 ? (
       Band_Group3 == 1 || Band_Group3 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group3 == 1 ? (mid0 = band4.filter.zdf_svf0(mid0); mid1 = band4.filter.zdf_svf0(mid1)) : (side0 = band4.filter.zdf_svf1(side0); side1 = band4.filter.zdf_svf1(side1));
+        Band_Group3 == 1 ? (mid0 = band4.filter.svf_svf0(mid0); mid1 = band4.filter.svf_svf0(mid1)) : (side0 = band4.filter.svf_svf1(side0); side1 = band4.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group3 == 0 || Band_Group3 == 3 ? (y0 = band4.filter.zdf_svf0(y0); y1 = band4.filter.zdf_svf0(y1));
-        Band_Group3 == 0 || Band_Group3 == 4 ? (y2 = band4.filter.zdf_svf1(y2); y3 = band4.filter.zdf_svf1(y3))
+        Band_Group3 == 0 || Band_Group3 == 3 ? (y0 = band4.filter.svf_svf0(y0); y1 = band4.filter.svf_svf0(y1));
+        Band_Group3 == 0 || Band_Group3 == 4 ? (y2 = band4.filter.svf_svf1(y2); y3 = band4.filter.svf_svf1(y3))
       )
     );
 
     Band_Process4 ? (
       Band_Group4 == 1 || Band_Group4 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group4 == 1 ? (mid0 = band5.filter.zdf_svf0(mid0); mid1 = band5.filter.zdf_svf0(mid1)) : (side0 = band5.filter.zdf_svf1(side0); side1 = band5.filter.zdf_svf1(side1));
+        Band_Group4 == 1 ? (mid0 = band5.filter.svf_svf0(mid0); mid1 = band5.filter.svf_svf0(mid1)) : (side0 = band5.filter.svf_svf1(side0); side1 = band5.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group4 == 0 || Band_Group4 == 3 ? (y0 = band5.filter.zdf_svf0(y0); y1 = band5.filter.zdf_svf0(y1));
-        Band_Group4 == 0 || Band_Group4 == 4 ? (y2 = band5.filter.zdf_svf1(y2); y3 = band5.filter.zdf_svf1(y3))
+        Band_Group4 == 0 || Band_Group4 == 3 ? (y0 = band5.filter.svf_svf0(y0); y1 = band5.filter.svf_svf0(y1));
+        Band_Group4 == 0 || Band_Group4 == 4 ? (y2 = band5.filter.svf_svf1(y2); y3 = band5.filter.svf_svf1(y3))
       )
     );
 
     Band_Process5 ? (
       Band_Group5 == 1 || Band_Group5 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group5 == 1 ? (mid0 = band6.filter.zdf_svf0(mid0); mid1 = band6.filter.zdf_svf0(mid1)) : (side0 = band6.filter.zdf_svf1(side0); side1 = band6.filter.zdf_svf1(side1));
+        Band_Group5 == 1 ? (mid0 = band6.filter.svf_svf0(mid0); mid1 = band6.filter.svf_svf0(mid1)) : (side0 = band6.filter.svf_svf1(side0); side1 = band6.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group5 == 0 || Band_Group5 == 3 ? (y0 = band6.filter.zdf_svf0(y0); y1 = band6.filter.zdf_svf0(y1));
-        Band_Group5 == 0 || Band_Group5 == 4 ? (y2 = band6.filter.zdf_svf1(y2); y3 = band6.filter.zdf_svf1(y3))
+        Band_Group5 == 0 || Band_Group5 == 3 ? (y0 = band6.filter.svf_svf0(y0); y1 = band6.filter.svf_svf0(y1));
+        Band_Group5 == 0 || Band_Group5 == 4 ? (y2 = band6.filter.svf_svf1(y2); y3 = band6.filter.svf_svf1(y3))
       )
     );
 
     Band_Process6 ? (
       Band_Group6 == 1 || Band_Group6 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group6 == 1 ? (mid0 = band7.filter.zdf_svf0(mid0); mid1 = band7.filter.zdf_svf0(mid1)) : (side0 = band7.filter.zdf_svf1(side0); side1 = band7.filter.zdf_svf1(side1));
+        Band_Group6 == 1 ? (mid0 = band7.filter.svf_svf0(mid0); mid1 = band7.filter.svf_svf0(mid1)) : (side0 = band7.filter.svf_svf1(side0); side1 = band7.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group6 == 0 || Band_Group6 == 3 ? (y0 = band7.filter.zdf_svf0(y0); y1 = band7.filter.zdf_svf0(y1));
-        Band_Group6 == 0 || Band_Group6 == 4 ? (y2 = band7.filter.zdf_svf1(y2); y3 = band7.filter.zdf_svf1(y3))
+        Band_Group6 == 0 || Band_Group6 == 3 ? (y0 = band7.filter.svf_svf0(y0); y1 = band7.filter.svf_svf0(y1));
+        Band_Group6 == 0 || Band_Group6 == 4 ? (y2 = band7.filter.svf_svf1(y2); y3 = band7.filter.svf_svf1(y3))
       )
     );
 
     Band_Process7 ? (
       Band_Group7 == 1 || Band_Group7 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group7 == 1 ? (mid0 = band8.filter.zdf_svf0(mid0); mid1 = band8.filter.zdf_svf0(mid1)) : (side0 = band8.filter.zdf_svf1(side0); side1 = band8.filter.zdf_svf1(side1));
+        Band_Group7 == 1 ? (mid0 = band8.filter.svf_svf0(mid0); mid1 = band8.filter.svf_svf0(mid1)) : (side0 = band8.filter.svf_svf1(side0); side1 = band8.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group7 == 0 || Band_Group7 == 3 ? (y0 = band8.filter.zdf_svf0(y0); y1 = band8.filter.zdf_svf0(y1));
-        Band_Group7 == 0 || Band_Group7 == 4 ? (y2 = band8.filter.zdf_svf1(y2); y3 = band8.filter.zdf_svf1(y3))
+        Band_Group7 == 0 || Band_Group7 == 3 ? (y0 = band8.filter.svf_svf0(y0); y1 = band8.filter.svf_svf0(y1));
+        Band_Group7 == 0 || Band_Group7 == 4 ? (y2 = band8.filter.svf_svf1(y2); y3 = band8.filter.svf_svf1(y3))
       )
     );
 
     Band_Process8 ? (
       Band_Group8 == 1 || Band_Group8 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group8 == 1 ? (mid0 = band9.filter.zdf_svf0(mid0); mid1 = band9.filter.zdf_svf0(mid1)) : (side0 = band9.filter.zdf_svf1(side0); side1 = band9.filter.zdf_svf1(side1));
+        Band_Group8 == 1 ? (mid0 = band9.filter.svf_svf0(mid0); mid1 = band9.filter.svf_svf0(mid1)) : (side0 = band9.filter.svf_svf1(side0); side1 = band9.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group8 == 0 || Band_Group8 == 3 ? (y0 = band9.filter.zdf_svf0(y0); y1 = band9.filter.zdf_svf0(y1));
-        Band_Group8 == 0 || Band_Group8 == 4 ? (y2 = band9.filter.zdf_svf1(y2); y3 = band9.filter.zdf_svf1(y3))
+        Band_Group8 == 0 || Band_Group8 == 3 ? (y0 = band9.filter.svf_svf0(y0); y1 = band9.filter.svf_svf0(y1));
+        Band_Group8 == 0 || Band_Group8 == 4 ? (y2 = band9.filter.svf_svf1(y2); y3 = band9.filter.svf_svf1(y3))
       )
     );
 
     Band_Process9 ? (
       Band_Group9 == 1 || Band_Group9 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group9 == 1 ? (mid0 = band10.filter.zdf_svf0(mid0); mid1 = band10.filter.zdf_svf0(mid1)) : (side0 = band10.filter.zdf_svf1(side0); side1 = band10.filter.zdf_svf1(side1));
+        Band_Group9 == 1 ? (mid0 = band10.filter.svf_svf0(mid0); mid1 = band10.filter.svf_svf0(mid1)) : (side0 = band10.filter.svf_svf1(side0); side1 = band10.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group9 == 0 || Band_Group9 == 3 ? (y0 = band10.filter.zdf_svf0(y0); y1 = band10.filter.zdf_svf0(y1));
-        Band_Group9 == 0 || Band_Group9 == 4 ? (y2 = band10.filter.zdf_svf1(y2); y3 = band10.filter.zdf_svf1(y3))
+        Band_Group9 == 0 || Band_Group9 == 3 ? (y0 = band10.filter.svf_svf0(y0); y1 = band10.filter.svf_svf0(y1));
+        Band_Group9 == 0 || Band_Group9 == 4 ? (y2 = band10.filter.svf_svf1(y2); y3 = band10.filter.svf_svf1(y3))
       )
     );
 
     Band_Process10 ? (
       Band_Group10 == 1 || Band_Group10 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group10 == 1 ? (mid0 = band11.filter.zdf_svf0(mid0); mid1 = band11.filter.zdf_svf0(mid1)) : (side0 = band11.filter.zdf_svf1(side0); side1 = band11.filter.zdf_svf1(side1));
+        Band_Group10 == 1 ? (mid0 = band11.filter.svf_svf0(mid0); mid1 = band11.filter.svf_svf0(mid1)) : (side0 = band11.filter.svf_svf1(side0); side1 = band11.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group10 == 0 || Band_Group10 == 3 ? (y0 = band11.filter.zdf_svf0(y0); y1 = band11.filter.zdf_svf0(y1));
-        Band_Group10 == 0 || Band_Group10 == 4 ? (y2 = band11.filter.zdf_svf1(y2); y3 = band11.filter.zdf_svf1(y3))
+        Band_Group10 == 0 || Band_Group10 == 3 ? (y0 = band11.filter.svf_svf0(y0); y1 = band11.filter.svf_svf0(y1));
+        Band_Group10 == 0 || Band_Group10 == 4 ? (y2 = band11.filter.svf_svf1(y2); y3 = band11.filter.svf_svf1(y3))
       )
     );
 
     Band_Process11 ? (
       Band_Group11 == 1 || Band_Group11 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group11 == 1 ? (mid0 = band12.filter.zdf_svf0(mid0); mid1 = band12.filter.zdf_svf0(mid1)) : (side0 = band12.filter.zdf_svf1(side0); side1 = band12.filter.zdf_svf1(side1));
+        Band_Group11 == 1 ? (mid0 = band12.filter.svf_svf0(mid0); mid1 = band12.filter.svf_svf0(mid1)) : (side0 = band12.filter.svf_svf1(side0); side1 = band12.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group11 == 0 || Band_Group11 == 3 ? (y0 = band12.filter.zdf_svf0(y0); y1 = band12.filter.zdf_svf0(y1));
-        Band_Group11 == 0 || Band_Group11 == 4 ? (y2 = band12.filter.zdf_svf1(y2); y3 = band12.filter.zdf_svf1(y3))
+        Band_Group11 == 0 || Band_Group11 == 3 ? (y0 = band12.filter.svf_svf0(y0); y1 = band12.filter.svf_svf0(y1));
+        Band_Group11 == 0 || Band_Group11 == 4 ? (y2 = band12.filter.svf_svf1(y2); y3 = band12.filter.svf_svf1(y3))
       )
     );
 
     Band_Process12 ? (
       Band_Group12 == 1 || Band_Group12 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group12 == 1 ? (mid0 = band13.filter.zdf_svf0(mid0); mid1 = band13.filter.zdf_svf0(mid1)) : (side0 = band13.filter.zdf_svf1(side0); side1 = band13.filter.zdf_svf1(side1));
+        Band_Group12 == 1 ? (mid0 = band13.filter.svf_svf0(mid0); mid1 = band13.filter.svf_svf0(mid1)) : (side0 = band13.filter.svf_svf1(side0); side1 = band13.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group12 == 0 || Band_Group12 == 3 ? (y0 = band13.filter.zdf_svf0(y0); y1 = band13.filter.zdf_svf0(y1));
-        Band_Group12 == 0 || Band_Group12 == 4 ? (y2 = band13.filter.zdf_svf1(y2); y3 = band13.filter.zdf_svf1(y3))
+        Band_Group12 == 0 || Band_Group12 == 3 ? (y0 = band13.filter.svf_svf0(y0); y1 = band13.filter.svf_svf0(y1));
+        Band_Group12 == 0 || Band_Group12 == 4 ? (y2 = band13.filter.svf_svf1(y2); y3 = band13.filter.svf_svf1(y3))
       )
     );
 
     Band_Process13 ? (
       Band_Group13 == 1 || Band_Group13 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group13 == 1 ? (mid0 = band14.filter.zdf_svf0(mid0); mid1 = band14.filter.zdf_svf0(mid1)) : (side0 = band14.filter.zdf_svf1(side0); side1 = band14.filter.zdf_svf1(side1));
+        Band_Group13 == 1 ? (mid0 = band14.filter.svf_svf0(mid0); mid1 = band14.filter.svf_svf0(mid1)) : (side0 = band14.filter.svf_svf1(side0); side1 = band14.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group13 == 0 || Band_Group13 == 3 ? (y0 = band14.filter.zdf_svf0(y0); y1 = band14.filter.zdf_svf0(y1));
-        Band_Group13 == 0 || Band_Group13 == 4 ? (y2 = band14.filter.zdf_svf1(y2); y3 = band14.filter.zdf_svf1(y3))
+        Band_Group13 == 0 || Band_Group13 == 3 ? (y0 = band14.filter.svf_svf0(y0); y1 = band14.filter.svf_svf0(y1));
+        Band_Group13 == 0 || Band_Group13 == 4 ? (y2 = band14.filter.svf_svf1(y2); y3 = band14.filter.svf_svf1(y3))
       )
     );
 
     Band_Process14 ? (
       Band_Group14 == 1 || Band_Group14 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group14 == 1 ? (mid0 = band15.filter.zdf_svf0(mid0); mid1 = band15.filter.zdf_svf0(mid1)) : (side0 = band15.filter.zdf_svf1(side0); side1 = band15.filter.zdf_svf1(side1));
+        Band_Group14 == 1 ? (mid0 = band15.filter.svf_svf0(mid0); mid1 = band15.filter.svf_svf0(mid1)) : (side0 = band15.filter.svf_svf1(side0); side1 = band15.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group14 == 0 || Band_Group14 == 3 ? (y0 = band15.filter.zdf_svf0(y0); y1 = band15.filter.zdf_svf0(y1));
-        Band_Group14 == 0 || Band_Group14 == 4 ? (y2 = band15.filter.zdf_svf1(y2); y3 = band15.filter.zdf_svf1(y3))
+        Band_Group14 == 0 || Band_Group14 == 3 ? (y0 = band15.filter.svf_svf0(y0); y1 = band15.filter.svf_svf0(y1));
+        Band_Group14 == 0 || Band_Group14 == 4 ? (y2 = band15.filter.svf_svf1(y2); y3 = band15.filter.svf_svf1(y3))
       )
     );
 
     Band_Process15 ? (
       Band_Group15 == 1 || Band_Group15 == 2 ? ( // Mid or Side
         encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-        Band_Group15 == 1 ? (mid0 = band16.filter.zdf_svf0(mid0); mid1 = band16.filter.zdf_svf0(mid1)) : (side0 = band16.filter.zdf_svf1(side0); side1 = band16.filter.zdf_svf1(side1));
+        Band_Group15 == 1 ? (mid0 = band16.filter.svf_svf0(mid0); mid1 = band16.filter.svf_svf0(mid1)) : (side0 = band16.filter.svf_svf1(side0); side1 = band16.filter.svf_svf1(side1));
         decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
       ) : ( // Left and/or Right
-        Band_Group15 == 0 || Band_Group15 == 3 ? (y0 = band16.filter.zdf_svf0(y0); y1 = band16.filter.zdf_svf0(y1));
-        Band_Group15 == 0 || Band_Group15 == 4 ? (y2 = band16.filter.zdf_svf1(y2); y3 = band16.filter.zdf_svf1(y3))
+        Band_Group15 == 0 || Band_Group15 == 3 ? (y0 = band16.filter.svf_svf0(y0); y1 = band16.filter.svf_svf0(y1));
+        Band_Group15 == 0 || Band_Group15 == 4 ? (y2 = band16.filter.svf_svf1(y2); y3 = band16.filter.svf_svf1(y3))
       )
     );
 
@@ -1275,13 +1270,13 @@ DO_OVERSAMPLE ? (
 
     listen_group == 1 || listen_group == 2 ? ( // Mid or Side
       encodeMS(y0, y2, mid0, side0); encodeMS(y1, y3, mid1, side1);
-      listen_group == 1 ? (mid0 = listen_filter.zdf_svf0(mid0); mid1 = listen_filter.zdf_svf0(mid1)) : (side0 = listen_filter.zdf_svf1(side0); side1 = listen_filter.zdf_svf1(side1));
+      listen_group == 1 ? (mid0 = listen_filter.svf_svf0(mid0); mid1 = listen_filter.svf_svf0(mid1)) : (side0 = listen_filter.svf_svf1(side0); side1 = listen_filter.svf_svf1(side1));
 
       listen_group == 1 ? (side0 = side1 = 0;) : (mid0 = mid1 = 0;);
       decodeMS(mid0, side0, y0, y2); decodeMS(mid1, side1, y1, y3);
     ) : ( // Left and/or Right
-      listen_group == 0 || listen_group == 3 ? (y0 = listen_filter.zdf_svf0(y0); y1 = listen_filter.zdf_svf0(y1));
-      listen_group == 0 || listen_group == 4 ? (y2 = listen_filter.zdf_svf1(y2); y3 = listen_filter.zdf_svf1(y3));
+      listen_group == 0 || listen_group == 3 ? (y0 = listen_filter.svf_svf0(y0); y1 = listen_filter.svf_svf0(y1));
+      listen_group == 0 || listen_group == 4 ? (y2 = listen_filter.svf_svf1(y2); y3 = listen_filter.svf_svf1(y3));
       listen_group == 3 ? (y2 = y3 = 0);
       listen_group == 4 ? (y0 = y1 = 0);
     );
@@ -1300,88 +1295,88 @@ DO_OVERSAMPLE ? (
     Band_Process0 ? (
       Band_Group0 == 1 || Band_Group0 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group0 == 1 ? mid0 = band1.filter.zdf_svf0(mid0) : side0 = band1.filter.zdf_svf1(side0);
+        Band_Group0 == 1 ? mid0 = band1.filter.svf_svf0(mid0) : side0 = band1.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group0 == 0 || Band_Group0 == 3 ? spl0 = band1.filter.zdf_svf0(spl0);
-        Band_Group0 == 0 || Band_Group0 == 4 ? spl1 = band1.filter.zdf_svf1(spl1);
+        Band_Group0 == 0 || Band_Group0 == 3 ? spl0 = band1.filter.svf_svf0(spl0);
+        Band_Group0 == 0 || Band_Group0 == 4 ? spl1 = band1.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process1 ? (
       Band_Group1 == 1 || Band_Group1 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group1 == 1 ? mid0 = band2.filter.zdf_svf0(mid0) : side0 = band2.filter.zdf_svf1(side0);
+        Band_Group1 == 1 ? mid0 = band2.filter.svf_svf0(mid0) : side0 = band2.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group1 == 0 || Band_Group1 == 3 ? spl0 = band2.filter.zdf_svf0(spl0);
-        Band_Group1 == 0 || Band_Group1 == 4 ? spl1 = band2.filter.zdf_svf1(spl1);
+        Band_Group1 == 0 || Band_Group1 == 3 ? spl0 = band2.filter.svf_svf0(spl0);
+        Band_Group1 == 0 || Band_Group1 == 4 ? spl1 = band2.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process2 ? (
       Band_Group2 == 1 || Band_Group2 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group2 == 1 ? mid0 = band3.filter.zdf_svf0(mid0) : side0 = band3.filter.zdf_svf1(side0);
+        Band_Group2 == 1 ? mid0 = band3.filter.svf_svf0(mid0) : side0 = band3.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group2 == 0 || Band_Group2 == 3 ? spl0 = band3.filter.zdf_svf0(spl0);
-        Band_Group2 == 0 || Band_Group2 == 4 ? spl1 = band3.filter.zdf_svf1(spl1);
+        Band_Group2 == 0 || Band_Group2 == 3 ? spl0 = band3.filter.svf_svf0(spl0);
+        Band_Group2 == 0 || Band_Group2 == 4 ? spl1 = band3.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process3 ? (
       Band_Group3 == 1 || Band_Group3 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group3 == 1 ? mid0 = band4.filter.zdf_svf0(mid0) : side0 = band4.filter.zdf_svf1(side0);
+        Band_Group3 == 1 ? mid0 = band4.filter.svf_svf0(mid0) : side0 = band4.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group3 == 0 || Band_Group3 == 3 ? spl0 = band4.filter.zdf_svf0(spl0);
-        Band_Group3 == 0 || Band_Group3 == 4 ? spl1 = band4.filter.zdf_svf1(spl1);
+        Band_Group3 == 0 || Band_Group3 == 3 ? spl0 = band4.filter.svf_svf0(spl0);
+        Band_Group3 == 0 || Band_Group3 == 4 ? spl1 = band4.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process4 ? (
       Band_Group4 == 1 || Band_Group4 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group4 == 1 ? mid0 = band5.filter.zdf_svf0(mid0) : side0 = band5.filter.zdf_svf1(side0);
+        Band_Group4 == 1 ? mid0 = band5.filter.svf_svf0(mid0) : side0 = band5.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group4 == 0 || Band_Group4 == 3 ? spl0 = band5.filter.zdf_svf0(spl0);
-        Band_Group4 == 0 || Band_Group4 == 4 ? spl1 = band5.filter.zdf_svf1(spl1);
+        Band_Group4 == 0 || Band_Group4 == 3 ? spl0 = band5.filter.svf_svf0(spl0);
+        Band_Group4 == 0 || Band_Group4 == 4 ? spl1 = band5.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process5 ? (
       Band_Group5 == 1 || Band_Group5 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group5 == 1 ? mid0 = band6.filter.zdf_svf0(mid0) : side0 = band6.filter.zdf_svf1(side0);
+        Band_Group5 == 1 ? mid0 = band6.filter.svf_svf0(mid0) : side0 = band6.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group5 == 0 || Band_Group5 == 3 ? spl0 = band6.filter.zdf_svf0(spl0);
-        Band_Group5 == 0 || Band_Group5 == 4 ? spl1 = band6.filter.zdf_svf1(spl1);
+        Band_Group5 == 0 || Band_Group5 == 3 ? spl0 = band6.filter.svf_svf0(spl0);
+        Band_Group5 == 0 || Band_Group5 == 4 ? spl1 = band6.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process6 ? (
       Band_Group6 == 1 || Band_Group6 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group6 == 1 ? mid0 = band7.filter.zdf_svf0(mid0) : side0 = band7.filter.zdf_svf1(side0);
+        Band_Group6 == 1 ? mid0 = band7.filter.svf_svf0(mid0) : side0 = band7.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group6 == 0 || Band_Group6 == 3 ? spl0 = band7.filter.zdf_svf0(spl0);
-        Band_Group6 == 0 || Band_Group6 == 4 ? spl1 = band7.filter.zdf_svf1(spl1);
+        Band_Group6 == 0 || Band_Group6 == 3 ? spl0 = band7.filter.svf_svf0(spl0);
+        Band_Group6 == 0 || Band_Group6 == 4 ? spl1 = band7.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process7 ? (
       Band_Group7 == 1 || Band_Group7 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group7 == 1 ? mid0 = band8.filter.zdf_svf0(mid0) : side0 = band8.filter.zdf_svf1(side0);
+        Band_Group7 == 1 ? mid0 = band8.filter.svf_svf0(mid0) : side0 = band8.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group7 == 0 || Band_Group7 == 3 ? spl0 = band8.filter.zdf_svf0(spl0);
-        Band_Group7 == 0 || Band_Group7 == 4 ? spl1 = band8.filter.zdf_svf1(spl1);
+        Band_Group7 == 0 || Band_Group7 == 3 ? spl0 = band8.filter.svf_svf0(spl0);
+        Band_Group7 == 0 || Band_Group7 == 4 ? spl1 = band8.filter.svf_svf1(spl1);
       )
     );
 
@@ -1389,88 +1384,88 @@ DO_OVERSAMPLE ? (
     Band_Process8 ? (
       Band_Group8 == 1 || Band_Group8 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group8 == 1 ? mid0 = band9.filter.zdf_svf0(mid0) : side0 = band9.filter.zdf_svf1(side0);
+        Band_Group8 == 1 ? mid0 = band9.filter.svf_svf0(mid0) : side0 = band9.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group8 == 0 || Band_Group8 == 3 ? spl0 = band9.filter.zdf_svf0(spl0);
-        Band_Group8 == 0 || Band_Group8 == 4 ? spl1 = band9.filter.zdf_svf1(spl1);
+        Band_Group8 == 0 || Band_Group8 == 3 ? spl0 = band9.filter.svf_svf0(spl0);
+        Band_Group8 == 0 || Band_Group8 == 4 ? spl1 = band9.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process9 ? (
       Band_Group9 == 1 || Band_Group9 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group9 == 1 ? mid0 = band10.filter.zdf_svf0(mid0) : side0 = band10.filter.zdf_svf1(side0);
+        Band_Group9 == 1 ? mid0 = band10.filter.svf_svf0(mid0) : side0 = band10.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group9 == 0 || Band_Group9 == 3 ? spl0 = band10.filter.zdf_svf0(spl0);
-        Band_Group9 == 0 || Band_Group9 == 4 ? spl1 = band10.filter.zdf_svf1(spl1);
+        Band_Group9 == 0 || Band_Group9 == 3 ? spl0 = band10.filter.svf_svf0(spl0);
+        Band_Group9 == 0 || Band_Group9 == 4 ? spl1 = band10.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process10 ? (
       Band_Group10 == 1 || Band_Group10 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group10 == 1 ? mid0 = band11.filter.zdf_svf0(mid0) : side0 = band11.filter.zdf_svf1(side0);
+        Band_Group10 == 1 ? mid0 = band11.filter.svf_svf0(mid0) : side0 = band11.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group10 == 0 || Band_Group10 == 3 ? spl0 = band11.filter.zdf_svf0(spl0);
-        Band_Group10 == 0 || Band_Group10 == 4 ? spl1 = band11.filter.zdf_svf1(spl1);
+        Band_Group10 == 0 || Band_Group10 == 3 ? spl0 = band11.filter.svf_svf0(spl0);
+        Band_Group10 == 0 || Band_Group10 == 4 ? spl1 = band11.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process11 ? (
       Band_Group11 == 1 || Band_Group11 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group11 == 1 ? mid0 = band12.filter.zdf_svf0(mid0) : side0 = band12.filter.zdf_svf1(side0);
+        Band_Group11 == 1 ? mid0 = band12.filter.svf_svf0(mid0) : side0 = band12.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group11 == 0 || Band_Group11 == 3 ? spl0 = band12.filter.zdf_svf0(spl0);
-        Band_Group11 == 0 || Band_Group11 == 4 ? spl1 = band12.filter.zdf_svf1(spl1);
+        Band_Group11 == 0 || Band_Group11 == 3 ? spl0 = band12.filter.svf_svf0(spl0);
+        Band_Group11 == 0 || Band_Group11 == 4 ? spl1 = band12.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process12 ? (
       Band_Group12 == 1 || Band_Group12 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group12 == 1 ? mid0 = band13.filter.zdf_svf0(mid0) : side0 = band13.filter.zdf_svf1(side0);
+        Band_Group12 == 1 ? mid0 = band13.filter.svf_svf0(mid0) : side0 = band13.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group12 == 0 || Band_Group12 == 3 ? spl0 = band13.filter.zdf_svf0(spl0);
-        Band_Group12 == 0 || Band_Group12 == 4 ? spl1 = band13.filter.zdf_svf1(spl1);
+        Band_Group12 == 0 || Band_Group12 == 3 ? spl0 = band13.filter.svf_svf0(spl0);
+        Band_Group12 == 0 || Band_Group12 == 4 ? spl1 = band13.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process13 ? (
       Band_Group13 == 1 || Band_Group13 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group13 == 1 ? mid0 = band14.filter.zdf_svf0(mid0) : side0 = band14.filter.zdf_svf1(side0);
+        Band_Group13 == 1 ? mid0 = band14.filter.svf_svf0(mid0) : side0 = band14.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group13 == 0 || Band_Group13 == 3 ? spl0 = band14.filter.zdf_svf0(spl0);
-        Band_Group13 == 0 || Band_Group13== 4 ? spl1 = band14.filter.zdf_svf1(spl1);
+        Band_Group13 == 0 || Band_Group13 == 3 ? spl0 = band14.filter.svf_svf0(spl0);
+        Band_Group13 == 0 || Band_Group13== 4 ? spl1 = band14.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process14 ? (
       Band_Group14 == 1 || Band_Group14 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group14 == 1 ? mid0 = band15.filter.zdf_svf0(mid0) : side0 = band15.filter.zdf_svf1(side0);
+        Band_Group14 == 1 ? mid0 = band15.filter.svf_svf0(mid0) : side0 = band15.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group14 == 0 || Band_Group14 == 3 ? spl0 = band15.filter.zdf_svf0(spl0);
-        Band_Group14 == 0 || Band_Group14 == 4 ? spl1 = band15.filter.zdf_svf1(spl1);
+        Band_Group14 == 0 || Band_Group14 == 3 ? spl0 = band15.filter.svf_svf0(spl0);
+        Band_Group14 == 0 || Band_Group14 == 4 ? spl1 = band15.filter.svf_svf1(spl1);
       )
     );
 
     Band_Process15 ? (
       Band_Group15 == 1 || Band_Group7 == 2 ? ( // Mid or Side
         encodeMS(spl0, spl1, mid0, side0);
-        Band_Group15 == 1 ? mid0 = band16.filter.zdf_svf0(mid0) : side0 = band16.filter.zdf_svf1(side0);
+        Band_Group15 == 1 ? mid0 = band16.filter.svf_svf0(mid0) : side0 = band16.filter.svf_svf1(side0);
         decodeMS(mid0, side0, spl0, spl1);
       ) : ( // Left and/or Right
-        Band_Group15 == 0 || Band_Group15 == 3 ? spl0 = band16.filter.zdf_svf0(spl0);
-        Band_Group15 == 0 || Band_Group15 == 4 ? spl1 = band16.filter.zdf_svf1(spl1);
+        Band_Group15 == 0 || Band_Group15 == 3 ? spl0 = band16.filter.svf_svf0(spl0);
+        Band_Group15 == 0 || Band_Group15 == 4 ? spl1 = band16.filter.svf_svf1(spl1);
       )
     );
 
@@ -1482,13 +1477,13 @@ DO_OVERSAMPLE ? (
 
     listen_group == 1 || listen_group == 2 ? ( // Mid or Side
       encodeMS(spl0list, spl1list, mid0, side0);
-      listen_group == 1 ? mid0 = listen_filter.zdf_svf0(mid0) : side0 = listen_filter.zdf_svf1(side0);
+      listen_group == 1 ? mid0 = listen_filter.svf_svf0(mid0) : side0 = listen_filter.svf_svf1(side0);
 
       listen_group == 1 ? side0 = 0 : mid0 = 0;
       decodeMS(mid0, side0, spl0list, spl1list);
     ) : ( // Left and/or Right
-      listen_group == 0 || listen_group == 3 ? spl0list = listen_filter.zdf_svf0(spl0list);
-      listen_group == 0 || listen_group == 4 ? spl1list = listen_filter.zdf_svf1(spl1list);
+      listen_group == 0 || listen_group == 3 ? spl0list = listen_filter.svf_svf0(spl0list);
+      listen_group == 0 || listen_group == 4 ? spl1list = listen_filter.svf_svf1(spl1list);
       listen_group == 3 ? spl1list = 0;
       listen_group == 4 ? spl0list = 0;
     );
@@ -1791,22 +1786,22 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
     // Draw connecting line so that we can see which node affects which part of the curve
     // Low Cut,Low Cut (Butterworth),High Cut,High Cut (Butterworth),Band Pass,Notch,Peak,Low Shelf,High Shelf,Tilt Shelf,Pultec Low Shelf,All Pass
     transfer = (
-      band == 0 ? gfx_band1.filter.zdf_magnitude(freq) :
-        band == 1 ? gfx_band2.filter.zdf_magnitude(freq) :
-          band == 2 ? gfx_band3.filter.zdf_magnitude(freq) :
-            band == 3 ? gfx_band4.filter.zdf_magnitude(freq) :
-              band == 4 ? gfx_band5.filter.zdf_magnitude(freq) :
-                band == 5 ? gfx_band6.filter.zdf_magnitude(freq) :
-                  band == 6 ? gfx_band7.filter.zdf_magnitude(freq) :
-                    band == 7 ? gfx_band8.filter.zdf_magnitude(freq) :
-                      band == 8 ? gfx_band9.filter.zdf_magnitude(freq) :
-                        band == 9 ? gfx_band10.filter.zdf_magnitude(freq) :
-                          band == 10 ? gfx_band11.filter.zdf_magnitude(freq) :
-                            band == 11 ? gfx_band12.filter.zdf_magnitude(freq) :
-                              band == 12 ? gfx_band13.filter.zdf_magnitude(freq) :
-                                band == 13 ? gfx_band14.filter.zdf_magnitude(freq) :
-                                  band == 14 ? gfx_band15.filter.zdf_magnitude(freq) :
-                                    band == 15 ? gfx_band16.filter.zdf_magnitude(freq);
+      band == 0 ? gfx_band1.filter.svf_magnitude(freq) :
+        band == 1 ? gfx_band2.filter.svf_magnitude(freq) :
+          band == 2 ? gfx_band3.filter.svf_magnitude(freq) :
+            band == 3 ? gfx_band4.filter.svf_magnitude(freq) :
+              band == 4 ? gfx_band5.filter.svf_magnitude(freq) :
+                band == 5 ? gfx_band6.filter.svf_magnitude(freq) :
+                  band == 6 ? gfx_band7.filter.svf_magnitude(freq) :
+                    band == 7 ? gfx_band8.filter.svf_magnitude(freq) :
+                      band == 8 ? gfx_band9.filter.svf_magnitude(freq) :
+                        band == 9 ? gfx_band10.filter.svf_magnitude(freq) :
+                          band == 10 ? gfx_band11.filter.svf_magnitude(freq) :
+                            band == 11 ? gfx_band12.filter.svf_magnitude(freq) :
+                              band == 12 ? gfx_band13.filter.svf_magnitude(freq) :
+                                band == 13 ? gfx_band14.filter.svf_magnitude(freq) :
+                                  band == 14 ? gfx_band15.filter.svf_magnitude(freq) :
+                                    band == 15 ? gfx_band16.filter.svf_magnitude(freq);
     );
 
     m = 20 * log10(transfer);
@@ -1907,22 +1902,22 @@ function draw_filter_bands()
           freq = scx_to_freq(xf);
 
           transfer = (
-            band == 0 ? gfx_band1.filter.zdf_magnitude(freq) :
-              band == 1 ? gfx_band2.filter.zdf_magnitude(freq) :
-                band == 2 ? gfx_band3.filter.zdf_magnitude(freq) :
-                  band == 3 ? gfx_band4.filter.zdf_magnitude(freq) :
-                    band == 4 ? gfx_band5.filter.zdf_magnitude(freq) :
-                      band == 5 ? gfx_band6.filter.zdf_magnitude(freq) :
-                        band == 6 ? gfx_band7.filter.zdf_magnitude(freq) :
-                          band == 7 ? gfx_band8.filter.zdf_magnitude(freq) :
-                            band == 8 ? gfx_band9.filter.zdf_magnitude(freq) :
-                              band == 9 ? gfx_band10.filter.zdf_magnitude(freq) :
-                                band == 10 ? gfx_band11.filter.zdf_magnitude(freq) :
-                                  band == 11 ? gfx_band12.filter.zdf_magnitude(freq) :
-                                    band == 12 ? gfx_band13.filter.zdf_magnitude(freq) :
-                                      band == 13 ? gfx_band14.filter.zdf_magnitude(freq) :
-                                        band == 14 ? gfx_band15.filter.zdf_magnitude(freq) :
-                                          band == 15 ? gfx_band16.filter.zdf_magnitude(freq);
+            band == 0 ? gfx_band1.filter.svf_magnitude(freq) :
+              band == 1 ? gfx_band2.filter.svf_magnitude(freq) :
+                band == 2 ? gfx_band3.filter.svf_magnitude(freq) :
+                  band == 3 ? gfx_band4.filter.svf_magnitude(freq) :
+                    band == 4 ? gfx_band5.filter.svf_magnitude(freq) :
+                      band == 5 ? gfx_band6.filter.svf_magnitude(freq) :
+                        band == 6 ? gfx_band7.filter.svf_magnitude(freq) :
+                          band == 7 ? gfx_band8.filter.svf_magnitude(freq) :
+                            band == 8 ? gfx_band9.filter.svf_magnitude(freq) :
+                              band == 9 ? gfx_band10.filter.svf_magnitude(freq) :
+                                band == 10 ? gfx_band11.filter.svf_magnitude(freq) :
+                                  band == 11 ? gfx_band12.filter.svf_magnitude(freq) :
+                                    band == 12 ? gfx_band13.filter.svf_magnitude(freq) :
+                                      band == 13 ? gfx_band14.filter.svf_magnitude(freq) :
+                                        band == 14 ? gfx_band15.filter.svf_magnitude(freq) :
+                                          band == 15 ? gfx_band16.filter.svf_magnitude(freq);
           );
 
           m = 20 * log10(transfer);
@@ -2026,22 +2021,22 @@ function draw_filter_response(group, red, green, blue)
     // Apply the filters
     m = 1.0;
 
-    be0 ? m *= gfx_band1.filter.zdf_magnitude(freq);
-    be1 ? m *= gfx_band2.filter.zdf_magnitude(freq);
-    be2 ? m *= gfx_band3.filter.zdf_magnitude(freq);
-    be3 ? m *= gfx_band4.filter.zdf_magnitude(freq);
-    be4 ? m *= gfx_band5.filter.zdf_magnitude(freq);
-    be5 ? m *= gfx_band6.filter.zdf_magnitude(freq);
-    be6 ? m *= gfx_band7.filter.zdf_magnitude(freq);
-    be7 ? m *= gfx_band8.filter.zdf_magnitude(freq);
-    be8 ? m *= gfx_band9.filter.zdf_magnitude(freq);
-    be9 ? m *= gfx_band10.filter.zdf_magnitude(freq);
-    be10 ? m *= gfx_band11.filter.zdf_magnitude(freq);
-    be11 ? m *= gfx_band12.filter.zdf_magnitude(freq);
-    be12 ? m *= gfx_band13.filter.zdf_magnitude(freq);
-    be13 ? m *= gfx_band14.filter.zdf_magnitude(freq);
-    be14 ? m *= gfx_band15.filter.zdf_magnitude(freq);
-    be15 ? m *= gfx_band16.filter.zdf_magnitude(freq);
+    be0 ? m *= gfx_band1.filter.svf_magnitude(freq);
+    be1 ? m *= gfx_band2.filter.svf_magnitude(freq);
+    be2 ? m *= gfx_band3.filter.svf_magnitude(freq);
+    be3 ? m *= gfx_band4.filter.svf_magnitude(freq);
+    be4 ? m *= gfx_band5.filter.svf_magnitude(freq);
+    be5 ? m *= gfx_band6.filter.svf_magnitude(freq);
+    be6 ? m *= gfx_band7.filter.svf_magnitude(freq);
+    be7 ? m *= gfx_band8.filter.svf_magnitude(freq);
+    be8 ? m *= gfx_band9.filter.svf_magnitude(freq);
+    be9 ? m *= gfx_band10.filter.svf_magnitude(freq);
+    be10 ? m *= gfx_band11.filter.svf_magnitude(freq);
+    be11 ? m *= gfx_band12.filter.svf_magnitude(freq);
+    be12 ? m *= gfx_band13.filter.svf_magnitude(freq);
+    be13 ? m *= gfx_band14.filter.svf_magnitude(freq);
+    be14 ? m *= gfx_band15.filter.svf_magnitude(freq);
+    be15 ? m *= gfx_band16.filter.svf_magnitude(freq);
 
     // Convert from scalar to db
     m = 20 * log10(m);
@@ -2539,7 +2534,7 @@ function draw_listen_helper()
     listen_freq = Band_Frequency[node];
     listen_q = Band_Q[node];
     listen_group = Band_Group[node];
-    width = listen_filter.zdf_qtobw(listen_q);
+    width = listen_filter.svf_qtobw(listen_q);
 
     // Peak or notch? - Has a wider band range
     Band_Type[node] == FILTER_PEAK || Band_Type[node] == FILTER_NOTCH ? ( 
@@ -2555,19 +2550,19 @@ function draw_listen_helper()
     lx = spectrum.freq_to_x(lfreq);
     rx = spectrum.freq_to_x(rfreq);
 
-    listen_q = listen_filter.zdf_bwtoq(width);
+    listen_q = listen_filter.svf_bwtoq(width);
 
     // Peak, Band Pass or Notch?
     Band_Type[node] == FILTER_PEAK || Band_Type[node] == FILTER_BAND_PASS || Band_Type[node] == FILTER_NOTCH ? ( 
 
       Band_Type[node] == FILTER_PEAK ? (
         gain = Band_Enabled[node] == BAND_STATE_ENABLED ? Band_Gain[node] : 0;
-        listen_filter.zdf_listen_eq(lfreq, rfreq, Band_Frequency[node], Band_Q[node], db_to_gain(gain));
+        listen_filter.svf_listen_eq(lfreq, rfreq, Band_Frequency[node], Band_Q[node], db_to_gain(gain));
       ) : (
         Band_Type[node] == FILTER_BAND_PASS ? (
-          listen_filter.zdf_listen_bs(lfreq, rfreq, Band_Frequency[node], Band_Q[node]);
+          listen_filter.svf_listen_bs(lfreq, rfreq, Band_Frequency[node], Band_Q[node]);
         ) : ( 
-          listen_filter.zdf_bp2(listen_freq, Band_Q[node]);
+          listen_filter.svf_bp2(listen_freq, Band_Q[node]);
         );
       );
 
@@ -2591,46 +2586,46 @@ function draw_listen_helper()
       lx = spectrum.freq_to_x(listen_freq);
 
       Band_Type[node] == FILTER_LOW_CUT ? (
-        listen_filter.zdf_lp(listen_freq, Band_Q[node], Band_Slope[node]);
+        listen_filter.svf_lp(listen_freq, Band_Q[node], Band_Slope[node]);
       );
       Band_Type[node] == FILTER_LOW_CUT_BUTTERWORTH ? (
-        listen_filter.zdf_lpb(listen_freq, Band_Slope[node]);
+        listen_filter.svf_lpb(listen_freq, Band_Slope[node]);
       );
 
       Band_Type[node] == FILTER_LOW_CUT_ANALOG ? (
-        listen_filter.zdf_lp(listen_freq, 0.701, 3);
+        listen_filter.svf_lp(listen_freq, 0.701, 3);
       );
       Band_Type[node] == FILTER_HIGH_CUT_ANALOG ? (
-        listen_filter.zdf_hp(listen_freq, 0.701, 3);
+        listen_filter.svf_hp(listen_freq, 0.701, 3);
       );
 
       Band_Type[node] == FILTER_LOW_SHELF ? (
         lx = spectrum.freq_to_x(rfreq);
         rfreq = min(max(rfreq, 10), 44000);
-        listen_filter.zdf_lpb(rfreq, 3);
+        listen_filter.svf_lpb(rfreq, 3);
       );
       Band_Type[node] == FILTER_HIGH_SHELF ? (
         lx = spectrum.freq_to_x(lfreq);
         lfreq = min(max(lfreq, 10), 44000);
-        listen_filter.zdf_hpb(lfreq, 3);
+        listen_filter.svf_hpb(lfreq, 3);
       );
 
       Band_Type[node] == FILTER_HIGH_CUT ? (
-        listen_filter.zdf_hp(listen_freq, Band_Q[node], Band_Slope[node]);
+        listen_filter.svf_hp(listen_freq, Band_Q[node], Band_Slope[node]);
       );
       Band_Type[node] == FILTER_HIGH_CUT_BUTTERWORTH ? (
-        listen_filter.zdf_hpb(listen_freq, Band_Slope[node]);
+        listen_filter.svf_hpb(listen_freq, Band_Slope[node]);
       );
 
       Band_Type[node] == FILTER_TILT_SHELF || Band_Type[node] == FILTER_ALL_PASS ? (
-        listen_filter.zdf_bypass();
+        listen_filter.svf_bypass();
       );
 
       Band_Type[node] == FILTER_PULTEC_LOW_SHELF ? (
         // Pultec style - maybe we can do better?
         lx = spectrum.freq_to_x(rfreq);
         rfreq = min(max(rfreq, 10), 44000);
-        listen_filter.zdf_lpb(rfreq, 3);
+        listen_filter.svf_lpb(rfreq, 3);
       );
 
       Band_Type[node] != FILTER_TILT_SHELF && Band_Type[node] != FILTER_ALL_PASS ? gfx_line(lx, 0, lx, gfx_h - BOTTOM_MARGIN);
@@ -2653,7 +2648,7 @@ function draw_listen_helper()
 
     ) : listen_gain = db_to_gain(0);
 
-    listen_filter.zdf_listen_eq(lfreq, rfreq, listen_freq, 0.7071, db_to_gain(0));
+    listen_filter.svf_listen_eq(lfreq, rfreq, listen_freq, 0.7071, db_to_gain(0));
   
     gfx_a = 1.0;
     gfx_line(lx, 0, lx, gfx_h - BOTTOM_MARGIN);
@@ -4057,28 +4052,6 @@ initialise_gfx == 0 ? (
 
 //mouse_cap & 1 && node_drag_mode == 0 ? do_general_mouse = 0 : do_general_mouse = 1;
 
-gfx_x=20; gfx_y=20;
-
-pr = gfx_getchar(0);
-
-
-
-showTextInput ? (
-  textField.text_field(pr,#varstr,25,0x343434);
-  textField.set == 1 ? ( 
-    match("%f", #varstr, inputfreq);
-    Band_Frequency[selected_node] = inputfreq;
-
-    flag_filter_update(selected_node);
-
-    filters_to_sliders();
-
-    showTextInput = 0;
-  );
-);
-
-gfx_y=70; gfx_x=20;
-
 // TODO: comment back in for text input development
 //cc += textField.set;
 //gfx_printf("set = %d", cc);
@@ -4238,22 +4211,22 @@ do_general_mouse ? (
 
           Band_Enabled[band] = BAND_STATE_OFF;
 
-          band == 0 ? gfx_band1.filter.zdf_bypass() :
-          band == 1 ? gfx_band2.filter.zdf_bypass() :
-          band == 2 ? gfx_band3.filter.zdf_bypass() :
-          band == 3 ? gfx_band4.filter.zdf_bypass() :
-          band == 4 ? gfx_band5.filter.zdf_bypass() :
-          band == 5 ? gfx_band6.filter.zdf_bypass() :
-          band == 6 ? gfx_band7.filter.zdf_bypass() :
-          band == 7 ? gfx_band8.filter.zdf_bypass();
-          band == 8 ? gfx_band9.filter.zdf_bypass() :
-          band == 9 ? gfx_band10.filter.zdf_bypass() :
-          band == 10 ? gfx_band11.filter.zdf_bypass() :
-          band == 11 ? gfx_band12.filter.zdf_bypass() :
-          band == 12 ? gfx_band13.filter.zdf_bypass() :
-          band == 13 ? gfx_band14.filter.zdf_bypass() :
-          band == 14 ? gfx_band15.filter.zdf_bypass() :
-          band == 15 ? gfx_band16.filter.zdf_bypass();
+          band == 0 ? gfx_band1.filter.svf_bypass() :
+          band == 1 ? gfx_band2.filter.svf_bypass() :
+          band == 2 ? gfx_band3.filter.svf_bypass() :
+          band == 3 ? gfx_band4.filter.svf_bypass() :
+          band == 4 ? gfx_band5.filter.svf_bypass() :
+          band == 5 ? gfx_band6.filter.svf_bypass() :
+          band == 6 ? gfx_band7.filter.svf_bypass() :
+          band == 7 ? gfx_band8.filter.svf_bypass();
+          band == 8 ? gfx_band9.filter.svf_bypass() :
+          band == 9 ? gfx_band10.filter.svf_bypass() :
+          band == 10 ? gfx_band11.filter.svf_bypass() :
+          band == 11 ? gfx_band12.filter.svf_bypass() :
+          band == 12 ? gfx_band13.filter.svf_bypass() :
+          band == 13 ? gfx_band14.filter.svf_bypass() :
+          band == 14 ? gfx_band15.filter.svf_bypass() :
+          band == 15 ? gfx_band16.filter.svf_bypass();
 
           flag_filter_update(band);
 
@@ -4306,22 +4279,22 @@ do_general_mouse ? (
                   listen_node = -1;
                   Band_Enabled[band] = BAND_STATE_OFF;
 
-                  band == 0 ? gfx_band1.filter.zdf_bypass() :
-                  band == 1 ? gfx_band2.filter.zdf_bypass() :
-                  band == 2 ? gfx_band3.filter.zdf_bypass() :
-                  band == 3 ? gfx_band4.filter.zdf_bypass() :
-                  band == 4 ? gfx_band5.filter.zdf_bypass() :
-                  band == 5 ? gfx_band6.filter.zdf_bypass() :
-                  band == 6 ? gfx_band7.filter.zdf_bypass() :
-                  band == 7 ? gfx_band8.filter.zdf_bypass();
-                  band == 8 ? gfx_band9.filter.zdf_bypass() :
-                  band == 9 ? gfx_band10.filter.zdf_bypass() :
-                  band == 10 ? gfx_band11.filter.zdf_bypass() :
-                  band == 11 ? gfx_band12.filter.zdf_bypass() :
-                  band == 12 ? gfx_band13.filter.zdf_bypass() :
-                  band == 13 ? gfx_band14.filter.zdf_bypass() :
-                  band == 14 ? gfx_band15.filter.zdf_bypass() :
-                  band == 15 ? gfx_band16.filter.zdf_bypass();
+                  band == 0 ? gfx_band1.filter.svf_bypass() :
+                  band == 1 ? gfx_band2.filter.svf_bypass() :
+                  band == 2 ? gfx_band3.filter.svf_bypass() :
+                  band == 3 ? gfx_band4.filter.svf_bypass() :
+                  band == 4 ? gfx_band5.filter.svf_bypass() :
+                  band == 5 ? gfx_band6.filter.svf_bypass() :
+                  band == 6 ? gfx_band7.filter.svf_bypass() :
+                  band == 7 ? gfx_band8.filter.svf_bypass();
+                  band == 8 ? gfx_band9.filter.svf_bypass() :
+                  band == 9 ? gfx_band10.filter.svf_bypass() :
+                  band == 10 ? gfx_band11.filter.svf_bypass() :
+                  band == 11 ? gfx_band12.filter.svf_bypass() :
+                  band == 12 ? gfx_band13.filter.svf_bypass() :
+                  band == 13 ? gfx_band14.filter.svf_bypass() :
+                  band == 14 ? gfx_band15.filter.svf_bypass() :
+                  band == 15 ? gfx_band16.filter.svf_bypass();
 
                   flag_filter_update(band);
 
@@ -4495,7 +4468,7 @@ do_general_mouse ? (
   ) : (
     do_listen != 0 ? ( 
       do_listen = 0;
-      listen_filter.zdf_bypass();
+      listen_filter.svf_bypass();
     );
   );
 
@@ -5145,14 +5118,14 @@ gfx_r = gfx_g = gfx_b = gfx_a = 1.0; gfx_x = 100; gfx_y = 120;
 // gfx_printf("pdc_delay     = %f", pdc_delay);  gfx_x = 100; gfx_y = 160;
 
 /*
-gfx_printf("BandProcess0 = %d BandEnabled0 = %d  rest = %d",Band_Process0, Band_Enabled[0], band1.filter.zdf_is_resting()); gfx_x = 100; gfx_y = 140;
+gfx_printf("BandProcess0 = %d BandEnabled0 = %d  rest = %d",Band_Process0, Band_Enabled[0], band1.filter.svf_is_resting()); gfx_x = 100; gfx_y = 140;
 gfx_printf("Coeffs       = %f %f %f %f %f %f", band1.filter.a1, band1.filter.a2, band1.filter.a3, band1.filter.m0, band1.filter.m1, band1.filter.m2);  gfx_x = 100; gfx_y = 160;
 gfx_printf("Targ Coeffs  = %f %f %f %f %f %f", band1.filter.t_a1, band1.filter.t_a2, band1.filter.t_a3, band1.filter.t_m0, band1.filter.t_m1, band1.filter.t_m2); gfx_x = 100; gfx_y = 180;
 gfx_printf("Targ Steps  = %f %f %f %f %f %f", band1.filter.t_sa1, band1.filter.t_sa2, band1.filter.t_sa3, band1.filter.t_sm0, band1.filter.t_sm1, band1.filter.t_sm2); gfx_x = 100; gfx_y = 200;
 */
 
 /*
-gfx_printf("Listen_Process = %d do_listen = %d  rest = %d",Listen_Process, do_listen, listen_filter.zdf_is_resting()); gfx_x = 100; gfx_y = 140;
+gfx_printf("Listen_Process = %d do_listen = %d  rest = %d",Listen_Process, do_listen, listen_filter.svf_is_resting()); gfx_x = 100; gfx_y = 140;
 gfx_printf("Coeffs       = %f %f %f %f %f %f", listen_filter.a1, listen_filter.a2, listen_filter.a3, listen_filter.m0, listen_filter.m1, listen_filter.m2);  gfx_x = 100; gfx_y = 160;
 gfx_printf("Targ Coeffs  = %f %f %f %f %f %f", listen_filter.t_a1, listen_filter.t_a2, listen_filter.t_a3, listen_filter.t_m0, listen_filter.t_m1, listen_filter.t_m2); gfx_x = 100; gfx_y = 180;
 gfx_printf("Targ Steps  = %f %f %f %f %f %f", listen_filter.t_sa1, listen_filter.t_sa2, listen_filter.t_sa3, listen_filter.t_sm0, listen_filter.t_sm1, listen_filter.t_sm2); gfx_x = 100; gfx_y = 200;
