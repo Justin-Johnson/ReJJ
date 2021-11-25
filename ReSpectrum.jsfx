@@ -1,7 +1,7 @@
 desc: ReSpectrum
 /*
 ReSpectrum - A spectrum analyzer
-Version: v1.0.1
+Version: v1.1.2
 
 The MIT License (MIT)
 
@@ -43,6 +43,8 @@ import svf_filter.jsfx-inc
 options:no_meter
 
 @init
+
+#VERSION = "1.1.2";
 
 gfx_ext_retina  = 1;
 ext_nodenorm    = 1;
@@ -268,7 +270,7 @@ function draw_listen_helper()
 
   oct = rnoct - lnoct;
 
-  listen_q = filter.zdf_bwtoq(oct);
+  listen_q = filter.svf_bwtoq(oct);
 
   gfx_a = 1.0;
   gfx_line(lx, 0, lx, gfx_h - gfx_texth+2);
@@ -487,7 +489,10 @@ function handle_menu_button() instance (x, y, width, menutext, label, pressed, h
     mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
       pressed = 1;
 
-        #menu = "";
+        #menu = "#Version: ";
+        #menu += #VERSION;
+        #menu += " ||";
+
         #menu += ">Spectrum|";
         Spectrum_Mode == 0 ? #menu += "!"; #menu += "Full|";
         Spectrum_Mode == 1 ? #menu += "!"; #menu += "Mid|";
@@ -532,7 +537,7 @@ function handle_menu_button() instance (x, y, width, menutext, label, pressed, h
       gfx_x = mouse_x;
       gfx_y = mouse_y;
 
-      last_clicked_item = gfx_showmenu(#menu);
+      last_clicked_item = gfx_showmenu(#menu) - 1;
 
       pressed = 0;
 
@@ -583,7 +588,7 @@ function handle_menu_button() instance (x, y, width, menutext, label, pressed, h
 do_listen = 0;
 listen_width = 0.10;
 
-filter.zdf_set_sample_rate(srate);
+filter.svf_set_sample_rate(srate);
 
 gfx_ext_retina == 2 ? (
   menu.init_menu_button(gfx_w - 140, 10, 120, "Settings", "");
@@ -621,8 +626,8 @@ Spectrum_Mode == 6 ? (spectrum.sample0(spl0); spectrum.sample1(spl1));
 // Filter if we're in listen mode
 do_listen ? (
   mono = 0.5 * (spl0 + spl1);
-  filter.zdf_bp2(listen_freq, listen_q);
-  spl0 = spl1 = filter.zdf_svf0(mono); 
+  filter.svf_bp2(listen_freq, listen_q);
+  spl0 = spl1 = filter.svf_svf0(mono); 
 );
 
 @gfx 640 400

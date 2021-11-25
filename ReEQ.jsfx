@@ -1,7 +1,7 @@
 desc: ReEQ
 /*
 ReEQ - A parametric graphic equalizer
-Version: v1.1.1   <--- Make sure you change VERSION below if this changes!!
+Version: v1.1.2  <--- Make sure you change VERSION below if this changes!!
 
 The MIT License (MIT)
 
@@ -108,7 +108,7 @@ options:no_meter
 @init
 
 // This should be the same as in the comment header
-#VERSION = "1.1.1";
+#VERSION = "1.1.2";
 
 gfx_ext_retina  = 1;
 ext_nodenorm    = 1;
