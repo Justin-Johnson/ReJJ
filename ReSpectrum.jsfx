@@ -1,31 +1,8 @@
 desc: ReSpectrum
-/*
-ReSpectrum - A spectrum analyzer
-Version: v1.1.2
-
-The MIT License (MIT)
-
-Copyright (c) 2021 Justin Johnson
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
+tags filters
+version: 1.1.3  //<--- Make sure you change VERSION below if this changes!!
+author: Justin Johnson
+license: MIT
 
 slider1:Spectrum_Mode=3<0,5,1{Full,Mid,Side,Mid / Side,Left,Right,Left / Right}>-Spectrum
 slider2:Display_Mode=0<0,2,1{Fill,Line,None}>-Display
@@ -44,7 +21,7 @@ options:no_meter
 
 @init
 
-#VERSION = "1.1.2";
+#VERSION = "1.1.3";
 
 gfx_ext_retina  = 1;
 ext_nodenorm    = 1;
