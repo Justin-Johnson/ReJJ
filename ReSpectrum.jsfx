@@ -1,6 +1,6 @@
 desc: ReSpectrum
 tags filters
-version: 1.1.3  //<--- Make sure you change VERSION below if this changes!!
+version: 1.1.4  //<--- Make sure you change VERSION below if this changes!!
 author: Justin Johnson
 license: MIT
 
@@ -14,14 +14,14 @@ slider7:Block_Value=2<0,3,1{2048,4096,8192,16384}>-Block Size
 slider8:Show_Piano=0<0,1,1{Off,On}>-Show Piano
 slider8:Show_Peaks=0<0,1,1{Off,On}>-Show Peaks
 
-import spectrum.jsfx-inc
-import svf_filter.jsfx-inc
+import Dependencies/spectrum.jsfx-inc
+import Dependencies/svf_filter.jsfx-inc
 
 options:no_meter
 
 @init
 
-#VERSION = "1.1.3";
+#VERSION = "1.1.4";
 
 gfx_ext_retina  = 1;
 ext_nodenorm    = 1;

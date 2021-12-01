@@ -452,7 +452,7 @@ function spectrum.draw_line(x1, y1, x2, y2)
  */
 function spectrum.draw(bufindex)
   local(i, pwr, windowpos, dwindowpos, buf1, buf2, buf3, tx, ty, spectrum_fill, tpx, tpy, fill_slast, fill_slmin,
-        lx, ly, tx0, lx0, num_bins, last_bin, bin, ipnt, mag, freq, bottom, delta, time)
+        lx, ly, tx0, lx0, num_bins, last_bin, bin, ipnt, mag, freq, bottom, delta, time, rate_over_fftsize)
 (
   // Select buffer to draw
   bufindex == 0 ? ( 
@@ -557,21 +557,21 @@ function spectrum.draw(bufindex)
   fft_permute(spectrum.fftworkspace,spectrum.fftsize / 2);
   spectrum.fftworkspace[1] = 0;
 
-  i = 0;
+  buf3 = spectrum.fftworkspace;
+
+  memset(spectrum.bin_mag, spectrum.small_mag, spectrum.max_buffer);
+
+  i = 1;
   ipnt = 0;
-
-  buf3=spectrum.fftworkspace;
-
   num_bins = 0;
   last_bin = -1;
 
-  memset(spectrum.bin_mag, spectrum.small_mag, spectrum.max_buffer);
+  rate_over_fftsize = srate / spectrum.fftsize;
 
   loop(spectrum.fftsize * 0.5,
     mag = sqr(buf3[i*2+0]) + sqr(buf3[i*2+1]);
 
-    freq = (i * srate) / spectrum.fftsize;
-    freq = max(1, freq);
+    freq = i * rate_over_fftsize;
 
     bin = floor(32 * log(freq) / log(2));
 
@@ -592,11 +592,6 @@ function spectrum.draw(bufindex)
     ipnt += 1;
   );
 
-  ly = 0;
-  lx = -1;
-
-  ipnt = 0;
-
   gfx_r = spectrum.red[bufindex];
   gfx_g = spectrum.green[bufindex];
   gfx_b = spectrum.blue[bufindex];
@@ -604,14 +599,16 @@ function spectrum.draw(bufindex)
 
   spectrum_fill = spectrum.fill[bufindex];
 
-  lx = -1;
   bottom = gfx_h - spectrum.bottom_margin - gfx_texth;
 
   time = time_precise();
-  //delta = 0.99 ^ ((time - spectrum.last_time[bufindex]) * 30);
   delta = 0.99 ^ ((time - spectrum.last_time[bufindex]) * 30);
 
   spectrum.last_time[bufindex] = time;
+
+  ly = 0;
+  lx = -1;
+  ipnt = 0;
 
   loop(num_bins, (
       tx = spectrum.freq_to_x(spectrum.bin_freq[ipnt]);
