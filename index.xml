@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<index version="1" name="ReJJ" commit="394da3aac4c86079875da173d594367057c8a0ee">
+  <category name="ReEQ">
+    <reapack name="ReEQ.jsfx" type="effect" desc="Parametric Equaliser">
+      <version name="1.2.0" author="Justin Johnson" time="2021-12-01T00:57:59.864Z">
+        <changelog><![CDATA[Low and high cut resonance dragging]]></changelog>
+        <source>https://raw.githubusercontent.com/Justin-Johnson/ReJJ/97769537b9c973281bbf9bdb8f870d26e5dfb231/ReEQ/ReEQ.jsfx</source>
+        <source file="Dependencies/firhalfband.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReEQ/Dependencies/firhalfband.jsfx-inc</source>
+        <source file="Dependencies/spectrum.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReEQ/Dependencies/spectrum.jsfx-inc</source>
+        <source file="Dependencies/svf_filter.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReEQ/Dependencies/svf_filter.jsfx-inc</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="ReSpectrum">
+    <reapack name="ReSpectrum.jsfx" type="effect" desc="Spectrum Analyser">
+      <version name="1.1.4" author="Justin Johnson" time="2021-12-01T00:57:59.864Z">
+        <changelog><![CDATA[Low and high cut resonance dragging]]></changelog>
+        <source>https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReSpectrum/ReSpectrum.jsfx</source>
+        <source file="Dependencies/firhalfband.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReSpectrum/Dependencies/firhalfband.jsfx-inc</source>
+        <source file="Dependencies/spectrum.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReSpectrum/Dependencies/spectrum.jsfx-inc</source>
+        <source file="Dependencies/svf_filter.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReSpectrum/Dependencies/svf_filter.jsfx-inc</source>
+      </version>
+    </reapack>
+  </category>
+</index>
