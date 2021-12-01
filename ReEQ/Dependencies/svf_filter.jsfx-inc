@@ -1124,6 +1124,7 @@ function svf_mag(freq)
     x /= s;
     y /= s;
 
+    // Return magnitude
     s * sqrt(x * x + y * y);
 );
 
