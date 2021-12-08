@@ -2530,7 +2530,7 @@ function draw_info_panel(note_select)
         band = -1;
         node_drag_mode != 0 ? band = node_drag : node_hover != -1 ? band = node_hover;
         band != -1 && Band_Type[band] == 10 ? gfx_drawstr(sprintf(#,"Cut: %.2f", q/40))
-        : gfx_drawstr(sprintf(#,"Q: %.2f", q));
+        : gfx_drawstr(sprintf(#,"Q: %.3f", q));
       );
   
       slope > -1 ? (
@@ -5278,7 +5278,7 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     );
 
     dialqs = #;
-    sprintf(dialqs, "%.2f", Band_Q[selected_node]);
+    sprintf(dialqs, "%.3f", Band_Q[selected_node]);
     dial_q.label2 = dialqs;
 
 
