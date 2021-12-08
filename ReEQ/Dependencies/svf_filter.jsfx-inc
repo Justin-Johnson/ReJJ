@@ -1078,12 +1078,8 @@ function svf_mag(freq)
   local(zr, zi, zrr, gsq, gm1, gk, twogsq, a, zsq_i, zsq_r, twoz_r, twoz_i, nr, ni, dr, di, norm, ddi, ddr, x, y, s)
 (
     // exp(complex(0.0, -2.0 * pi) * frequency / sampleRate)
-    zr = 0.0;
-    zi = -2.0 * $pi;
-    
-    zr = zr * freq * ONE_OVER_SAMPLE_RATE;
-    zi = zi * freq * ONE_OVER_SAMPLE_RATE;
-    zr = exp(zr);
+    zr = 1; //exp(0);
+    zi = -2.0 * $pi * freq * ONE_OVER_SAMPLE_RATE;
     
     zrr = zr;
     zr = zrr * cos(zi);
@@ -1112,9 +1108,9 @@ function svf_mag(freq)
     di = zsq_i * (gsq - gk + 1.0) + zi * (twogsq - 2.0);
 
     // Numerator / Denominator
-    norm = dr * dr + di * di;
-    a = (nr * dr + ni * di) / norm;
-    ddi = (ni * dr - nr * di) / norm;
+    norm = 1.0 / (dr * dr + di * di);
+    a = (nr * dr + ni * di) * norm;
+    ddi = (ni * dr - nr * di) * norm;
     ddr = a;
 
     // abs(m0_ + (Numerator / Denominator)
@@ -1136,12 +1132,8 @@ function svf_phase(freq)
   local(zr, zi, zrr, gsq, gm1, gk, twogsq, a, zsq_i, zsq_r, twoz_r, twoz_i, nr, ni, dr, di, norm, ddi, ddr, x, y, s)
 (
     // exp(complex(0.0, -2.0 * pi) * frequency / sampleRate)
-    zr = 0.0;
-    zi = -2.0 * $pi;
-    
-    zr = zr * freq * ONE_OVER_SAMPLE_RATE;
-    zi = zi * freq * ONE_OVER_SAMPLE_RATE;
-    zr = exp(zr);
+    zr = 1; //exp(0);
+    zi = -2.0 * $pi * freq * ONE_OVER_SAMPLE_RATE;
     
     zrr = zr;
     zr = zrr * cos(zi);
@@ -1170,9 +1162,9 @@ function svf_phase(freq)
     di = zsq_i * (gsq - gk + 1.0) + zi * (twogsq - 2.0);
 
     // Numerator / Denominator
-    norm = dr * dr + di * di;
-    a = (nr * dr + ni * di) / norm;
-    ddi = (ni * dr - nr * di) / norm;
+    norm = 1 / (dr * dr + di * di);
+    a = (nr * dr + ni * di) * norm;
+    ddi = (ni * dr - nr * di) * norm;
     ddr = a;
 
     // arg(m0_ + (Numerator / Denominator)

@@ -1,6 +1,6 @@
 desc: ReEQ - Parametric Graphic Equalizer
 tags filters
-version: 1.2.0  //<--- Make sure you change VERSION below if this changes!!
+version: 1.2.1  //<--- Make sure you change VERSION below if this changes!!
 author: Justin Johnson
 license: MIT
 
@@ -85,7 +85,7 @@ options:no_meter
 @init
 
 // This should be the same as in the comment header
-#VERSION = "1.2.0";
+#VERSION = "1.2.1";
 
 gfx_ext_retina  = 1;
 ext_nodenorm    = 1;
@@ -893,6 +893,7 @@ gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
 // Mark filters for update if sliders have changed
+// jj
 Band_Enabled[0] != Node1_Enabled || Band_Type[0] != Node1_Type || Band_Gain[0] != Node1_Gain || Band_Frequency[0] != per_to_freq(Node1_Frequency,100) || Band_Q[0] != Node1_Q || Band_Slope[0] != Node1_Slope ? flag_filter_update(0);
 Band_Enabled[1] != Node2_Enabled || Band_Type[1] != Node2_Type || Band_Gain[1] != Node2_Gain || Band_Frequency[1] != per_to_freq(Node2_Frequency,100) || Band_Q[1] != Node2_Q || Band_Slope[1] != Node2_Slope ? flag_filter_update(1);
 Band_Enabled[2] != Node3_Enabled || Band_Type[2] != Node3_Type || Band_Gain[2] != Node3_Gain || Band_Frequency[2] != per_to_freq(Node3_Frequency,100) || Band_Q[2] != Node3_Q || Band_Slope[2] != Node3_Slope ? flag_filter_update(2);
@@ -901,8 +902,6 @@ Band_Enabled[4] != Node5_Enabled || Band_Type[4] != Node5_Type || Band_Gain[4] !
 
 // Update any automation
 sliders_to_filters();
-
-
 
 update_state();
 
@@ -5203,7 +5202,6 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
 
     panel_stereo_options.draw_options_button2();
 
-
     // Frequency dial
     gfx_a = 1;
     dial_freq.x = panel_x + panel_w/2 - 90 * gfx_ext_retina;
@@ -5230,16 +5228,18 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
 
     // Gain dial
     gfx_a = 1; 
+    do_handle_gain = 1;
     (Band_Type[selected_node] == FILTER_LOW_CUT || Band_Type[selected_node] == FILTER_LOW_CUT_BUTTERWORTH || Band_Type[selected_node] == FILTER_HIGH_CUT  || Band_Type[selected_node] == FILTER_HIGH_CUT_BUTTERWORTH
-      || Band_Type[selected_node] == FILTER_NOTCH || Band_Type[selected_node] == FILTER_BAND_PASS  || Band_Type[selected_node] == FILTER_ALL_PASS) ? gfx_a = 0.3;
+      || Band_Type[selected_node] == FILTER_NOTCH || Band_Type[selected_node] == FILTER_BAND_PASS  || Band_Type[selected_node] == FILTER_ALL_PASS) ? (
+        gfx_a = 0.3;
+        do_handle_gain = 0;
+      );
 
     dial_gain.draw_number_dial();
     a1 = -30;  b1 = 30;
     rotval = (Band_Gain[selected_node] - a1) / (b1 - a1);
 
-    !(Band_Type[selected_node] == FILTER_LOW_CUT || Band_Type[selected_node] == FILTER_LOW_CUT_BUTTERWORTH || Band_Type[selected_node] == FILTER_HIGH_CUT || Band_Type[selected_node] == FILTER_HIGH_CUT_BUTTERWORTH
-      || Band_Type[selected_node] == FILTER_NOTCH || Band_Type[selected_node] == FILTER_BAND_PASS  || Band_Type[selected_node] == FILTER_ALL_PASS) ? (
-      
+    do_handle_gain ? (      
       v = dial_gain.handle_number_dial(rotval);
       v != rotval ? (
         Band_Gain[selected_node] = a1 + (b1 - a1) * v;
@@ -5254,23 +5254,27 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     sprintf(dialgs, "%.2f dB", Band_Gain[selected_node]);
     dial_gain.label2 = dialgs;
 
-
     // Q dial
     gfx_a = 1;
-    (Band_Type[selected_node] == FILTER_LOW_CUT || Band_Type[selected_node] == FILTER_HIGH_CUT) && Band_Slope[selected_model] == 0 ? gfx_a = 0.3;
-    Band_Type[selected_node] == FILTER_LOW_CUT_BUTTERWORTH || Band_Type[selected_node] == FILTER_HIGH_CUT_BUTTERWORTH 
-      || Band_Type[selected_node] == FILTER_LOW_CUT_ANALOG || Band_Type[selected_node] == FILTER_HIGH_CUT_ANALOG ? gfx_a = 0.3;
+    do_handle_Q = 1;
+    ((Band_Type[selected_node] == FILTER_LOW_CUT || Band_Type[selected_node] == FILTER_HIGH_CUT) && Band_Slope[selected_model] == 0)
+     || Band_Type[selected_node] == FILTER_LOW_CUT_BUTTERWORTH || Band_Type[selected_node] == FILTER_HIGH_CUT_BUTTERWORTH 
+      || Band_Type[selected_node] == FILTER_LOW_CUT_ANALOG || Band_Type[selected_node] == FILTER_HIGH_CUT_ANALOG ? (
+        gfx_a = 0.3;
+        do_handle_Q = 0;
+      );
 
     dial_q.draw_number_dial();
-    a1 = 0.10;  b1 = 40;
     rotval = q_to_per(Band_Q[selected_node], 1.0);
 
-    v = dial_q.handle_number_dial(rotval);
-    v != rotval ? (
-      Band_Q[selected_node] = per_to_q(v, 1.0);
-      flag_filter_update(selected_node);
+    do_handle_Q ? (
+      v = dial_q.handle_number_dial(rotval);
+      v != rotval ? (
+        Band_Q[selected_node] = per_to_q(v, 1.0);
+        flag_filter_update(selected_node);
 
-      notify_touched_Q(selected_node);
+        notify_touched_Q(selected_node);
+      );
     );
 
     dialqs = #;
