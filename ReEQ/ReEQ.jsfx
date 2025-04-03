@@ -4519,7 +4519,7 @@ do_general_mouse ? (
       // Double click?
       tm - click_time < 0.4 ? (
         // Handle double click button value resets
-        mouse_cap & 4 && ((mouse_y >= gfx_h - BOTTOM_MARGIN - gfx_texth) || (selected_node != -1 && mouse_within_panel())) ? (
+        mouse_cap & 1 && ((mouse_y >= gfx_h - BOTTOM_MARGIN - gfx_texth) || (selected_node != -1 && mouse_within_panel())) ? (
           button_scale.is_mouse_number_button() ? (Scale = button_scale.db = 100;) : 
             button_gain.is_mouse_number_button() ? (Gain = button_gain.db = 0;) :
               button_mid_gain.is_mouse_number_button() ? (MLGain = button_mid_gain.db = 0;) :
