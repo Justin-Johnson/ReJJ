@@ -9,6 +9,15 @@
         <source file="Dependencies/spectrum.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReEQ/Dependencies/spectrum.jsfx-inc</source>
         <source file="Dependencies/svf_filter.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReEQ/Dependencies/svf_filter.jsfx-inc</source>
       </version>
+      <version name="1.2.1" author="Justin Johnson" time="2026-10-29T20:00:00Z">
+        <changelog><![CDATA[ReEQ2 is here: a new interface, decramped filters up to 30 kHz and per-band dynamic EQ with sidechain inputs.
+Install "ReEQ2" from Extensions > ReaPack > Browse packages. It comes with an action to move your projects over with all their settings: search the Actions window for "ReEQ upgrade".
+This update changes nothing in ReEQ 1.2, so your projects sound exactly as before.]]></changelog>
+        <source>https://raw.githubusercontent.com/Justin-Johnson/ReJJ/97769537b9c973281bbf9bdb8f870d26e5dfb231/ReEQ/ReEQ.jsfx</source>
+        <source file="Dependencies/firhalfband.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReEQ/Dependencies/firhalfband.jsfx-inc</source>
+        <source file="Dependencies/spectrum.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReEQ/Dependencies/spectrum.jsfx-inc</source>
+        <source file="Dependencies/svf_filter.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/0f94ef04a7131df71b2ad2293ce312111073b871/ReEQ/Dependencies/svf_filter.jsfx-inc</source>
+      </version>
     </reapack>
   </category>
   <category name="ReEQ2">
@@ -20,16 +29,11 @@
 - Per-band dynamic EQ for bells and shelves: threshold, ratio, range, Auto or manual timing, sidechain inputs (channels 3/4, 5/6, 7/8), an unlinked detector with its own node, Listen, and optional lookahead
 - Analyser drawn per pixel with Fill, Line and Heat displays; curve-based auto gain; input trim
 - Embedded TCP/MCP view
-ReEQ 1.2 stays available as its own package; "ReEQ: upgrade ReEQ to ReEQ2" moves projects over with their settings.]]></changelog>
+Includes an action that moves projects from ReEQ 1.2 over with all their settings: search the Actions window for "ReEQ upgrade". ReEQ 1.2 stays available as its own package.]]></changelog>
         <source>https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.0/ReEQ2/ReEQ2.jsfx</source>
         <source file="Dependencies/ivantsov_filter.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.0/ReEQ2/Dependencies/ivantsov_filter.jsfx-inc</source>
         <source file="Dependencies/spectrum.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.0/ReEQ2/Dependencies/spectrum.jsfx-inc</source>
-      </version>
-    </reapack>
-    <reapack name="ReEQ upgrade to ReEQ2.lua" type="script" desc="ReEQ: upgrade ReEQ to ReEQ2">
-      <version name="1.0.0" author="Justin Johnson" time="2026-10-29T20:00:00Z">
-        <changelog><![CDATA[Moves every ReEQ in the project (or on the selected tracks) to ReEQ2, keeping its settings]]></changelog>
-        <source main="main">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.0/Scripts/ReEQ%20upgrade%20to%20ReEQ2.lua</source>
+        <source file="ReEQ upgrade to ReEQ2.lua" type="script" main="main">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.0/Scripts/ReEQ%20upgrade%20to%20ReEQ2.lua</source>
       </version>
     </reapack>
   </category>

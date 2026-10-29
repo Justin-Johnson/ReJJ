@@ -7,8 +7,9 @@ EQ with sidechain inputs, and a built-in analyser.
 
 ## ReEQ 1.2
 `ReEQ/ReEQ.jsfx` — the original ReEQ, kept unchanged so existing projects sound as they did. To move a
-project to ReEQ², run the script `Scripts/ReEQ upgrade to ReEQ2.lua` (in ReaPack as "ReEQ: upgrade ReEQ
-to ReEQ2"); it keeps every setting.
+project to ReEQ², run the "ReEQ upgrade to ReEQ2" action (installed with ReEQ2 from ReaPack: search the
+Actions window for "ReEQ upgrade"; in this repository at `Scripts/ReEQ upgrade to ReEQ2.lua`). It keeps every
+setting.
 
 ## ReSpectrum
 `ReSpectrum/ReSpectrum.jsfx` — a spectrum analyser.
