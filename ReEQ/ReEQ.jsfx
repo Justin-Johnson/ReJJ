@@ -7,6 +7,7 @@ license: MIT
 slider1:Stereo_Mode=<0,1,1{Mid/Side,Left/Right}>-Stereo Mode
 slider2:Quality=1<0,1,1{Eco,HQ}>-Quality
 slider3:Gain=0<-136,30,0.01>-Gain
+slider136:InGain=0<-136,30,0.01>-Input Gain
 slider4:MLGain=0<-136,30,0.01>-Mid/Left Gain
 slider5:SRGain=0<-136,30,0.01>-Side/Right Gain
 slider6:Scale=100<0,200,0.01>-Scale
@@ -1125,6 +1126,7 @@ init_rate != srate ? (
   node_drag_lock = 0;
 
   gainDb = 1;
+  gainIn = 1;
   gainML = 1;
   gainSR = 1;
 
@@ -1247,6 +1249,7 @@ srate != slider_last_rate ? (
 button_stereo_mode.select = Stereo_Mode;
 
 gainDb = 2 ^ (Gain/6);
+gainIn = 2 ^ (InGain/6);
 gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
@@ -1404,6 +1407,12 @@ function decodeMS(mid, side, l*, r*) (
 
 spl0 += 0.0000000001; // DeNorm fix
 spl1 += 0.0000000001; // DeNorm fix
+
+// Input trim, before everything (the pre-EQ spectrum shows the trimmed input), and its peak for the meter
+spl0 *= gainIn;
+spl1 *= gainIn;
+in_pk0 = max(in_pk0, abs(spl0));
+in_pk1 = max(in_pk1, abs(spl1));
 
 // Feed the correct buffers depending on spectrum modes
 Show_PreEQ ? (
@@ -2136,9 +2145,10 @@ compact_height = actual_height < 320;
 very_compact_width = actual_width < 300;
 very_compact_height = actual_height < 160;
 
-// A header strip holds the logo and the top buttons; the graph starts below it
-HEADER_H = compact_height ? 0 : floor(ui_pt(34));
-TOP_MARGIN = compact_height ? floor(ui_pt(10)) : HEADER_H + floor(ui_pt(16));
+// A header strip holds the logo and the top buttons; the graph starts below it. Compact sizes keep
+// just the wordmark (short windows in a slimmer strip); very short windows drop it.
+HEADER_H = very_compact_height ? 0 : compact_height ? floor(ui_pt(24)) : floor(ui_pt(34));
+TOP_MARGIN = HEADER_H == 0 ? floor(ui_pt(10)) : HEADER_H + floor(compact_width || compact_height ? ui_pt(10) : ui_pt(16));
 // The bottom toolbar is 40pt, and the node panel sits about 176pt above it
 BOTTOM_MARGIN = 40 * max(gfx_ext_retina, 1);
 RAISED_BOTTOM = 176 * max(gfx_ext_retina, 1);
@@ -3882,11 +3892,59 @@ function ui_dial_face(cx, cy, label, v, bipolar, nd, dim, val, unit) local(s, w1
 );
 
 /*
+ * One gradient segment of a meter bar, from fraction f0 to f1 of the bar in colours c0 to c1, cut off at
+ * the bar's fill width fw
+ */
+function ui_meter_seg(bx, by, bw, bh, fw, f0, f1, r0, g0, b0, r1, g1, b1) local(x0, x1, xc, span) (
+  x0 = bx + f0 * bw; x1 = bx + f1 * bw; xc = min(x1, bx + fw);
+  span = max(x1 - x0, 1);
+  xc > x0 ? gfx_gradrect(floor(x0), by, max(1, ceil(xc - x0)), bh, r0 / 255, g0 / 255, b0 / 255, 1,
+    (r1 - r0) / 255 / span, (g1 - g0) / 255 / span, (b1 - b0) / 255 / span, 0, 0, 0, 0, 0);
+);
+
+/*
+ * Stereo peak meter at the right of a bar field: two bars from -60 to +3 dBFS. The colour follows the
+ * scale: green for most of it, easing to amber from -12 dB and red at 0 dB, so anything over 0 dBFS
+ * shows a red tip.
+ */
+function ui_meter(x, y, w, h, mw, p0, p1) local(k, lv, fr, bx, by, bh, fw, q12, q3, q0) (
+  bx = floor(x + w - ui_pt(7) - mw); bh = max(1, floor(ui_pt(3)));
+  q12 = 48 / 63; q3 = 57 / 63; q0 = 60 / 63;
+  k = 0;
+  loop(2,
+    by = floor(y + h * 0.5 - ui_pt(4) + k * ui_pt(5));
+    ui_rgb(27, 33, 36); gfx_a = 1;
+    gfx_rect(bx, by, mw, bh);
+    lv = 20 * log10(max(k == 0 ? p0 : p1, 0.000001));
+    fr = min(max((lv + 60) / 63, 0), 1);
+    fw = floor(mw * fr);
+    fw > 0 ? (
+      ui_meter_seg(bx, by, mw, bh, fw, 0, q12, 95, 191, 122, 95, 191, 122);
+      ui_meter_seg(bx, by, mw, bh, fw, q12, q3, 95, 191, 122, 227, 168, 75);
+      ui_meter_seg(bx, by, mw, bh, fw, q3, q0, 227, 168, 75, 226, 75, 74);
+      ui_meter_seg(bx, by, mw, bh, fw, q0, 1, 226, 75, 74, 226, 75, 74);
+    );
+    k += 1;
+  );
+);
+
+/*
+ * Clip alert over a bar field: its frame and a faint fill fade in red by glow (0..1)
+ */
+function ui_clip_glow(x, y, w, h, glow) (
+  glow > 0.001 ? (
+    ui_rgba(226, 75, 74, 0.10 * glow); ui_fill_rrect(x, y, w, h, ui_pt(5));
+    ui_rgba(226, 75, 74, glow); gfx_roundrect(floor(x), floor(y), floor(w) - 1, floor(h) - 1, ui_pt(5), 1);
+    gfx_a = 1;
+  );
+);
+
+/*
  * Bottom toolbar
  */
 function ui_draw_bar()
-  local(s, y0, bh, h, y, d, labels, units, gap, mw, pol, w_lr,w_ms, w_sc, w_mid, w_side, w_lim, w_auto, w_pan, w_out,
-        wl, wc, wr, gg, pad, xl, xc, xr, x, nv, sc, midv, sidev, outv, ag, lab, lv, fr, can, k)
+  local(s, y0, bh, h, y, d, labels, units, gap, mw, pol, w_in, w_lr, w_ms, w_sc, w_mid, w_side, w_lim, w_auto, w_pan, w_out,
+        wl, wc, wr, gg, pad, xl, xc, xr, x, nv, sc, inv, midv, sidev, outv, ag, can, k)
 (
   s = ui_pt(1);
   bh = ui_pt(40); y0 = gfx_h - bh;
@@ -3898,6 +3956,7 @@ function ui_draw_bar()
   ui_rgba(29, 35, 38, 1); gfx_line(0, y0, gfx_w, y0, 0);
 
   sc = sprintf(#, "%d%%", Scale);
+  inv = ui_fmt_db(#, InGain);
   midv = ui_fmt_db(#, MLGain);
   sidev = ui_fmt_db(#, SRGain);
   outv = ui_fmt_db(#, Gain);
@@ -3918,22 +3977,24 @@ function ui_draw_bar()
     // Widths come from templates, not the live values, so nothing moves while a value is dragged
     k = max(ui_text_w("+00.0"), ui_text_w("−000.0"));
     w_sc = max(ui_text_w("200%"), ui_text_w(sc));
-    w_mid = max(k, ui_text_w(midv)); w_side = max(k, ui_text_w(sidev)); w_out = max(k, ui_text_w(outv));
+    w_mid = max(k, ui_text_w(midv)); w_side = max(k, ui_text_w(sidev)); w_out = max(k, ui_text_w(outv)); w_in = max(k, ui_text_w(inv));
     w_auto = (AutoGainEnabled && d < 3 ? max(ui_text_w("Auto −000.0 dB"), ui_text_w(ag)) : ui_text_w(ag)) + ui_pt(18);
     gfx_setfont(3);
     w_lim = ui_text_w("Limit") + ui_pt(18); w_pan = ui_text_w("Panel") + ui_pt(18);
-    units ? (k = ui_text_w("dB") + ui_pt(3); w_mid += k; w_side += k; w_out += k);
+    units ? (k = ui_text_w("dB") + ui_pt(3); w_mid += k; w_side += k; w_out += k; w_in += k);
     gfx_setfont(5);
     labels ? (
       w_sc += ui_text_w("SCALE") + ui_pt(7);
       w_mid += ui_text_w(Stereo_Mode ? "LEFT" : "MID") + ui_pt(7);
       w_side += ui_text_w(Stereo_Mode ? "RIGHT" : "SIDE") + ui_pt(7);
       w_out += ui_text_w("OUT") + ui_pt(7);
+      w_in += ui_text_w("IN") + ui_pt(7);
     );
-    w_sc += ui_pt(18); w_mid += ui_pt(16) + pol; w_side += ui_pt(16) + pol; w_out += ui_pt(23) + mw;
+    w_sc += ui_pt(18); w_mid += ui_pt(16) + pol; w_side += ui_pt(16) + pol; w_out += ui_pt(23) + mw; w_in += ui_pt(23) + mw;
 
-    wl = w_lr + w_ms;
-    wc = w_sc + gap + w_mid + gap + w_side;
+    // Input on the left; scale and the stereo controls (selector first) in the centre; output on the right
+    wl = w_in;
+    wc = w_sc + gap + w_lr + w_ms + gap + w_mid + gap + w_side;
     wr = w_lim + gap + w_auto + gap + w_pan + gap + w_out;
     d += 1;
     d < 4 && wl + wc + wr + 2 * gg + 2 * pad > gfx_w;
@@ -3944,15 +4005,21 @@ function ui_draw_bar()
   xc = floor(gfx_w * 0.5 - wc * 0.5);
   xc = max(xl + wl + gg, min(xc, xr - gg - wc));
 
-  // Processing: L/R | M/S (Stereo_Mode 0 is M/S, 1 is L/R)
+  // Input trim with its peak meter
   x = xl;
-  nv = ui_seg2(x, y, h, w_lr, w_ms, "L/R", "M/S", Stereo_Mode ? 0 : 1);
-  nv != (Stereo_Mode ? 0 : 1) ? (
-    Stereo_Mode = nv == 0 ? 1 : 0;
-    slider_automate(Stereo_Mode);
+  button_in_gain.type = 0;
+  button_in_gain.x = x; button_in_gain.y = y; button_in_gain.width = w_in; button_in_gain.height = h;
+  button_in_gain.db = InGain;
+  can ? (
+    nv = button_in_gain.handle_number_button();
+    nv != InGain ? (InGain = nv; gainIn = 2 ^ (InGain / 6); slider_automate(InGain));
   );
+  ui_field(x, y, w_in, h, labels ? "IN" : "", inv, units ? "dB" : "", button_in_gain.drag || ui_hover(x, y, w_in, h));
+  ui_clip_glow(x, y, w_in, h, ui_clip_in);
+  ui_meter(x, y, w_in, h, mw, ui_ipk0, ui_ipk1);
 
-  // Stereo trims. The fields drag like the old number buttons.
+  // Scale, then the stereo controls: L/R | M/S (Stereo_Mode 0 is M/S, 1 is L/R) and its two trims.
+  // The fields drag like the old number buttons.
   x = xc;
   button_scale.type = 1;
   button_scale.x = x; button_scale.y = y; button_scale.width = w_sc; button_scale.height = h;
@@ -3964,6 +4031,13 @@ function ui_draw_bar()
   ui_field(x, y, w_sc, h, labels ? "SCALE" : "", sc, "", button_scale.drag || ui_hover(x, y, w_sc, h));
 
   x += w_sc + gap;
+  nv = ui_seg2(x, y, h, w_lr, w_ms, "L/R", "M/S", Stereo_Mode ? 0 : 1);
+  nv != (Stereo_Mode ? 0 : 1) ? (
+    Stereo_Mode = nv == 0 ? 1 : 0;
+    slider_automate(Stereo_Mode);
+  );
+
+  x += w_lr + w_ms + gap;
   button_mid_gain.type = 0;
   button_mid_gain.x = x; button_mid_gain.y = y; button_mid_gain.width = w_mid - pol; button_mid_gain.height = h;
   button_mid_gain.db = MLGain;
@@ -4017,21 +4091,12 @@ function ui_draw_bar()
   button_gain.db = Gain;
   can ? (
     nv = button_gain.handle_number_button();
-    nv != Gain ? (Gain = nv; slider_automate(Gain));
+    nv != Gain ? (Gain = nv; gainDb = 2 ^ (Gain / 6); slider_automate(Gain));
   );
   ui_field(x, y, w_out, h, labels ? "OUT" : "", outv, units ? "dB" : "", button_gain.drag || ui_hover(x, y, w_out, h));
 
-  // Peak meter: two bars, -60 to 0 dBFS
-  k = 0;
-  loop(2,
-    lv = 20 * log10(max(k == 0 ? ui_pk0 : ui_pk1, 0.000001));
-    fr = min(max((lv + 60) / 60, 0), 1);
-    ui_rgb(27, 33, 36);
-    gfx_rect(x + w_out - ui_pt(7) - mw, y + h * 0.5 - ui_pt(4) + k * ui_pt(5), mw, ui_pt(3));
-    lv >= 0 ? ui_rgb(226, 75, 74) : lv > -6 ? ui_rgb(227, 168, 75) : ui_rgb(95, 191, 122);
-    fr > 0 ? gfx_rect(x + w_out - ui_pt(7) - mw, y + h * 0.5 - ui_pt(4) + k * ui_pt(5), max(1, floor(mw * fr)), ui_pt(3));
-    k += 1;
-  );
+  ui_clip_glow(x, y, w_out, h, ui_clip_out);
+  ui_meter(x, y, w_out, h, mw, ui_pk0, ui_pk1);
 
   // dB range: the top scale label is its button (ui_draw_header); it opens the Range popover
   ui_clicked(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h) ? (
@@ -4042,7 +4107,8 @@ function ui_draw_bar()
 
 /*
  * Header strip with the wordmark (the Analyzer and settings buttons are drawn into it by ui_draw_top),
- * always shown apart from compact heights; then the top scale label as the dB range button.
+ * with just the wordmark in compact sizes and none when very short; then the top scale label as the
+ * dB range button.
  */
 function ui_draw_header() local(s, x, i) (
   s = ui_pt(1);
@@ -4053,21 +4119,21 @@ function ui_draw_header() local(s, x, i) (
     // Wordmark: Re in white, EQ in bold amber; then a hairline and a spaced descriptor when there's room
     x = 12 * s;
     gfx_setfont(13); ui_rgb(232, 238, 240);
-    ui_text_l(x, 2 * s, 30 * s, "Re");
+    ui_text_l(x, 0, HEADER_H, "Re");
     x += ui_text_w("Re");
     gfx_setfont(14); ui_rgb(227, 168, 75);
-    ui_text_l(x, 2 * s, 30 * s, "EQ");
+    ui_text_l(x, 0, HEADER_H, "EQ");
     x += ui_text_w("EQ");
-    actual_width >= 700 ? (
+    actual_width >= 700 && !compact_height ? (
       x += 10 * s;
-      ui_rgb(42, 49, 53); gfx_rect(floor(x), floor(10 * s), max(1, floor(s)), floor(14 * s));
+      ui_rgb(42, 49, 53); gfx_rect(floor(x), floor(HEADER_H * 0.5 - 7 * s), max(1, floor(s)), floor(14 * s));
       x += 11 * s;
       gfx_setfont(5); ui_rgb(109, 119, 124);
       #ui_desc = "PARAMETRIC EQUALISER";
       i = 0;
       loop(strlen(#ui_desc),
         strcpy_substr(#ui_ch, #ui_desc, i, 1);
-        ui_text_l(x, 2 * s, 30 * s, #ui_ch);
+        ui_text_l(x, 0, HEADER_H, #ui_ch);
         x += ui_text_w(#ui_ch) + 1.4 * s;
         i += 1;
       );
@@ -5216,6 +5282,7 @@ do_general_mouse ? (
         mouse_cap & 4 && ((mouse_y >= gfx_h - BOTTOM_MARGIN - gfx_texth) || (selected_node != -1 && mouse_within_panel())) ? (
           button_scale.is_mouse_number_button() ? (Scale = button_scale.db = 100;) : 
             button_gain.is_mouse_number_button() ? (Gain = button_gain.db = 0;) :
+            button_in_gain.is_mouse_number_button() ? (InGain = button_in_gain.db = 0;) :
               button_mid_gain.is_mouse_number_button() ? (MLGain = button_mid_gain.db = 0;) :
                 button_side_gain.is_mouse_number_button() ? (SRGain = button_side_gain.db = 0;) :
                   dial_slope.is_mouse_number_dial() ? (set_node_slope(selected_node, 1); ) :
@@ -5515,23 +5582,36 @@ box_region_drag_mode ? (
 // Close a picker when its band or the panel goes away, or on Escape
 (ui_popup == 1 || ui_popup == 2) && (!ShowPanel || selected_node < 0 || Band_Enabled[selected_node] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
 ui_popup == 3 && (compact_width || compact_height || Band_Enabled[ui_card_band] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
-(ui_popup == 4 || ui_popup == 5) && (compact_height || ui_key == 27) ? ui_popup = 0;
+(ui_popup == 4 || ui_popup == 5) && (compact_height || compact_width || ui_key == 27) ? ui_popup = 0;
 ui_popup == 6 && (compact_width || compact_height || ui_key == 27) ? ui_popup = 0;
 
 // Output peak meter: the audio side holds the peak since the last frame, this side decays it
 ui_t = time_precise();
 ui_dt = min(max(ui_t - ui_last_t, 0), 0.5);
-ui_t - ui_last_t > 0.5 ? (out_pk0 = out_pk1 = 0; ui_pk0 = ui_pk1 = 0);
+ui_t - ui_last_t > 0.5 ? (out_pk0 = out_pk1 = 0; ui_pk0 = ui_pk1 = 0; in_pk0 = in_pk1 = 0; ui_ipk0 = ui_ipk1 = 0;
+                          ui_clipo_raw = ui_clipi_raw = ui_clipo_hold = ui_clipi_hold = 0);
 ui_last_t = ui_t;
+// Clip alerts: over 0 dBFS the field's frame fades to red (0.08 s), holds 0.6 s after the last clip,
+// then fades back (0.8 s), eased with a smoothstep
+max(out_pk0, out_pk1) >= 1 ? (ui_clipo_hold = 0.6; ui_clipo_raw = min(1, ui_clipo_raw + ui_dt / 0.08)) :
+  ui_clipo_hold > 0 ? ui_clipo_hold -= ui_dt : ui_clipo_raw = max(0, ui_clipo_raw - ui_dt / 0.8);
+max(in_pk0, in_pk1) >= 1 ? (ui_clipi_hold = 0.6; ui_clipi_raw = min(1, ui_clipi_raw + ui_dt / 0.08)) :
+  ui_clipi_hold > 0 ? ui_clipi_hold -= ui_dt : ui_clipi_raw = max(0, ui_clipi_raw - ui_dt / 0.8);
+ui_clip_out = ui_clipo_raw * ui_clipo_raw * (3 - 2 * ui_clipo_raw);
+ui_clip_in = ui_clipi_raw * ui_clipi_raw * (3 - 2 * ui_clipi_raw);
+
 ui_pk0 = max(out_pk0, ui_pk0 * 10 ^ (-1.2 * ui_dt));
 ui_pk1 = max(out_pk1, ui_pk1 * 10 ^ (-1.2 * ui_dt));
 out_pk0 = out_pk1 = 0;
+ui_ipk0 = max(in_pk0, ui_ipk0 * 10 ^ (-1.2 * ui_dt));
+ui_ipk1 = max(in_pk1, ui_ipk1 * 10 ^ (-1.2 * ui_dt));
+in_pk0 = in_pk1 = 0;
 
 // ui_draw_top and ui_draw_bar record the buttons they drew; the mouse code reads them next frame
 ui_top_h = 0;
 ui_fade > 0 ? (
   !compact_height && !compact_width ? ui_draw_bar();
-  !compact_height ? ui_draw_top();
+  !compact_height && !compact_width ? ui_draw_top();
   ShowPanel && selected_node != -1 ? ui_draw_panel();
   ui_popup == 3 ? ui_draw_node_card();
   ui_popup == 4 ? ui_draw_analyzer_pop();
@@ -5547,6 +5627,7 @@ ui_fading ? (
 );
 
 gainDb = 2 ^ (Gain/6);
+gainIn = 2 ^ (InGain/6);
 gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
