@@ -2386,7 +2386,7 @@ compact_height = actual_height < 320;
 very_compact_width = actual_width < 300;
 very_compact_height = actual_height < 160;
 
-TOP_MARGIN = floor(ui_pt(10));
+TOP_MARGIN = floor(ui_pt(15));
 // The bottom toolbar is 40pt, and the node panel sits about 176pt above it
 BOTTOM_MARGIN = 40 * max(gfx_ext_retina, 1);
 RAISED_BOTTOM = 176 * max(gfx_ext_retina, 1);
@@ -3006,8 +3006,20 @@ function draw_grid() local (db, y, x, f, gb, major, lab, k, s, lw) (
     !compact_height || (k % 2) == 0 ? (
       lab = #;
       db > 0 ? sprintf(lab, "+%d", db) : db < 0 ? sprintf(lab, "−%d", -db) : strcpy(lab, "0");
-      ui_rgba(191, 191, 0, 1); // the original ReEQ yellow
-      ui_text_r(gfx_w - ui_pt(42), y - ui_pt(8), ui_pt(32), ui_pt(16), lab);
+      k == 0 && !compact_width && !compact_height ? (
+        // The top label is the dB range button, in line with the Analyzer and settings buttons
+        ui_dbb_w = ui_pt(40); ui_dbb_h = ui_pt(22); ui_dbb_x = gfx_w - ui_pt(4) - ui_dbb_w; ui_dbb_y = ui_pt(4);
+        ui_hover(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h) ?
+          ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, ui_pt(5), 22, 27, 30, 1, 58, 68, 73) :
+          ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, ui_pt(5), 13, 16, 18, 1, 42, 49, 53);
+        ui_rgba(191, 191, 0, 1); // the original ReEQ yellow
+        ui_text_l(ui_dbb_x + ui_pt(8), ui_dbb_y, ui_dbb_h, lab);
+        ui_rgba(191, 191, 0, 0.7);
+        ui_chevron(ui_dbb_x + ui_dbb_w - ui_pt(10), ui_dbb_y + ui_dbb_h * 0.5, ui_pt(3), 1);
+      ) : (
+        ui_rgba(191, 191, 0, 1); // the original ReEQ yellow
+        ui_text_r(gfx_w - ui_pt(42), y - ui_pt(8), ui_pt(32), ui_pt(16), lab);
+      );
     );
     db -= DB_EQ_RANGE_STEPS;
     k += 1;
@@ -4453,11 +4465,8 @@ function ui_draw_bar()
     k += 1;
   );
 
-  // dB range: click the right-hand dB labels
-  dbscale.x = gfx_w - ui_pt(44); dbscale.y = 0; dbscale.width = ui_pt(44); dbscale.height = ui_pt(24);
-  ui_hover(dbscale.x, dbscale.y, dbscale.width, dbscale.height) ? (
-    ui_rgba(255, 255, 255, 0.06); ui_fill_rrect(dbscale.x + ui_pt(4), ui_pt(4), dbscale.width - ui_pt(8), ui_pt(18), ui_pt(4));
-  );
+  // dB range: the top dB label is drawn as its button (draw_grid)
+  dbscale.x = ui_dbb_x; dbscale.y = ui_dbb_y; dbscale.width = ui_dbb_w; dbscale.height = ui_dbb_h;
   ui_db_vis = 1;
   ui_press && ui_free() ? dbscale.handle_dbscale_button();
   gfx_setfont(1);
@@ -4469,7 +4478,7 @@ function ui_draw_bar()
 function ui_draw_top() local(s, h, y, gw, gx, aw, ax, lab, r) (
   s = ui_pt(1);
   h = ui_pt(22); y = ui_pt(4);
-  gw = ui_pt(24); gx = gfx_w - ui_pt(48) - gw;
+  gw = ui_pt(24); gx = gfx_w - ui_pt(52) - gw;
   lab = Display_Mode == 2 ? "Analyzer · Off" : Show_PreEQ ? "Analyzer · Pre + Post" : "Analyzer · Post";
   gfx_setfont(3);
   aw = ui_text_w(lab) + ui_pt(16);
