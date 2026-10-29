@@ -2067,6 +2067,13 @@ function ui_text_l(x, y, h, s) (
   gfx_drawstr(s, 4 | 256, floor(x + gfx_w), floor(y + h));
 );
 
+// Centre text on a point, measured, so it sits on shapes drawn at fractional positions
+function ui_text_at(cx, cy, s) local(w, h) (
+  gfx_measurestr(s, w, h);
+  gfx_x = floor(cx - w * 0.5 + 0.5); gfx_y = floor(cy - h * 0.5 + 0.5);
+  gfx_drawstr(s);
+);
+
 function ui_text_r(x, y, w, h, s) (
   gfx_x = floor(x); gfx_y = floor(y);
   gfx_drawstr(s, 2 | 4, floor(x + w), floor(y + h));
@@ -2590,10 +2597,10 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
     gfx_circle(x, y, size, 0, 1);
   );
 
-  gfx_setfont(9);
+  gfx_setfont(10);
   ui_rgb(16, 18, 20);
   enabled == 2 ? gfx_a = node_alpha : gfx_a = node_alpha * 0.6;
-  ui_text_c(x - size, y - size, size * 2, size * 2, sprintf(#, "%d", band+1));
+  ui_text_at(x, y, sprintf(#, "%d", band+1));
   gfx_setfont(1);
 
   // Draw band selected indicator
@@ -4660,7 +4667,7 @@ function ui_draw_panel()
   ui_band_rgb(b); gfx_a = 1;
   gfx_circle(x + 21 * s, y + 18 * s, 9 * s, 1, 1);
   gfx_setfont(9); ui_rgb(16, 18, 20);
-  ui_text_c(x + 12 * s, y + 9 * s, 18 * s, 18 * s, sprintf(#, "%d", b + 1));
+  ui_text_at(x + 21 * s, y + 18 * s, sprintf(#, "%d", b + 1));
 
   lab = #;
   cut ? sprintf(lab, "%s · %d", ui_shape_name(t), ui_slope_db(ui_slope_index(Band_Slope[b]))) : strcpy(lab, ui_shape_name(t));
@@ -4823,14 +4830,15 @@ function ui_draw_panel()
   ui_th1 = gfx_texth;
   gfx_setfont(2,"Arial",floor(rscale(11, 18) + 0.5),'b');
 
-  // UI fonts: 3 label, 4 label bold, 5 small caps, 6 dial value, 7 axis, 8 card title, 9 node number
+  // UI fonts: 3 label, 4 label bold, 5 small caps, 6 dial value, 7 axis, 8 card title, 9 badge, 10 node number
   gfx_setfont(3,"Arial",floor(ui_pt(11) + 0.5));
   gfx_setfont(4,"Arial",floor(ui_pt(11) + 0.5),'b');
   gfx_setfont(5,"Arial",floor(ui_pt(9) + 0.5));
   gfx_setfont(6,"Arial",floor(ui_pt(13) + 0.5),'b');
   gfx_setfont(7,"Arial",floor(ui_pt(10) + 0.5));
   gfx_setfont(8,"Arial",floor(ui_pt(12) + 0.5),'b');
-  gfx_setfont(9,"Arial",floor(ui_pt(9) + 0.5),'b');
+  gfx_setfont(9,"Arial",floor(ui_pt(12) + 0.5),'b');
+  gfx_setfont(10,"Arial",floor(ui_pt(10.5) + 0.5),'b');
   gfx_setfont(1);
 );
 
