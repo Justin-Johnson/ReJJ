@@ -11,11 +11,11 @@ slider4:MLGain=0<-136,30,0.01>-Mid/Left Gain
 slider5:SRGain=0<-136,30,0.01>-Side/Right Gain
 slider6:Scale=100<0,200,0.01>-Scale
 
-slider7:Spectrum_Mode=3<0,5,1{Full,Mid,Side,Mid / Side,Left,Right,Left / Right}>-Spectrum
+slider7:Spectrum_Mode=3<0,6,1{Full,Mid,Side,Mid / Side,Left,Right,Left / Right}>-Spectrum
 slider8:Display_Mode=0<0,2,1{Fill,Line,None}>-Display
 slider9:Ceiling_Value=0<0,2,1{0dB,20dB,40dB}>-Ceiling
 slider10:Floor_Value=0<0,2,1{-90dB,-140dB,-200dB}>-Floor
-slider11:Tilt_Value=3<0,5,1{0dB/oct,1.5dB/oct,3dB/oct,4.5dB/oct,6dB/oct}>-Tilt
+slider11:Tilt_Value=3<0,4,1{0dB/oct,1.5dB/oct,3dB/oct,4.5dB/oct,6dB/oct}>-Tilt
 slider12:Type_Value=1<0,3,1{Hamming,Blackman-Harris,Blackman,Rectangular}>-Type
 slider13:Block_Value=2<0,3,1{2048,4096,8192,16384}>-Block Size
 slider14:Show_Piano=0<0,1,1{Off,On}>-Show Piano
@@ -24,40 +24,40 @@ slider16:Show_PreEQ=0<0,1,1{Off,On}>-Show Pre-EQ
 slider17:Db_Range=2<0,4,1{6dB,12dB,18dB,24dB,30dB}>-dB Range
 
 slider18:Node1_Enabled=<0,2,1{Off,Disabled,Enabled}>-Filter1 Mode
-slider19:Node1_Group=0<0,2,1{Stereo,Mid,Side,Left,Right}>-Filter1 Group
-slider20:Node1_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter1 Type
+slider19:Node1_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter1 Group
+slider20:Node1_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter1 Type
 slider21:Node1_Frequency=50.81<0,100,0.01>-Filter1 Frequency
 slider22:Node1_Gain=8.0<-18.0,18.0,0.01>-Filter1 Gain
 slider23:Node1_Q=32.647<0,100.0,0.01>-Filter1 Q
 slider24:Node1_Slope=0<0,15,1>-Filter1 Slope
 
 slider25:Node2_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter2 Mode
-slider26:Node2_Group=0<0,2,1{Stereo,Mid,Side,Left,Right}>-Filter2 Group
-slider27:Node2_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter2 Type
+slider26:Node2_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter2 Group
+slider27:Node2_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter2 Type
 slider28:Node2_Frequency=30<0,100,0.01>-Filter2 Frequency
 slider29:Node2_Gain=0.0<-18.0,18.0,0.01>-Filter2 Gain
 slider30:Node2_Q=32.647<0,100.0,0.01>-Filter2 Q
 slider31:Node2_Slope=0<0,15,1>-Filter2 Slope
 
 slider32:Node3_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter3 Mode
-slider33:Node3_Group=0<0,2,1{Stereo,Mid,Side,Left,Right}>-Filter3 Group
-slider34:Node3_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter3 Type
+slider33:Node3_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter3 Group
+slider34:Node3_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter3 Type
 slider35:Node3_Frequency=40<0,100,0.01>-Filter3 Frequency
 slider36:Node3_Gain=0.0<-18.0,18.0,0.01>-Filter3 Gain
 slider37:Node3_Q=32.647<0,100.0,0.01>-Filter3 Q
 slider38:Node3_Slope=0<0,15,1>-Filter3 Slope
 
 slider39:Node4_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter4 Mode
-slider40:Node4_Group=0<0,2,1{Stereo,Mid,Side,Left,Right}>-Filter4 Group
-slider41:Node4_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter4 Type
+slider40:Node4_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter4 Group
+slider41:Node4_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter4 Type
 slider42:Node4_Frequency=70<0,100,0.01>-Filter4 Frequency
 slider43:Node4_Gain=0.0<-18.0,18.0,0.01>-Filter4 Gain
 slider44:Node4_Q=32.647<0,100.0,0.01>-Filter4 Q
 slider45:Node4_Slope=0<0,15,1>-Filter4 Slope
 
 slider46:Node5_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter5 Mode
-slider47:Node5_Group=0<0,2,1{Stereo,Mid,Side,Left,Right}>-Filter5 Group
-slider48:Node5_Type=0<0,10,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter5 Type
+slider47:Node5_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter5 Group
+slider48:Node5_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter5 Type
 slider49:Node5_Frequency=70<0,100,0.01>-Filter5 Frequency
 slider50:Node5_Gain=0.0<-18.0,18.0,0.01>-Filter5 Gain
 slider51:Node5_Q=32.647<0,100.0,0.01>-Filter5 Q
@@ -68,6 +68,94 @@ slider54:SidePolarity=0<0,1,1>-Side Polarity
 slider55:LimitOutput=0<0,1,1>-Limit Output
 slider56:AGCEnabled=0<0,1,1>-AGC Enabled
 slider57:PanelEnabled=1<0,1,1>-Panel Enabled
+
+slider58:Node6_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter6 Mode
+slider59:Node6_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter6 Group
+slider60:Node6_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter6 Type
+slider61:Node6_Frequency=50<0,100,0.01>-Filter6 Frequency
+slider62:Node6_Gain=0.0<-18.0,18.0,0.01>-Filter6 Gain
+slider63:Node6_Q=32.647<0,100.0,0.01>-Filter6 Q
+slider64:Node6_Slope=0<0,15,1>-Filter6 Slope
+
+slider65:Node7_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter7 Mode
+slider66:Node7_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter7 Group
+slider67:Node7_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter7 Type
+slider68:Node7_Frequency=50<0,100,0.01>-Filter7 Frequency
+slider69:Node7_Gain=0.0<-18.0,18.0,0.01>-Filter7 Gain
+slider70:Node7_Q=32.647<0,100.0,0.01>-Filter7 Q
+slider71:Node7_Slope=0<0,15,1>-Filter7 Slope
+
+slider72:Node8_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter8 Mode
+slider73:Node8_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter8 Group
+slider74:Node8_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter8 Type
+slider75:Node8_Frequency=50<0,100,0.01>-Filter8 Frequency
+slider76:Node8_Gain=0.0<-18.0,18.0,0.01>-Filter8 Gain
+slider77:Node8_Q=32.647<0,100.0,0.01>-Filter8 Q
+slider78:Node8_Slope=0<0,15,1>-Filter8 Slope
+
+slider79:Node9_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter9 Mode
+slider80:Node9_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter9 Group
+slider81:Node9_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter9 Type
+slider82:Node9_Frequency=50<0,100,0.01>-Filter9 Frequency
+slider83:Node9_Gain=0.0<-18.0,18.0,0.01>-Filter9 Gain
+slider84:Node9_Q=32.647<0,100.0,0.01>-Filter9 Q
+slider85:Node9_Slope=0<0,15,1>-Filter9 Slope
+
+slider86:Node10_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter10 Mode
+slider87:Node10_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter10 Group
+slider88:Node10_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter10 Type
+slider89:Node10_Frequency=50<0,100,0.01>-Filter10 Frequency
+slider90:Node10_Gain=0.0<-18.0,18.0,0.01>-Filter10 Gain
+slider91:Node10_Q=32.647<0,100.0,0.01>-Filter10 Q
+slider92:Node10_Slope=0<0,15,1>-Filter10 Slope
+
+slider93:Node11_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter11 Mode
+slider94:Node11_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter11 Group
+slider95:Node11_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter11 Type
+slider96:Node11_Frequency=50<0,100,0.01>-Filter11 Frequency
+slider97:Node11_Gain=0.0<-18.0,18.0,0.01>-Filter11 Gain
+slider98:Node11_Q=32.647<0,100.0,0.01>-Filter11 Q
+slider99:Node11_Slope=0<0,15,1>-Filter11 Slope
+
+slider100:Node12_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter12 Mode
+slider101:Node12_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter12 Group
+slider102:Node12_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter12 Type
+slider103:Node12_Frequency=50<0,100,0.01>-Filter12 Frequency
+slider104:Node12_Gain=0.0<-18.0,18.0,0.01>-Filter12 Gain
+slider105:Node12_Q=32.647<0,100.0,0.01>-Filter12 Q
+slider106:Node12_Slope=0<0,15,1>-Filter12 Slope
+
+slider107:Node13_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter13 Mode
+slider108:Node13_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter13 Group
+slider109:Node13_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter13 Type
+slider110:Node13_Frequency=50<0,100,0.01>-Filter13 Frequency
+slider111:Node13_Gain=0.0<-18.0,18.0,0.01>-Filter13 Gain
+slider112:Node13_Q=32.647<0,100.0,0.01>-Filter13 Q
+slider113:Node13_Slope=0<0,15,1>-Filter13 Slope
+
+slider114:Node14_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter14 Mode
+slider115:Node14_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter14 Group
+slider116:Node14_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter14 Type
+slider117:Node14_Frequency=50<0,100,0.01>-Filter14 Frequency
+slider118:Node14_Gain=0.0<-18.0,18.0,0.01>-Filter14 Gain
+slider119:Node14_Q=32.647<0,100.0,0.01>-Filter14 Q
+slider120:Node14_Slope=0<0,15,1>-Filter14 Slope
+
+slider121:Node15_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter15 Mode
+slider122:Node15_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter15 Group
+slider123:Node15_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter15 Type
+slider124:Node15_Frequency=50<0,100,0.01>-Filter15 Frequency
+slider125:Node15_Gain=0.0<-18.0,18.0,0.01>-Filter15 Gain
+slider126:Node15_Q=32.647<0,100.0,0.01>-Filter15 Q
+slider127:Node15_Slope=0<0,15,1>-Filter15 Slope
+
+slider128:Node16_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter16 Mode
+slider129:Node16_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter16 Group
+slider130:Node16_Type=0<0,13,1{Peak,Low Cut,Low Cut (Butterworth),Low Shelf,High Shelf,High Cut,High Cut (Butterworth),Notch,Band Pass,Tilt Shelf,Pultec Low Shelf,All Pass,Low Cut Analog,High Cut Analog}>-Filter16 Type
+slider131:Node16_Frequency=50<0,100,0.01>-Filter16 Frequency
+slider132:Node16_Gain=0.0<-18.0,18.0,0.01>-Filter16 Gain
+slider133:Node16_Q=32.647<0,100.0,0.01>-Filter16 Q
+slider134:Node16_Slope=0<0,15,1>-Filter16 Slope
 
 import Dependencies/spectrum.jsfx-inc
 import Dependencies/svf_filter.jsfx-inc
@@ -335,7 +423,18 @@ function notify_touched_frequency(node) (
     node == 1 ? slider_automate(Node2_Frequency) :
       node == 2 ? slider_automate(Node3_Frequency) :
         node == 3 ? slider_automate(Node4_Frequency) :
-          node == 4 ? slider_automate(Node5_Frequency);
+          node == 4 ? slider_automate(Node5_Frequency) :
+            node == 5 ? slider_automate(Node6_Frequency) :
+              node == 6 ? slider_automate(Node7_Frequency) :
+                node == 7 ? slider_automate(Node8_Frequency) :
+                  node == 8 ? slider_automate(Node9_Frequency) :
+                    node == 9 ? slider_automate(Node10_Frequency) :
+                      node == 10 ? slider_automate(Node11_Frequency) :
+                        node == 11 ? slider_automate(Node12_Frequency) :
+                          node == 12 ? slider_automate(Node13_Frequency) :
+                            node == 13 ? slider_automate(Node14_Frequency) :
+                              node == 14 ? slider_automate(Node15_Frequency) :
+                                node == 15 ? slider_automate(Node16_Frequency);
 );
 
 /*
@@ -347,7 +446,18 @@ function notify_touched_gain(node) (
     node == 1 ? slider_automate(Node2_Gain) :
       node == 2 ? slider_automate(Node3_Gain) :
         node == 3 ? slider_automate(Node4_Gain) :
-          node == 4 ? slider_automate(Node5_Gain);
+          node == 4 ? slider_automate(Node5_Gain) :
+            node == 5 ? slider_automate(Node6_Gain) :
+              node == 6 ? slider_automate(Node7_Gain) :
+                node == 7 ? slider_automate(Node8_Gain) :
+                  node == 8 ? slider_automate(Node9_Gain) :
+                    node == 9 ? slider_automate(Node10_Gain) :
+                      node == 10 ? slider_automate(Node11_Gain) :
+                        node == 11 ? slider_automate(Node12_Gain) :
+                          node == 12 ? slider_automate(Node13_Gain) :
+                            node == 13 ? slider_automate(Node14_Gain) :
+                              node == 14 ? slider_automate(Node15_Gain) :
+                                node == 15 ? slider_automate(Node16_Gain);
 );
 
 /*
@@ -359,7 +469,18 @@ function notify_touched_Q(node) (
     node == 1 ? slider_automate(Node2_Q) :
       node == 2 ? slider_automate(Node3_Q) :
         node == 3 ? slider_automate(Node4_Q) :
-          node == 4 ? slider_automate(Node5_Q);
+          node == 4 ? slider_automate(Node5_Q) :
+            node == 5 ? slider_automate(Node6_Q) :
+              node == 6 ? slider_automate(Node7_Q) :
+                node == 7 ? slider_automate(Node8_Q) :
+                  node == 8 ? slider_automate(Node9_Q) :
+                    node == 9 ? slider_automate(Node10_Q) :
+                      node == 10 ? slider_automate(Node11_Q) :
+                        node == 11 ? slider_automate(Node12_Q) :
+                          node == 12 ? slider_automate(Node13_Q) :
+                            node == 13 ? slider_automate(Node14_Q) :
+                              node == 14 ? slider_automate(Node15_Q) :
+                                node == 15 ? slider_automate(Node16_Q);
 );
 
 function band_init()
@@ -478,6 +599,94 @@ function filters_to_sliders() (
   Node5_Gain = Band_Gain[4];
   Node5_Q = q_to_per(Band_Q[4], 100);
   Node5_Slope = Band_Slope[4];
+
+  Node6_Enabled = Band_Enabled[5];
+  Node6_Group = Band_Group[5];
+  Node6_Type = Band_Type[5];
+  Node6_Frequency = freq_to_per(Band_Frequency[5], 100);
+  Node6_Gain = Band_Gain[5];
+  Node6_Q = q_to_per(Band_Q[5], 100);
+  Node6_Slope = Band_Slope[5];
+
+  Node7_Enabled = Band_Enabled[6];
+  Node7_Group = Band_Group[6];
+  Node7_Type = Band_Type[6];
+  Node7_Frequency = freq_to_per(Band_Frequency[6], 100);
+  Node7_Gain = Band_Gain[6];
+  Node7_Q = q_to_per(Band_Q[6], 100);
+  Node7_Slope = Band_Slope[6];
+
+  Node8_Enabled = Band_Enabled[7];
+  Node8_Group = Band_Group[7];
+  Node8_Type = Band_Type[7];
+  Node8_Frequency = freq_to_per(Band_Frequency[7], 100);
+  Node8_Gain = Band_Gain[7];
+  Node8_Q = q_to_per(Band_Q[7], 100);
+  Node8_Slope = Band_Slope[7];
+
+  Node9_Enabled = Band_Enabled[8];
+  Node9_Group = Band_Group[8];
+  Node9_Type = Band_Type[8];
+  Node9_Frequency = freq_to_per(Band_Frequency[8], 100);
+  Node9_Gain = Band_Gain[8];
+  Node9_Q = q_to_per(Band_Q[8], 100);
+  Node9_Slope = Band_Slope[8];
+
+  Node10_Enabled = Band_Enabled[9];
+  Node10_Group = Band_Group[9];
+  Node10_Type = Band_Type[9];
+  Node10_Frequency = freq_to_per(Band_Frequency[9], 100);
+  Node10_Gain = Band_Gain[9];
+  Node10_Q = q_to_per(Band_Q[9], 100);
+  Node10_Slope = Band_Slope[9];
+
+  Node11_Enabled = Band_Enabled[10];
+  Node11_Group = Band_Group[10];
+  Node11_Type = Band_Type[10];
+  Node11_Frequency = freq_to_per(Band_Frequency[10], 100);
+  Node11_Gain = Band_Gain[10];
+  Node11_Q = q_to_per(Band_Q[10], 100);
+  Node11_Slope = Band_Slope[10];
+
+  Node12_Enabled = Band_Enabled[11];
+  Node12_Group = Band_Group[11];
+  Node12_Type = Band_Type[11];
+  Node12_Frequency = freq_to_per(Band_Frequency[11], 100);
+  Node12_Gain = Band_Gain[11];
+  Node12_Q = q_to_per(Band_Q[11], 100);
+  Node12_Slope = Band_Slope[11];
+
+  Node13_Enabled = Band_Enabled[12];
+  Node13_Group = Band_Group[12];
+  Node13_Type = Band_Type[12];
+  Node13_Frequency = freq_to_per(Band_Frequency[12], 100);
+  Node13_Gain = Band_Gain[12];
+  Node13_Q = q_to_per(Band_Q[12], 100);
+  Node13_Slope = Band_Slope[12];
+
+  Node14_Enabled = Band_Enabled[13];
+  Node14_Group = Band_Group[13];
+  Node14_Type = Band_Type[13];
+  Node14_Frequency = freq_to_per(Band_Frequency[13], 100);
+  Node14_Gain = Band_Gain[13];
+  Node14_Q = q_to_per(Band_Q[13], 100);
+  Node14_Slope = Band_Slope[13];
+
+  Node15_Enabled = Band_Enabled[14];
+  Node15_Group = Band_Group[14];
+  Node15_Type = Band_Type[14];
+  Node15_Frequency = freq_to_per(Band_Frequency[14], 100);
+  Node15_Gain = Band_Gain[14];
+  Node15_Q = q_to_per(Band_Q[14], 100);
+  Node15_Slope = Band_Slope[14];
+
+  Node16_Enabled = Band_Enabled[15];
+  Node16_Group = Band_Group[15];
+  Node16_Type = Band_Type[15];
+  Node16_Frequency = freq_to_per(Band_Frequency[15], 100);
+  Node16_Gain = Band_Gain[15];
+  Node16_Q = q_to_per(Band_Q[15], 100);
+  Node16_Slope = Band_Slope[15];
 );
 
 /*
@@ -503,7 +712,7 @@ function sliders_to_filters() (
   Band_Enabled[2] = Node3_Enabled;
   Band_Group[2] = Node3_Group;
   Band_Type[2] = Node3_Type;
-  Band_Frequency[2] = per_to_freq(Node3_Frequency, 100);;
+  Band_Frequency[2] = per_to_freq(Node3_Frequency, 100);
   Band_Gain[2] = Node3_Gain;
   Band_Q[2] = per_to_q(Node3_Q, 100);
   Band_Slope[2] = Node3_Slope;
@@ -511,7 +720,7 @@ function sliders_to_filters() (
   Band_Enabled[3] = Node4_Enabled;
   Band_Group[3] = Node4_Group;
   Band_Type[3] = Node4_Type;
-  Band_Frequency[3] = per_to_freq(Node4_Frequency, 100);;
+  Band_Frequency[3] = per_to_freq(Node4_Frequency, 100);
   Band_Gain[3] = Node4_Gain;
   Band_Q[3] = per_to_q(Node4_Q, 100);
   Band_Slope[3] = Node4_Slope;
@@ -519,10 +728,98 @@ function sliders_to_filters() (
   Band_Enabled[4] = Node5_Enabled;
   Band_Group[4] = Node5_Group;
   Band_Type[4] = Node5_Type;
-  Band_Frequency[4] = per_to_freq(Node5_Frequency, 100);;
+  Band_Frequency[4] = per_to_freq(Node5_Frequency, 100);
   Band_Gain[4] = Node5_Gain;
   Band_Q[4] = per_to_q(Node5_Q, 100);
   Band_Slope[4] = Node5_Slope;
+
+  Band_Enabled[5] = Node6_Enabled;
+  Band_Group[5] = Node6_Group;
+  Band_Type[5] = Node6_Type;
+  Band_Frequency[5] = per_to_freq(Node6_Frequency, 100);
+  Band_Gain[5] = Node6_Gain;
+  Band_Q[5] = per_to_q(Node6_Q, 100);
+  Band_Slope[5] = Node6_Slope;
+
+  Band_Enabled[6] = Node7_Enabled;
+  Band_Group[6] = Node7_Group;
+  Band_Type[6] = Node7_Type;
+  Band_Frequency[6] = per_to_freq(Node7_Frequency, 100);
+  Band_Gain[6] = Node7_Gain;
+  Band_Q[6] = per_to_q(Node7_Q, 100);
+  Band_Slope[6] = Node7_Slope;
+
+  Band_Enabled[7] = Node8_Enabled;
+  Band_Group[7] = Node8_Group;
+  Band_Type[7] = Node8_Type;
+  Band_Frequency[7] = per_to_freq(Node8_Frequency, 100);
+  Band_Gain[7] = Node8_Gain;
+  Band_Q[7] = per_to_q(Node8_Q, 100);
+  Band_Slope[7] = Node8_Slope;
+
+  Band_Enabled[8] = Node9_Enabled;
+  Band_Group[8] = Node9_Group;
+  Band_Type[8] = Node9_Type;
+  Band_Frequency[8] = per_to_freq(Node9_Frequency, 100);
+  Band_Gain[8] = Node9_Gain;
+  Band_Q[8] = per_to_q(Node9_Q, 100);
+  Band_Slope[8] = Node9_Slope;
+
+  Band_Enabled[9] = Node10_Enabled;
+  Band_Group[9] = Node10_Group;
+  Band_Type[9] = Node10_Type;
+  Band_Frequency[9] = per_to_freq(Node10_Frequency, 100);
+  Band_Gain[9] = Node10_Gain;
+  Band_Q[9] = per_to_q(Node10_Q, 100);
+  Band_Slope[9] = Node10_Slope;
+
+  Band_Enabled[10] = Node11_Enabled;
+  Band_Group[10] = Node11_Group;
+  Band_Type[10] = Node11_Type;
+  Band_Frequency[10] = per_to_freq(Node11_Frequency, 100);
+  Band_Gain[10] = Node11_Gain;
+  Band_Q[10] = per_to_q(Node11_Q, 100);
+  Band_Slope[10] = Node11_Slope;
+
+  Band_Enabled[11] = Node12_Enabled;
+  Band_Group[11] = Node12_Group;
+  Band_Type[11] = Node12_Type;
+  Band_Frequency[11] = per_to_freq(Node12_Frequency, 100);
+  Band_Gain[11] = Node12_Gain;
+  Band_Q[11] = per_to_q(Node12_Q, 100);
+  Band_Slope[11] = Node12_Slope;
+
+  Band_Enabled[12] = Node13_Enabled;
+  Band_Group[12] = Node13_Group;
+  Band_Type[12] = Node13_Type;
+  Band_Frequency[12] = per_to_freq(Node13_Frequency, 100);
+  Band_Gain[12] = Node13_Gain;
+  Band_Q[12] = per_to_q(Node13_Q, 100);
+  Band_Slope[12] = Node13_Slope;
+
+  Band_Enabled[13] = Node14_Enabled;
+  Band_Group[13] = Node14_Group;
+  Band_Type[13] = Node14_Type;
+  Band_Frequency[13] = per_to_freq(Node14_Frequency, 100);
+  Band_Gain[13] = Node14_Gain;
+  Band_Q[13] = per_to_q(Node14_Q, 100);
+  Band_Slope[13] = Node14_Slope;
+
+  Band_Enabled[14] = Node15_Enabled;
+  Band_Group[14] = Node15_Group;
+  Band_Type[14] = Node15_Type;
+  Band_Frequency[14] = per_to_freq(Node15_Frequency, 100);
+  Band_Gain[14] = Node15_Gain;
+  Band_Q[14] = per_to_q(Node15_Q, 100);
+  Band_Slope[14] = Node15_Slope;
+
+  Band_Enabled[15] = Node16_Enabled;
+  Band_Group[15] = Node16_Group;
+  Band_Type[15] = Node16_Type;
+  Band_Frequency[15] = per_to_freq(Node16_Frequency, 100);
+  Band_Gain[15] = Node16_Gain;
+  Band_Q[15] = per_to_q(Node16_Q, 100);
+  Band_Slope[15] = Node16_Slope;
 );
 
 /*
@@ -893,11 +1190,28 @@ gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
 // Mark filters for update if sliders have changed
-Band_Enabled[0] != Node1_Enabled || Band_Type[0] != Node1_Type || Band_Gain[0] != Node1_Gain || Band_Frequency[0] != per_to_freq(Node1_Frequency,100) || Band_Q[0] != Node1_Q || Band_Slope[0] != Node1_Slope ? flag_filter_update(0);
-Band_Enabled[1] != Node2_Enabled || Band_Type[1] != Node2_Type || Band_Gain[1] != Node2_Gain || Band_Frequency[1] != per_to_freq(Node2_Frequency,100) || Band_Q[1] != Node2_Q || Band_Slope[1] != Node2_Slope ? flag_filter_update(1);
-Band_Enabled[2] != Node3_Enabled || Band_Type[2] != Node3_Type || Band_Gain[2] != Node3_Gain || Band_Frequency[2] != per_to_freq(Node3_Frequency,100) || Band_Q[2] != Node3_Q || Band_Slope[2] != Node3_Slope ? flag_filter_update(2);
-Band_Enabled[3] != Node4_Enabled || Band_Type[3] != Node4_Type || Band_Gain[3] != Node4_Gain || Band_Frequency[3] != per_to_freq(Node4_Frequency,100) || Band_Q[3] != Node4_Q || Band_Slope[3] != Node4_Slope ? flag_filter_update(3);
-Band_Enabled[4] != Node5_Enabled || Band_Type[4] != Node5_Type || Band_Gain[4] != Node5_Gain || Band_Frequency[4] != per_to_freq(Node5_Frequency,100) || Band_Q[4] != Node5_Q || Band_Slope[4] != Node5_Slope ? flag_filter_update(4);
+Band_Enabled[0] != Node1_Enabled || Band_Group[0] != Node1_Group || Band_Type[0] != Node1_Type || Band_Gain[0] != Node1_Gain || Band_Frequency[0] != per_to_freq(Node1_Frequency,100) || Band_Q[0] != per_to_q(Node1_Q,100) || Band_Slope[0] != Node1_Slope ? flag_filter_update(0);
+Band_Enabled[1] != Node2_Enabled || Band_Group[1] != Node2_Group || Band_Type[1] != Node2_Type || Band_Gain[1] != Node2_Gain || Band_Frequency[1] != per_to_freq(Node2_Frequency,100) || Band_Q[1] != per_to_q(Node2_Q,100) || Band_Slope[1] != Node2_Slope ? flag_filter_update(1);
+Band_Enabled[2] != Node3_Enabled || Band_Group[2] != Node3_Group || Band_Type[2] != Node3_Type || Band_Gain[2] != Node3_Gain || Band_Frequency[2] != per_to_freq(Node3_Frequency,100) || Band_Q[2] != per_to_q(Node3_Q,100) || Band_Slope[2] != Node3_Slope ? flag_filter_update(2);
+Band_Enabled[3] != Node4_Enabled || Band_Group[3] != Node4_Group || Band_Type[3] != Node4_Type || Band_Gain[3] != Node4_Gain || Band_Frequency[3] != per_to_freq(Node4_Frequency,100) || Band_Q[3] != per_to_q(Node4_Q,100) || Band_Slope[3] != Node4_Slope ? flag_filter_update(3);
+Band_Enabled[4] != Node5_Enabled || Band_Group[4] != Node5_Group || Band_Type[4] != Node5_Type || Band_Gain[4] != Node5_Gain || Band_Frequency[4] != per_to_freq(Node5_Frequency,100) || Band_Q[4] != per_to_q(Node5_Q,100) || Band_Slope[4] != Node5_Slope ? flag_filter_update(4);
+Band_Enabled[5] != Node6_Enabled || Band_Group[5] != Node6_Group || Band_Type[5] != Node6_Type || Band_Gain[5] != Node6_Gain || Band_Frequency[5] != per_to_freq(Node6_Frequency,100) || Band_Q[5] != per_to_q(Node6_Q,100) || Band_Slope[5] != Node6_Slope ? flag_filter_update(5);
+Band_Enabled[6] != Node7_Enabled || Band_Group[6] != Node7_Group || Band_Type[6] != Node7_Type || Band_Gain[6] != Node7_Gain || Band_Frequency[6] != per_to_freq(Node7_Frequency,100) || Band_Q[6] != per_to_q(Node7_Q,100) || Band_Slope[6] != Node7_Slope ? flag_filter_update(6);
+Band_Enabled[7] != Node8_Enabled || Band_Group[7] != Node8_Group || Band_Type[7] != Node8_Type || Band_Gain[7] != Node8_Gain || Band_Frequency[7] != per_to_freq(Node8_Frequency,100) || Band_Q[7] != per_to_q(Node8_Q,100) || Band_Slope[7] != Node8_Slope ? flag_filter_update(7);
+Band_Enabled[8] != Node9_Enabled || Band_Group[8] != Node9_Group || Band_Type[8] != Node9_Type || Band_Gain[8] != Node9_Gain || Band_Frequency[8] != per_to_freq(Node9_Frequency,100) || Band_Q[8] != per_to_q(Node9_Q,100) || Band_Slope[8] != Node9_Slope ? flag_filter_update(8);
+Band_Enabled[9] != Node10_Enabled || Band_Group[9] != Node10_Group || Band_Type[9] != Node10_Type || Band_Gain[9] != Node10_Gain || Band_Frequency[9] != per_to_freq(Node10_Frequency,100) || Band_Q[9] != per_to_q(Node10_Q,100) || Band_Slope[9] != Node10_Slope ? flag_filter_update(9);
+Band_Enabled[10] != Node11_Enabled || Band_Group[10] != Node11_Group || Band_Type[10] != Node11_Type || Band_Gain[10] != Node11_Gain || Band_Frequency[10] != per_to_freq(Node11_Frequency,100) || Band_Q[10] != per_to_q(Node11_Q,100) || Band_Slope[10] != Node11_Slope ? flag_filter_update(10);
+Band_Enabled[11] != Node12_Enabled || Band_Group[11] != Node12_Group || Band_Type[11] != Node12_Type || Band_Gain[11] != Node12_Gain || Band_Frequency[11] != per_to_freq(Node12_Frequency,100) || Band_Q[11] != per_to_q(Node12_Q,100) || Band_Slope[11] != Node12_Slope ? flag_filter_update(11);
+Band_Enabled[12] != Node13_Enabled || Band_Group[12] != Node13_Group || Band_Type[12] != Node13_Type || Band_Gain[12] != Node13_Gain || Band_Frequency[12] != per_to_freq(Node13_Frequency,100) || Band_Q[12] != per_to_q(Node13_Q,100) || Band_Slope[12] != Node13_Slope ? flag_filter_update(12);
+Band_Enabled[13] != Node14_Enabled || Band_Group[13] != Node14_Group || Band_Type[13] != Node14_Type || Band_Gain[13] != Node14_Gain || Band_Frequency[13] != per_to_freq(Node14_Frequency,100) || Band_Q[13] != per_to_q(Node14_Q,100) || Band_Slope[13] != Node14_Slope ? flag_filter_update(13);
+Band_Enabled[14] != Node15_Enabled || Band_Group[14] != Node15_Group || Band_Type[14] != Node15_Type || Band_Gain[14] != Node15_Gain || Band_Frequency[14] != per_to_freq(Node15_Frequency,100) || Band_Q[14] != per_to_q(Node15_Q,100) || Band_Slope[14] != Node15_Slope ? flag_filter_update(14);
+Band_Enabled[15] != Node16_Enabled || Band_Group[15] != Node16_Group || Band_Type[15] != Node16_Type || Band_Gain[15] != Node16_Gain || Band_Frequency[15] != per_to_freq(Node16_Frequency,100) || Band_Q[15] != per_to_q(Node16_Q,100) || Band_Slope[15] != Node16_Slope ? flag_filter_update(15);
+
+// Scale applies to every band's gain, so automating it must update them all
+Scale != slider_last_scale ? (
+  slider_last_scale = Scale;
+  flag_filter_update_all();
+);
 
 // Update any automation
 sliders_to_filters();

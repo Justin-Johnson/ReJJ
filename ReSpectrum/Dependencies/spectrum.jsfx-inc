@@ -608,9 +608,13 @@ function spectrum.draw(bufindex)
 
   ly = 0;
   lx = -1;
-  ipnt = 0;
+
+  // Bins are stored from index 1
+  ipnt = 1;
 
   loop(num_bins, (
+    // Bins below the display range are off the left edge, skip them
+    spectrum.bin_freq[ipnt] >= spectrum.min_freq ? (
       tx = spectrum.freq_to_x(spectrum.bin_freq[ipnt]);
       ty = spectrum.magnitude_to_01(spectrum.bin_mag[ipnt], spectrum.bin_freq[ipnt]);
 
@@ -621,7 +625,10 @@ function spectrum.draw(bufindex)
 
       ty = spectrum.01_to_y(spectrum.bin_y[ipnt]);
 
-      lx != -1 && tx >= spectrum.left_margin && (ly < bottom-1 || ty < bottom-1) ? 
+      // Start the curve at the left edge, level with the first visible bin
+      lx == -1 ? (lx = spectrum.left_margin; ly = ty);
+
+      tx >= spectrum.left_margin && (ly < bottom-1 || ty < bottom-1) ?
       (
         spectrum_fill ? (
           tx0=tx|0;
@@ -650,31 +657,35 @@ function spectrum.draw(bufindex)
       );
 
       lx=tx; ly=ty;
-      ipnt += 1;
     );
-  );
+    ipnt += 1;
+  ));
 
   spectrum.show_peaks ? (
     gfx_r = gfx_g = gfx_b = 0.8; gfx_a = 1;
 
     lpx = -1; lpy = 0; tpy = 0; tpx = -1;
-    ipnt = 0;
+    ipnt = 1;
 
-    loop(num_bins, (  
-      // Calc max peaks
-      tpx = spectrum.freq_to_x(spectrum.bin_peakfreq[ipnt]);
-      tpy = spectrum.magnitude_to_01(spectrum.bin_peakmag[ipnt], spectrum.bin_peakfreq[ipnt]);
-      tpy = spectrum.01_to_y(tpy);
+    loop(num_bins, (
+      spectrum.bin_peakfreq[ipnt] >= spectrum.min_freq ? (
+        // Calc max peaks
+        tpx = spectrum.freq_to_x(spectrum.bin_peakfreq[ipnt]);
+        tpy = spectrum.magnitude_to_01(spectrum.bin_peakmag[ipnt], spectrum.bin_peakfreq[ipnt]);
+        tpy = spectrum.01_to_y(tpy);
 
-      tpy = min(bottom, tpy);
+        tpy = min(bottom, tpy);
 
-      // Draw max peaks
-      lpx != -1 && (lpy < bottom || tpy < bottom) ? (
-        //Line
-        spectrum.draw_line(lpx, lpy, tpx, tpy);
+        lpx == -1 ? (lpx = spectrum.left_margin; lpy = tpy);
+
+        // Draw max peaks
+        lpy < bottom || tpy < bottom ? (
+          //Line
+          spectrum.draw_line(lpx, lpy, tpx, tpy);
+        );
+
+        lpx=tpx; lpy=tpy;
       );
-
-      lpx=tpx; lpy=tpy;    
       ipnt += 1;
     ));
   );
