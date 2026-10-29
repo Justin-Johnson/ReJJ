@@ -1,0 +1,810 @@
+desc: Ivantsov decramped filters
+/*
+  Decramped filters for ReEQ
+
+  The filter maths is ported from Yuriy Ivantsov's ivantsov-filters
+  (https://github.com/yIvantsov/ivantsov-filters), MIT License:
+
+    Copyright (c) 2025-2026 Yuriy Ivantsov
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+  The filters are decramped without oversampling (sigma correction). A cutoff
+  above Nyquist uses the plain bilinear transform, which meets the corrected
+  filter exactly at Nyquist, so a band can sit anywhere up to 30kHz at any
+  sample rate.
+
+  A band is up to ten second order sections and one first order section in
+  series. Each section runs Ivantsov's state space update, with its state
+  rescaled (z1 times b1) so that the update
+    z0 += u P,  z1 = -z1 - u Q,  with P = b0, Q = b0 b1^2
+  and the output
+    y = u D + z1 E + z0 C,  u = x - z0 - z1
+  A section is stable exactly when P > 0, Q > 0 and P + Q < 2: a triangle, so
+  a straight line between two stable sections stays stable. Changes glide
+  linearly over SMOOTHING_TIME_MS. With D = E = C = 1 a section passes its
+  input straight through whatever its poles, so sections fade in and out of a
+  design as a crossfade.
+
+  Section types
+    0 high pass, 1 low pass, 2 all pass, 3 high shelf, 4 low shelf,
+    5 band pass, 6 band stop, 7 band shelf (bell)
+*/
+
+@init
+
+SMOOTHING_TIME_MS = 30;
+
+/*
+ * Bandwidth (octaves) to Q
+ */
+function ivf_bwtoq(bw)
+  local(x)
+(
+  x = exp(0.5*log(2) * bw);
+  1/(x - 1/x);
+);
+
+/*
+ * Q to bandwidth (octaves)
+ */
+function ivf_qtobw(q)
+  local(x)
+(
+  x = 0.5 / q;
+  2/log(2) * log(x + sqrt(sqr(x) + 1));
+);
+
+/*
+ * Target coefficients for a second order section
+ * gn is the section's gain factor: the square root of the amplitude for
+ * shelves and bells, 1 otherwise.
+ */
+function ivf_sec_calc(t, fc, zeta, gn)
+  instance(tP, tQ, tD, tE, tC, aT, aF, aZ, aG)
+  local(x, r, w, s, ss, zp, zz, tt, k, v, ka, va, b0, b1, b2, b3, og)
+(
+  // The analogue section, for drawing (see ivf_analog_magnitude)
+  aT = t; aF = fc; aZ = zeta; aG = gn;
+
+  // Cutoff warp: sigma correction up to Nyquist, plain bilinear above
+  w = srate / ($pi * fc);
+  s = 2 / $pi;
+  fc < srate * 0.5 ? (
+    x = $pi * fc / srate;
+    r = cos(x) / sin(x);
+    s = sqrt(max(w*w - r*r, 0));
+  );
+  ss = s*s;
+
+  // Poles
+  zp = t == 7 ? zeta / gn : zeta;
+  tt = t == 4 ? w*w*gn : t == 3 ? w*w/gn : w*w;
+  k = tt * (2*zp*zp - 1);
+  v = sqrt(tt*tt + ss*(2*k + ss));
+  k += ss;
+  b0 = 2 / (1 + sqrt(2*(k + v)) + v);
+  b1 = sqrt(v);
+
+  // Zeros
+  t == 3 || t == 4 || t == 7 ? (
+    zz = t == 7 ? zeta * gn : zp;
+    tt = t == 4 ? w*w/gn : t == 3 ? w*w*gn : w*w;
+    ka = tt * (2*zz*zz - 1);
+    va = sqrt(tt*tt + ss*(2*ka + ss));
+    ka += ss;
+    b2 = va / b1;
+    b3 = (1 + sqrt(2*(ka + va)) + va) * 0.5;
+  ) : t == 0 ? (
+    b2 = w*w / b1;
+    b3 = w*w * 0.5;
+  ) : t == 1 ? (
+    b2 = ss / b1;
+    b3 = sqr(1 + s) * 0.5;
+  ) : t == 2 ? (
+    b2 = b1;
+    b3 = (1 - sqrt(2*(k + v)) + v) * 0.5;
+  ) : t == 5 ? (
+    b2 = 2*w*zeta*s / b1;
+    b3 = w*zeta*(1 + s);
+  ) : (
+    b2 = (w*w - ss) / b1;
+    b3 = (1 + w*w - ss) * 0.5;
+  );
+
+  // The low shelf's level is its output gain
+  og = t == 4 ? gn*gn : 1;
+
+  tP = b0;
+  tQ = b0*b1*b1;
+  tD = b0*b3*og;
+  tE = b2*og / b1;
+  tC = t == 0 || t == 5 ? 0 : og;
+);
+
+/*
+ * Target coefficients for the first order section (t: 0 high pass, 1 low pass)
+ */
+function ivf_op_calc(t, fc)
+  instance(tP, tB, tC, aT, aF)
+  local(x, r, w, s)
+(
+  aT = t; aF = fc;
+
+  w = srate / ($pi * fc);
+  s = 2 / $pi;
+  fc < srate * 0.5 ? (
+    x = $pi * fc / srate;
+    r = cos(x) / sin(x);
+    s = sqrt(max(w*w - r*r, 0));
+  );
+
+  tP = 2 / (1 + sqrt(w*w + s*s));
+  tB = tP * (t == 1 ? (1 + s) * 0.5 : w * 0.5);
+  tC = t == 1 ? 1 : 0;
+);
+
+/*
+ * Ready a section for a new target. A section that wasn't running starts as a
+ * pass-through with its new poles and a clear state, and a section dropped
+ * from the design keeps its poles and becomes a pass-through. Either way only
+ * the output coefficients move, so the glide is a crossfade between the dry
+ * signal and the filter.
+ */
+function ivf_sec_prep(i, n, n_run)
+  instance(P, Q, D, E, C, sP, sQ, sD, sE, sC, tP, tQ, tD, tE, tC, z0a, z1a, z0b, z1b)
+(
+  i > n_run ? (
+    P = tP; Q = tQ; D = 1; E = 1; C = 1;
+    z0a = z1a = z0b = z1b = 0;
+  );
+  i > n ? (tP = P; tQ = Q; tD = 1; tE = 1; tC = 1);
+  sP = P; sQ = Q; sD = D; sE = E; sC = C;
+);
+
+function ivf_op_prep(on, running)
+  instance(P, B, C, sP, sB, sC, tP, tB, tC, z0a, z0b)
+(
+  !running ? (
+    P = tP; B = 1; C = 1;
+    z0a = z0b = 0;
+  );
+  !on ? (tP = P; tB = 1; tC = 1);
+  sP = P; sB = B; sC = C;
+);
+
+function ivf_sec_lerp(t)
+  instance(P, Q, D, E, C, sP, sQ, sD, sE, sC, tP, tQ, tD, tE, tC)
+(
+  P = sP + t * (tP - sP);
+  Q = sQ + t * (tQ - sQ);
+  D = sD + t * (tD - sD);
+  E = sE + t * (tE - sE);
+  C = sC + t * (tC - sC);
+);
+
+function ivf_op_lerp(t)
+  instance(P, B, C, sP, sB, sC, tP, tB, tC)
+(
+  P = sP + t * (tP - sP);
+  B = sB + t * (tB - sB);
+  C = sC + t * (tC - sC);
+);
+
+function ivf_sec_target()
+  instance(P, Q, D, E, C, tP, tQ, tD, tE, tC)
+(
+  P = tP; Q = tQ; D = tD; E = tE; C = tC;
+);
+
+function ivf_op_target()
+  instance(P, B, C, tP, tB, tC)
+(
+  P = tP; B = tB; C = tC;
+);
+
+/*
+ * Set section i (1 to 10) of the design
+ */
+function ivf_put(i, t, fc, zeta, gn)
+  instance(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10)
+(
+  i == 1 ? s1.ivf_sec_calc(t, fc, zeta, gn) :
+    i == 2 ? s2.ivf_sec_calc(t, fc, zeta, gn) :
+      i == 3 ? s3.ivf_sec_calc(t, fc, zeta, gn) :
+        i == 4 ? s4.ivf_sec_calc(t, fc, zeta, gn) :
+          i == 5 ? s5.ivf_sec_calc(t, fc, zeta, gn) :
+            i == 6 ? s6.ivf_sec_calc(t, fc, zeta, gn) :
+              i == 7 ? s7.ivf_sec_calc(t, fc, zeta, gn) :
+                i == 8 ? s8.ivf_sec_calc(t, fc, zeta, gn) :
+                  i == 9 ? s9.ivf_sec_calc(t, fc, zeta, gn) :
+                    i == 10 ? s10.ivf_sec_calc(t, fc, zeta, gn);
+);
+
+/*
+ * Start gliding to a design of n second order sections (and the first order
+ * section if op_on). Sections dropped from the design glide to idle and stop
+ * once the glide ends.
+ */
+function ivf_commit(n, op_on)
+  instance(n_run, n_target, op_run, op_target, iter_t, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, op)
+(
+  s1.ivf_sec_prep(1, n, n_run);
+  s2.ivf_sec_prep(2, n, n_run);
+  s3.ivf_sec_prep(3, n, n_run);
+  s4.ivf_sec_prep(4, n, n_run);
+  s5.ivf_sec_prep(5, n, n_run);
+  s6.ivf_sec_prep(6, n, n_run);
+  s7.ivf_sec_prep(7, n, n_run);
+  s8.ivf_sec_prep(8, n, n_run);
+  s9.ivf_sec_prep(9, n, n_run);
+  s10.ivf_sec_prep(10, n, n_run);
+  op.ivf_op_prep(op_on, op_run);
+
+  n_run = max(n_run, n);
+  n_target = n;
+  op_run = op_run || op_on;
+  op_target = op_on;
+  iter_t = 0;
+);
+
+/*
+ * Set the glide rate. The filters run at srate.
+ */
+function ivf_set_sample_rate(rate)
+  instance(iter_step)
+(
+  // Assumption: tick() is called once per @sample
+  iter_step = 1.0 / (SMOOTHING_TIME_MS * 0.001 * rate);
+);
+
+/*
+ * Glide towards the target, once per sample
+ */
+function ivf_tick()
+  instance(n_run, n_target, op_run, op_target, iter_t, iter_step, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, op)
+(
+  iter_t < 1 ? (
+    iter_t = min(1, iter_t + iter_step);
+    n_run > 0 ? (
+      s1.ivf_sec_lerp(iter_t);
+      n_run > 1 ? (
+        s2.ivf_sec_lerp(iter_t);
+        n_run > 2 ? (
+          s3.ivf_sec_lerp(iter_t);
+          n_run > 3 ? (
+            s4.ivf_sec_lerp(iter_t);
+            n_run > 4 ? (
+              s5.ivf_sec_lerp(iter_t);
+              n_run > 5 ? (
+                s6.ivf_sec_lerp(iter_t);
+                n_run > 6 ? (
+                  s7.ivf_sec_lerp(iter_t);
+                  n_run > 7 ? (
+                    s8.ivf_sec_lerp(iter_t);
+                    n_run > 8 ? (
+                      s9.ivf_sec_lerp(iter_t);
+                      n_run > 9 ? s10.ivf_sec_lerp(iter_t);
+                    );
+                  );
+                );
+              );
+            );
+          );
+        );
+      );
+    );
+    op_run ? op.ivf_op_lerp(iter_t);
+
+    iter_t >= 1 ? (
+      n_run = n_target;
+      op_run = op_target;
+    );
+  );
+);
+
+/*
+ * Jump straight to the target
+ */
+function ivf_set_to_target()
+  instance(n_run, n_target, op_run, op_target, iter_t, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, op)
+(
+  s1.ivf_sec_target();
+  s2.ivf_sec_target();
+  s3.ivf_sec_target();
+  s4.ivf_sec_target();
+  s5.ivf_sec_target();
+  s6.ivf_sec_target();
+  s7.ivf_sec_target();
+  s8.ivf_sec_target();
+  s9.ivf_sec_target();
+  s10.ivf_sec_target();
+  op.ivf_op_target();
+
+  iter_t = 1;
+  n_run = n_target;
+  op_run = op_target;
+);
+
+/*
+ * True once the glide has finished
+ */
+function ivf_is_resting()
+  instance(iter_t)
+(
+  iter_t >= 1;
+);
+
+/*
+ * Clear the filter state
+ */
+function ivf_reset()
+  instance(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, op)
+(
+  s1.z0a = s1.z1a = s1.z0b = s1.z1b = 0;
+  s2.z0a = s2.z1a = s2.z0b = s2.z1b = 0;
+  s3.z0a = s3.z1a = s3.z0b = s3.z1b = 0;
+  s4.z0a = s4.z1a = s4.z0b = s4.z1b = 0;
+  s5.z0a = s5.z1a = s5.z0b = s5.z1b = 0;
+  s6.z0a = s6.z1a = s6.z0b = s6.z1b = 0;
+  s7.z0a = s7.z1a = s7.z0b = s7.z1b = 0;
+  s8.z0a = s8.z1a = s8.z0b = s8.z1b = 0;
+  s9.z0a = s9.z1a = s9.z0b = s9.z1b = 0;
+  s10.z0a = s10.z1a = s10.z0b = s10.z1b = 0;
+  op.z0a = op.z0b = 0;
+);
+
+/*
+ * Glide to nothing (the filter passes its input)
+ */
+function ivf_bypass()
+(
+  this.ivf_commit(0, 0);
+);
+
+/*
+ * Set up a band: idle, at rest, and gliding at the right rate
+ */
+function ivf_init(rate)
+(
+  this.ivf_set_sample_rate(rate);
+  this.ivf_bypass();
+  this.ivf_set_to_target();
+);
+
+/*
+ * Butterworth sections of the given order, from section i
+ * Returns the next free section.
+ */
+function ivf_put_butterworth(i, t, fc, order)
+  local(j, odd)
+(
+  odd = order & 1;
+  j = 0;
+  loop(order >> 1,
+    this.ivf_put(i, t, fc, cos($pi * (2*(j + odd) + 1 - odd) / (2*order)), 1);
+    i += 1;
+    j += 1;
+  );
+  i;
+);
+
+/*
+ * The ReEQ shapes
+ * Slope n is 6(n+1) dB/oct. Gains are in dB. A bell, shelf, tilt or Pultec at
+ * 0dB passes its input unchanged, so it runs no sections at all.
+ */
+function ivf_bell(freq, q, db)
+(
+  db != 0 ? this.ivf_put(1, 7, freq, 0.5 / q, 10^(db / 40));
+  this.ivf_commit(db != 0, 0);
+);
+
+function ivf_low_shelf(freq, q, db)
+(
+  db != 0 ? this.ivf_put(1, 4, freq, 0.5 / q, 10^(db / 40));
+  this.ivf_commit(db != 0, 0);
+);
+
+function ivf_high_shelf(freq, q, db)
+(
+  db != 0 ? this.ivf_put(1, 3, freq, 0.5 / q, 10^(db / 40));
+  this.ivf_commit(db != 0, 0);
+);
+
+function ivf_notch(freq, q)
+(
+  this.ivf_put(1, 6, freq, 0.5 / q, 1);
+  this.ivf_commit(1, 0);
+);
+
+/*
+ * Band pass with 0dB at its centre
+ */
+function ivf_band_pass(freq, q)
+(
+  this.ivf_put(1, 5, freq, 0.5 / q, 1);
+  this.ivf_commit(1, 0);
+);
+
+function ivf_all_pass(freq, q)
+(
+  this.ivf_put(1, 2, freq, 0.5 / q, 1);
+  this.ivf_commit(1, 0);
+);
+
+/*
+ * Resonant cuts: every second order section has the band's Q
+ */
+function ivf_cut(t, freq, q, slope)
+  instance(op)
+  local(n, i)
+(
+  n = (slope + 1) >> 1;
+  i = 1;
+  loop(n,
+    this.ivf_put(i, t, freq, 0.5 / q, 1);
+    i += 1;
+  );
+  !(slope & 1) ? op.ivf_op_calc(t, freq);
+  this.ivf_commit(n, !(slope & 1));
+);
+
+function ivf_low_cut(freq, q, slope)
+(
+  this.ivf_cut(0, freq, q, slope);
+);
+
+function ivf_high_cut(freq, q, slope)
+(
+  this.ivf_cut(1, freq, q, slope);
+);
+
+/*
+ * Butterworth cuts
+ */
+function ivf_cut_bw(t, freq, slope)
+  instance(op)
+(
+  this.ivf_put_butterworth(1, t, freq, slope + 1);
+  !(slope & 1) ? op.ivf_op_calc(t, freq);
+  this.ivf_commit((slope + 1) >> 1, !(slope & 1));
+);
+
+function ivf_low_cut_bw(freq, slope)
+(
+  this.ivf_cut_bw(0, freq, slope);
+);
+
+function ivf_high_cut_bw(freq, slope)
+(
+  this.ivf_cut_bw(1, freq, slope);
+);
+
+/*
+ * Tilt: a high shelf up and a low shelf down
+ */
+function ivf_tilt(freq, q, db)
+(
+  db != 0 ? (
+    this.ivf_put(1, 3, freq, 0.5 / q, 10^(db / 40));
+    this.ivf_put(2, 4, freq, 0.5 / q, 10^(-db / 40));
+  );
+  this.ivf_commit(db != 0 ? 2 : 0, 0);
+);
+
+/*
+ * Pultec style low shelf: a boost with a dip above it. The Q sets how deep
+ * the dip goes.
+ */
+function ivf_pultec_low(freq, q, db)
+  local(amm, cut)
+(
+  freq *= 1.5;  // Puts the frequency in a better place for adjustments
+  amm = min(max(db, 0), 10) / 10;
+  cut = (q / 40) * 10 * amm;
+
+  db != 0 ? (
+    this.ivf_put(1, 4, freq, 0.5 / 0.701, 10^(db / 40));
+    this.ivf_put(2, 7, freq, 0.5 / 0.701, 10^(-cut / 40));
+  );
+  this.ivf_commit(db != 0 ? 2 : 0, 0);
+);
+
+/*
+ * Vintage low cut: a low shelf with a 6dB/oct cut
+ */
+function ivf_vintage_low(freq, q, db)
+  instance(op)
+(
+  // 1.25 so, 80Hz for high pass is 80Hz for low shelf
+  this.ivf_put(1, 4, freq * 1.25, 0.5 / 0.701, 10^(db / 40));
+  op.ivf_op_calc(0, freq);
+  this.ivf_commit(1, 1);
+);
+
+/*
+ * Vintage high cut: a high shelf with a 12dB/oct cut. The cut starts above
+ * the shelf and comes closer to the node as the gain goes down.
+ */
+function ivf_vintage_high(freq, q, db)
+  local(cutoff, t)
+(
+  db > 0 ? cutoff = 22000 : (
+    t = 1 - (-max(db, -12) / 12);
+    cutoff = freq + ((freq * 4.25 - freq) * t);
+  );
+
+  // Clamp to a high safe frequency
+  cutoff = min(cutoff, 22040);
+
+  this.ivf_put(1, 3, freq, 0.5 / 0.701, 10^(db / 40));
+  this.ivf_put(2, 1, cutoff, 0.5 / 0.701, 1);
+  this.ivf_commit(2, 0);
+);
+
+/*
+ * Listen filters: a bell or notch between 24dB/oct Butterworth cuts
+ */
+function ivf_listen_bell(leftfreq, rightfreq, bellfreq, bellq, belldb)
+  local(i)
+(
+  leftfreq = max(leftfreq, 10);
+  bellfreq = min(max(bellfreq, 10), 30000);
+  rightfreq = min(rightfreq, 30000);
+
+  this.ivf_put(1, 7, bellfreq, 0.5 / bellq, 10^(belldb / 40));
+  i = this.ivf_put_butterworth(2, 0, leftfreq, 4);
+  this.ivf_put_butterworth(i, 1, rightfreq, 4);
+  this.ivf_commit(5, 0);
+);
+
+function ivf_listen_notch(leftfreq, rightfreq, notchfreq, notchq)
+  local(i)
+(
+  leftfreq = max(leftfreq, 10);
+  notchfreq = min(max(notchfreq, 10), 30000);
+  rightfreq = min(rightfreq, 30000);
+
+  this.ivf_put(1, 6, notchfreq, 0.5 / notchq, 1);
+  i = this.ivf_put_butterworth(2, 0, leftfreq, 4);
+  this.ivf_put_butterworth(i, 1, rightfreq, 4);
+  this.ivf_commit(5, 0);
+);
+
+/*
+ * One sample of a section, for channel 0 and channel 1
+ */
+function ivf_sec0(x)
+  instance(P, Q, D, E, C, z0a, z1a)
+  local(u)
+(
+  u = x - z0a - z1a;
+  x = u*D + z1a*E + z0a*C;
+  z0a += u*P;
+  z1a = -z1a - u*Q;
+  x;
+);
+
+function ivf_sec1(x)
+  instance(P, Q, D, E, C, z0b, z1b)
+  local(u)
+(
+  u = x - z0b - z1b;
+  x = u*D + z1b*E + z0b*C;
+  z0b += u*P;
+  z1b = -z1b - u*Q;
+  x;
+);
+
+function ivf_op0(x)
+  instance(P, B, C, z0a)
+  local(u)
+(
+  u = x - z0a;
+  x = u*B + z0a*C;
+  z0a += u*P;
+  x;
+);
+
+function ivf_op1(x)
+  instance(P, B, C, z0b)
+  local(u)
+(
+  u = x - z0b;
+  x = u*B + z0b*C;
+  z0b += u*P;
+  x;
+);
+
+/*
+ * Filter one sample on channel 0
+ */
+function ivf_process0(x)
+  instance(n_run, op_run, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, op)
+(
+  n_run > 0 ? (
+    x = s1.ivf_sec0(x);
+    n_run > 1 ? (
+      x = s2.ivf_sec0(x);
+      n_run > 2 ? (
+        x = s3.ivf_sec0(x);
+        n_run > 3 ? (
+          x = s4.ivf_sec0(x);
+          n_run > 4 ? (
+            x = s5.ivf_sec0(x);
+            n_run > 5 ? (
+              x = s6.ivf_sec0(x);
+              n_run > 6 ? (
+                x = s7.ivf_sec0(x);
+                n_run > 7 ? (
+                  x = s8.ivf_sec0(x);
+                  n_run > 8 ? (
+                    x = s9.ivf_sec0(x);
+                    n_run > 9 ? x = s10.ivf_sec0(x);
+                  );
+                );
+              );
+            );
+          );
+        );
+      );
+    );
+  );
+  op_run ? x = op.ivf_op0(x);
+  x;
+);
+
+/*
+ * Filter one sample on channel 1
+ */
+function ivf_process1(x)
+  instance(n_run, op_run, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, op)
+(
+  n_run > 0 ? (
+    x = s1.ivf_sec1(x);
+    n_run > 1 ? (
+      x = s2.ivf_sec1(x);
+      n_run > 2 ? (
+        x = s3.ivf_sec1(x);
+        n_run > 3 ? (
+          x = s4.ivf_sec1(x);
+          n_run > 4 ? (
+            x = s5.ivf_sec1(x);
+            n_run > 5 ? (
+              x = s6.ivf_sec1(x);
+              n_run > 6 ? (
+                x = s7.ivf_sec1(x);
+                n_run > 7 ? (
+                  x = s8.ivf_sec1(x);
+                  n_run > 8 ? (
+                    x = s9.ivf_sec1(x);
+                    n_run > 9 ? x = s10.ivf_sec1(x);
+                  );
+                );
+              );
+            );
+          );
+        );
+      );
+    );
+  );
+  op_run ? x = op.ivf_op1(x);
+  x;
+);
+
+/*
+ * Magnitude of one section, given sin^2 and cos^2 of half the angle
+ * |H|^2 = (cs (CP - 2D sn)^2 + sn (2D cs - EQ)^2) / (cs (P - 2 sn)^2 + sn (2 cs - Q)^2)
+ */
+function ivf_sec_mag(sn, cs)
+  instance(P, Q, D, E, C)
+(
+  sqrt((cs * sqr(C*P - 2*D*sn) + sn * sqr(2*D*cs - E*Q)) / (cs * sqr(P - 2*sn) + sn * sqr(2*cs - Q)));
+);
+
+function ivf_op_mag(sn, cs)
+  instance(P, B, C)
+(
+  sqrt((sqr(C*P - 2*B*sn) + 4*B*B*sn*cs) / (sqr(P - 2*sn) + 4*sn*cs));
+);
+
+/*
+ * Magnitude of the filter at a frequency, with the current coefficients.
+ * There is nothing to filter above Nyquist, so the response holds its
+ * Nyquist value there.
+ */
+function ivf_magnitude(freq)
+  instance(n_run, op_run, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, op)
+  local(m, x, sn, cs)
+(
+  x = $pi * min(freq, srate * 0.5) / srate;
+  sn = sqr(sin(x));
+  cs = sqr(cos(x));
+
+  m = 1;
+  n_run > 0 ? m *= s1.ivf_sec_mag(sn, cs);
+  n_run > 1 ? m *= s2.ivf_sec_mag(sn, cs);
+  n_run > 2 ? m *= s3.ivf_sec_mag(sn, cs);
+  n_run > 3 ? m *= s4.ivf_sec_mag(sn, cs);
+  n_run > 4 ? m *= s5.ivf_sec_mag(sn, cs);
+  n_run > 5 ? m *= s6.ivf_sec_mag(sn, cs);
+  n_run > 6 ? m *= s7.ivf_sec_mag(sn, cs);
+  n_run > 7 ? m *= s8.ivf_sec_mag(sn, cs);
+  n_run > 8 ? m *= s9.ivf_sec_mag(sn, cs);
+  n_run > 9 ? m *= s10.ivf_sec_mag(sn, cs);
+  op_run ? m *= op.ivf_op_mag(sn, cs);
+  m;
+);
+
+/*
+ * Magnitude of a section's analogue prototype at a frequency
+ */
+function ivf_sec_amag(f)
+  instance(aT, aF, aZ, aG)
+  local(o, o2, r, nr, ni, dr, di)
+(
+  o = f / aF;
+  o2 = o*o;
+
+  // Denominator, then numerator, as (real, imaginary) at s = j o
+  dr = 1 - o2; di = 2*aZ*o;
+  nr = 1; ni = 0;
+  aT == 0 ? (nr = -o2) :
+    aT == 2 ? (nr = dr; ni = -di) :
+      aT == 3 ? (r = sqrt(aG); dr = aG - o2; di = 2*aZ*r*o; nr = aG*(1 - aG*o2); ni = aG*di) :
+        aT == 4 ? (r = sqrt(aG); dr = 1 - aG*o2; di = 2*aZ*r*o; nr = aG*(aG - o2); ni = aG*di) :
+          aT == 5 ? (nr = 0; ni = di) :
+            aT == 6 ? (nr = dr) :
+              aT == 7 ? (nr = dr; ni = di*aG; di /= aG);
+  sqrt((nr*nr + ni*ni) / (dr*dr + di*di));
+);
+
+function ivf_op_amag(f)
+  instance(aT, aF)
+  local(o)
+(
+  o = f / aF;
+  aT == 1 ? 1 / sqrt(1 + o*o) : o / sqrt(1 + o*o);
+);
+
+/*
+ * Magnitude of the analogue filter the design is matching, for drawing the
+ * curve. The digital response (ivf_magnitude) follows it closely, apart from
+ * the last octave below Nyquist, where any filter that isn't oversampled has
+ * to level off.
+ */
+function ivf_analog_magnitude(freq)
+  instance(n_run, op_run, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, op)
+  local(m)
+(
+  m = 1;
+  n_run > 0 ? m *= s1.ivf_sec_amag(freq);
+  n_run > 1 ? m *= s2.ivf_sec_amag(freq);
+  n_run > 2 ? m *= s3.ivf_sec_amag(freq);
+  n_run > 3 ? m *= s4.ivf_sec_amag(freq);
+  n_run > 4 ? m *= s5.ivf_sec_amag(freq);
+  n_run > 5 ? m *= s6.ivf_sec_amag(freq);
+  n_run > 6 ? m *= s7.ivf_sec_amag(freq);
+  n_run > 7 ? m *= s8.ivf_sec_amag(freq);
+  n_run > 8 ? m *= s9.ivf_sec_amag(freq);
+  n_run > 9 ? m *= s10.ivf_sec_amag(freq);
+  op_run ? m *= op.ivf_op_amag(freq);
+  m;
+);

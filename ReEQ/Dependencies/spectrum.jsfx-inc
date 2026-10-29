@@ -293,7 +293,7 @@ function spectrum.init() (
   spectrum.noise_floor = -90;
 
   // Visible frequency limit
-  spectrum.max_freq = 44100 / 2.0;
+  spectrum.max_freq = 30000;  // Same visible range as ReEQ (MAX_FREQ)
   spectrum.min_freq = 10;
   spectrum.freq_log_max = log(spectrum.max_freq / spectrum.min_freq);
 
@@ -480,7 +480,7 @@ function spectrum.draw_line(x1, y1, x2, y2)
  */
 function spectrum.draw(bufindex)
   local(i, pwr, windowpos, dwindowpos, buf1, buf2, buf3, nb, mag, freq, rate_over_fftsize, ncol, lev, x, x2, v,
-        p0, p2, p3, c, c1, sg, r, g, b, a, time, delta, yb, pk, spectrum_fill, bottom, top, span, y, ly, ty)
+        p0, p2, p3, c, c1, sg, r, g, b, a, time, delta, yb, pk, spectrum_fill, bottom, top, span, y, ly, ty, last)
 (
   // Select buffer to draw
   bufindex == 0 ? ( 
@@ -630,6 +630,9 @@ function spectrum.draw(bufindex)
   c = 0;
   loop(ncol, lev[c] < 0 ? lev[c] = v : v = lev[c]; c += 1);
 
+  // The last bin's column. When the graph reaches past Nyquist the spectrum stops there.
+  last = min(floor(spectrum.bin_freq[nb - 1]), ncol - 1);
+
   // Optional smoothing, in octaves: three box passes approximate a Gaussian
   spectrum.smooth > 0 ? (
     sg = spectrum.smooth * (gfx_w - spectrum.left_margin - spectrum.right_margin) * log(2) / spectrum.freq_log_max;
@@ -660,7 +663,7 @@ function spectrum.draw(bufindex)
   spectrum_fill ? (
     span = max(bottom - top, 1);
     c = 0;
-    loop(ncol,
+    loop(last + 1,
       y = floor(min(spectrum.01_to_y(yb[c]), bottom));
       y < bottom ? gfx_gradrect(c, y, 1, bottom - y, r, g, b, a * (0.07 + 0.93 * (bottom - y) / span), 0, 0, 0, 0, 0, 0, 0, -0.93 * a / span);
       c += 1;
@@ -675,23 +678,26 @@ function spectrum.draw(bufindex)
   );
   ly = min(spectrum.01_to_y(yb[0]), bottom);
   c = 1;
-  loop(ncol - 1,
+  loop(last,
     ty = min(spectrum.01_to_y(yb[c]), bottom);
     ly < bottom - 1 || ty < bottom - 1 ? spectrum.draw_line(c - 1, ly, c, ty);
     ly = ty;
     c += 1;
   );
+  // Ending at Nyquist, inside the graph: drop to the floor rather than stop in mid air
+  last < ncol - 1 && ly < bottom - 1 ? spectrum.draw_line(last, ly, last, bottom);
 
   spectrum.show_peaks ? (
     gfx_r = gfx_g = gfx_b = 0.8; gfx_a = 0.35;
     ly = min(spectrum.01_to_y(pk[0]), bottom);
     c = 1;
-    loop(ncol - 1,
+    loop(last,
       ty = min(spectrum.01_to_y(pk[c]), bottom);
       ly < bottom || ty < bottom ? spectrum.draw_line(c - 1, ly, c, ty);
       ly = ty;
       c += 1;
     );
+    last < ncol - 1 && ly < bottom ? spectrum.draw_line(last, ly, last, bottom);
   );
 
 /*
