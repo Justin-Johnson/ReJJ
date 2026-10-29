@@ -66,7 +66,7 @@ slider52:Node5_Slope=0<0,15,1>-Filter5 Slope
 slider53:MidPolarity=0<0,1,1>-Mid Polarity
 slider54:SidePolarity=0<0,1,1>-Side Polarity
 slider55:LimitOutput=0<0,1,1>-Limit Output
-slider56:AGCEnabled=0<0,1,1>-AGC Enabled
+slider56:AutoGainEnabled=0<0,1,1>-Auto Gain
 slider57:PanelEnabled=1<0,1,1>-Panel Enabled
 
 slider58:Node6_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter6 Mode
@@ -231,62 +231,6 @@ function freq2note(f) (
  */
 function db_to_gain(db) ( 
     10^(db / 40);
-);
-
-function RMS_init(buffer_index, buffer_size)
-    instance(rms_sum, rms_buffer, rms_bufIdx, rms_prev_val, rms_max_count)
-( 
-    rms_sum = 0;
-    rms_buffer = buffer_index;
-    rms_bufIdx = 0;
-    rms_prev_val = 0;
-    rms_max_count = buffer_size;
-    memset(rms_buffer , 0, rms_max_count);
-);
-
-function RMS_reset()
-    instance(rms_sum, rms_buffer, rms_bufIdx, rms_prev_val, rms_max_count)
-( 
-    rms_sum = 0;
-    rms_bufIdx = 0;
-    rms_prev_val = 0;
-    memset(rms_buffer , 0, rms_max_count);
-);
-
-function RMS_process(s0, s1)
-    instance(rms_sum, rms_buffer, rms_bufIdx, rms_prev_val, rms_max_count)
-    local(rms_ampL, rms_ampR, rms_amp)
-( 
-    rms_ampL = abs(s0);
-    rms_ampR = abs(s1);
-
-    // Epsilon clamp required
-    rms_ampL < 0.0000001 ? rms_ampL = 0.0000001;
-    rms_ampR < 0.0000001 ? rms_ampR = 0.0000001;
-
-    rms_amp = (rms_ampL * rms_ampL + rms_ampR * rms_ampR) * 0.5;
-
-    rms_sum += rms_amp;
-    rms_prev_val = rms_buffer[rms_bufIdx];
-    rms_buffer[rms_bufIdx] = rms_amp;
-
-    rms_bufIdx += 1;
-
-    rms_bufIdx == rms_max_count ? (
-        rms_bufIdx = 0;
-    );
-
-    rms_sum  -= rms_prev_val;
-    rms_sum < 0 ? rms_sum = 0.0;
-);
-
-function RMS_getDB()
-    instance(rms_sum, rms_max_count)
-    local(rms_delta, rms_db)
-( 
-    rms_delta = rms_sum / rms_max_count;
-    rms_db = 20 * log10(sqrt(rms_delta));
-    rms_db;
 );
 
 /*
@@ -825,9 +769,10 @@ function sliders_to_filters() (
 /*
  * Flag filter to update for both audio and graphics
  */
-function flag_filter_update(band) ( 
+function flag_filter_update(band) (
   Band_Update[band] = 1;
   Band_GfxUpdate[band] = 1;
+  Band_AgUpdate[band] = 1;
  );
 
 function flag_filter_update_all() ( 
@@ -847,6 +792,7 @@ function flag_filter_update_all() (
   Band_Update[13] = 1; Band_GfxUpdate[13] = 1;
   Band_Update[14] = 1; Band_GfxUpdate[14] = 1;
   Band_Update[15] = 1; Band_GfxUpdate[15] = 1;
+  memset(Band_AgUpdate, 1, NUM_BANDS);
  );
 
 /*
@@ -894,6 +840,131 @@ function update_audio_filters() local (band_scalar) (
   Band_Update[15] ? (Band_Update[15] = 0; Band_Enabled[15] != BAND_STATE_ENABLED ? band16.filter.svf_bypass() : band16.band_set_filter(Band_Type[15], Band_Frequency[15], Band_Gain[15] * band_scalar, Band_Q[15], Band_Slope[15]); );
 );
 
+/*
+ * Auto gain
+ *
+ * The make-up gain is worked out from the EQ curve, not measured from the audio:
+ * it is the gain that keeps pink noise at the same K-weighted (LUFS) loudness.
+ * Each band's power response is sampled at AG_POINTS log spaced frequencies
+ * and cached, and only re-measured when that band changes.
+ */
+
+/*
+ * Power response of a biquad at w radians per sample
+ */
+function biquad_power(b0, b1, b2, a1, a2, w) local(c1, s1, c2, s2, nr, ni, dr, di) (
+  c1 = cos(w); s1 = sin(w);
+  c2 = cos(2 * w); s2 = sin(2 * w);
+  nr = b0 + b1 * c1 + b2 * c2; ni = -(b1 * s1 + b2 * s2);
+  dr = 1 + a1 * c1 + a2 * c2; di = -(a1 * s1 + a2 * s2);
+  (nr * nr + ni * ni) / (dr * dr + di * di);
+);
+
+/*
+ * Frequencies and weights. Pink noise has equal power per octave, so on a log
+ * spaced grid its weight is flat and only the K-weighting (ITU-R BS.1770, its
+ * 48kHz coefficients) remains. Points at or above Nyquist are left out.
+ */
+function ag_init_weights() local(i, w) (
+  i = 0;
+  loop(AG_POINTS,
+    AG_Freq[i] = 20 * 1000 ^ (i / (AG_POINTS - 1));
+    w = 2 * $pi * AG_Freq[i] / 48000;
+    AG_Weight[i] = AG_Freq[i] < srate * 0.5 ?
+      biquad_power(1.53512485958697, -2.69169618940638, 1.19839281085285, -1.69065929318241, 0.73248077421585, w) *
+      biquad_power(1, -2, 1, -1.99004745483398, 0.99007225036621, w) : 0;
+    i += 1;
+  );
+);
+
+/*
+ * Measure one band's power response into its row of AG_Power
+ */
+function ag_measure(b) instance(filter) local(i, m, p) (
+  p = AG_Power + b * AG_POINTS;
+  Band_Enabled[b] == BAND_STATE_ENABLED ? (
+    this.band_set_filter(Band_Type[b], Band_Frequency[b], Band_Gain[b] * Scale / 100.0, Band_Q[b], Band_Slope[b]);
+    filter.svf_set_to_target();
+    i = 0;
+    loop(AG_POINTS,
+      m = filter.svf_magnitude(AG_Freq[i]);
+      p[i] = m * m;
+      i += 1;
+    );
+  ) : (
+    memset(p, 1, AG_POINTS);
+  );
+);
+
+function ag_measure_band(b) (
+    b == 0 ? ag_band1.ag_measure(0) :
+    b == 1 ? ag_band2.ag_measure(1) :
+    b == 2 ? ag_band3.ag_measure(2) :
+    b == 3 ? ag_band4.ag_measure(3) :
+    b == 4 ? ag_band5.ag_measure(4) :
+    b == 5 ? ag_band6.ag_measure(5) :
+    b == 6 ? ag_band7.ag_measure(6) :
+    b == 7 ? ag_band8.ag_measure(7) :
+    b == 8 ? ag_band9.ag_measure(8) :
+    b == 9 ? ag_band10.ag_measure(9) :
+    b == 10 ? ag_band11.ag_measure(10) :
+    b == 11 ? ag_band12.ag_measure(11) :
+    b == 12 ? ag_band13.ag_measure(12) :
+    b == 13 ? ag_band14.ag_measure(13) :
+    b == 14 ? ag_band15.ag_measure(14) :
+    b == 15 ? ag_band16.ag_measure(15);
+);
+
+/*
+ * Re-measure changed bands and recompute the make-up gain (AG_Target)
+ */
+function update_auto_gain() local(b, i, changed, pw, gm, gs, group, sum, wsum) (
+  changed = 0;
+  b = 0;
+  loop(NUM_BANDS,
+    // Group and enabled changes don't always flag the band
+    Band_Group[b] != AG_Group[b] || Band_Enabled[b] != AG_Enabled[b] ? (
+      AG_Group[b] = Band_Group[b];
+      AG_Enabled[b] = Band_Enabled[b];
+      Band_AgUpdate[b] = 1;
+    );
+    Band_AgUpdate[b] ? (
+      Band_AgUpdate[b] = 0;
+      ag_measure_band(b);
+      changed = 1;
+    );
+    b += 1;
+  );
+
+  changed ? (
+    sum = wsum = 0;
+    i = 0;
+    loop(AG_POINTS,
+      // Power gain on the mid and side parts of the signal. A left or right
+      // band changes half the power of both.
+      gm = gs = 1;
+      b = 0;
+      loop(NUM_BANDS,
+        Band_Enabled[b] == BAND_STATE_ENABLED ? (
+          pw = AG_Power[b * AG_POINTS + i];
+          group = Band_Group[b];
+          group == 0 ? (gm *= pw; gs *= pw) :
+            group == 1 ? gm *= pw :
+              group == 2 ? gs *= pw :
+                (pw = (pw + 1) * 0.5; gm *= pw; gs *= pw);
+        );
+        b += 1;
+      );
+      sum += AG_Weight[i] * (AG_MID_SHARE * gm + (1 - AG_MID_SHARE) * gs);
+      wsum += AG_Weight[i];
+      i += 1;
+    );
+
+    AG_Target = sum > 0 && wsum > 0 ? sqrt(wsum / sum) : 1;
+    AG_Target = min(max(AG_Target, AG_MIN), AG_MAX);
+  );
+);
+
 init_rate != srate ? (
   init_rate = srate;
 
@@ -932,6 +1003,24 @@ init_rate != srate ? (
   Band_Drag_OffsetY = MEMORY.alloc_memory(NUM_BANDS);
   Band_Invert_dB = MEMORY.alloc_memory(NUM_BANDS);
   Band_Selected_States = MEMORY.alloc_memory(NUM_BANDS);
+
+  // Auto gain
+  AG_POINTS = 61;               // 1/6 octave from 20Hz to 20kHz
+  AG_MID_SHARE = 0.8;           // Typical share of a mix's power in the mid
+  AG_MIN = 10 ^ (-24 / 20);
+  AG_MAX = 10 ^ (24 / 20);
+  AG_SMOOTH = 1 - exp(-1 / (0.03 * srate));   // 30ms
+  AG_Freq = MEMORY.alloc_memory(AG_POINTS);
+  AG_Weight = MEMORY.alloc_memory(AG_POINTS);
+  AG_Power = MEMORY.alloc_memory(NUM_BANDS * AG_POINTS);
+  AG_Group = MEMORY.alloc_memory(NUM_BANDS);
+  AG_Enabled = MEMORY.alloc_memory(NUM_BANDS);
+  Band_AgUpdate = MEMORY.alloc_memory(NUM_BANDS);
+  memset(AG_Group, -1, NUM_BANDS);
+  memset(Band_AgUpdate, 1, NUM_BANDS);
+  ag_init_weights();
+  AG_Target = 1;
+  ag_gain = 1;
   band = 0;
   while (band < NUM_BANDS) (
     Band_Selected[band] = 0;
@@ -982,6 +1071,24 @@ init_rate != srate ? (
   gfx_band15.band_init();
   gfx_band16.band_init();
 
+  // Filters for measuring the auto gain
+  ag_band1.band_init();
+  ag_band2.band_init();
+  ag_band3.band_init();
+  ag_band4.band_init();
+  ag_band5.band_init();
+  ag_band6.band_init();
+  ag_band7.band_init();
+  ag_band8.band_init();
+  ag_band9.band_init();
+  ag_band10.band_init();
+  ag_band11.band_init();
+  ag_band12.band_init();
+  ag_band13.band_init();
+  ag_band14.band_init();
+  ag_band15.band_init();
+  ag_band16.band_init();
+
   color_band0.create_color(231, 33, 75);
   color_band1.create_color(241, 111, 50);
   color_band2.create_color(253, 199, 50);
@@ -1002,20 +1109,6 @@ init_rate != srate ? (
   // Init FIR filter
   firL.init_FIR_filter_44100();
   firR.init_FIR_filter_44100();
-
-  // Allocate and init RMS
-  rms_time_constant_ms = 300;
-  rms_alloc = (0.001 * rms_time_constant_ms * 192000)|0;
-  rms_max_count = (0.001 * rms_time_constant_ms * srate)|0;
-
-  RMSPreIndex = MEMORY.alloc_memory(rms_alloc);
-  RMSPostIndex = MEMORY.alloc_memory(rms_alloc);
-
-  RMSPre.RMS_init(RMSPreIndex, rms_max_count);
-  RMSPost.RMS_init(RMSPostIndex, rms_max_count);
-
-  RMSSCIndex = MEMORY.alloc_memory(rms_alloc);
-  RMSSidechain.RMS_init(RMSSCIndex, rms_max_count);
 
   set_oversample(Quality);
 
@@ -1166,11 +1259,7 @@ init_rate != srate ? (
   StereoModes[3] = "Left";
   StereoModes[4] = "Right";
 
-  // Automatic Gain Control
-  agcControl = 0;
-  agcOverride = 0;
-
-  compact_width = 0;
+compact_width = 0;
   compact_height = 0;
   very_compact_width = 0;
   very_compact_height = 0;
@@ -1181,6 +1270,10 @@ init_rate != srate ? (
 @slider
 
 set_oversample(Quality);
+SAMPLE_RATE != slider_last_rate ? (
+  slider_last_rate = SAMPLE_RATE;
+  flag_filter_update_all();
+);
 
 button_oversample.select = Quality;
 button_stereo_mode.select = Stereo_Mode;
@@ -1289,6 +1382,7 @@ filters_to_sliders();
 // in @sample section
 
 update_audio_filters();
+update_auto_gain();
 
 Band_Process0 = (Band_Enabled[0] == BAND_STATE_ENABLED) || !band1.filter.svf_is_resting();
 Band_Process1 = (Band_Enabled[1] == BAND_STATE_ENABLED) || !band2.filter.svf_is_resting();
@@ -1326,7 +1420,7 @@ Band_Group15 = Band_Group[15];
 
 Listen_Process = do_listen || listen_node != -1 || !listen_filter.svf_is_resting();
 
-agcControl = AGCEnabled;
+ag_block_target = AutoGainEnabled ? AG_Target : 1;
 
 @sample
 
@@ -1345,9 +1439,6 @@ spl1 += 0.0000000001; // DeNorm fix
 
 spl0orig = spl0;
 spl1orig = spl1;
-
-// Sidechain RMS
-// RMSSidechain.RMS_process(spl2, spl3);
 
 // Feed the correct buffers depending on spectrum modes
 Show_PreEQ ? (
@@ -1861,33 +1952,10 @@ Listen_Process ? (
   spl1 = spl1list;
 );
 
-play_state == 1 && agcControl > 0 || agcOverride > 0 ? ( 
-  RMSPre.RMS_process(spl0orig, spl1orig);
-  RMSPost.RMS_process(spl0, spl1);
-
-  rms_db = RMSPre.RMS_getDB();
-  rms_db2 = RMSPost.RMS_getDB();
-  diffdb = rms_db - rms_db2;
-
-  agc_gain = 2 ^ (diffdb/6);
-
-  spl0 *= agc_gain;
-  spl1 *= agc_gain;
-
-  agcOverride > 0 ? ( 
-    agcOverride -= .001;
-    agcOverride <= 0 ? (
-
-      agcControl == 0 ? (
-        Gain = Gain + 6 * log(agc_gain) / log(2);
-        button_gain.db = Gain;
-
-        RMSPre.RMS_reset();
-        RMSPost.RMS_reset();
-      );
-    );
-  );
-);
+// Auto gain, smoothed so changing the curve doesn't step the level
+ag_gain += (ag_block_target - ag_gain) * AG_SMOOTH;
+spl0 *= ag_gain;
+spl1 *= ag_gain;
 
 // Limit the output
 LimitOutput ? (
@@ -5107,7 +5175,7 @@ buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
 
   button_limit_toggle.init_toggle_button(button_limit_toggle_xoffset, py, button_limit_toggle_width, 0, "LIMIT");
 
-  button_agc_toggle.init_toggle_button(button_agc_toggle_xoffset, py, button_agc_toggle_width, 0, "AGC");
+  button_agc_toggle.init_toggle_button(button_agc_toggle_xoffset, py, button_agc_toggle_width, 0, "AUTO");
   button_agcset_toggle.init_toggle_button(button_agcset_toggle_xoffset, py, button_agcset_toggle_width, 0, "S");
 
   button_panel_toggle.init_toggle_button(button_panel_toggle_xoffset, py, button_panel_toggle_width, 0, "PANEL");
@@ -5250,18 +5318,27 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     LimitOutput = button_limit_toggle.handle_toggle_button();
     button_limit_toggle.draw_toggle_button();
 
-    button_agc_toggle.select = AGCEnabled;
-    AGCEnabled = button_agc_toggle.handle_toggle_button();
+    button_agc_toggle.select = AutoGainEnabled;
+    AutoGainEnabled != button_agc_toggle.handle_toggle_button() ? (
+      AutoGainEnabled = !AutoGainEnabled;
+      slider_automate(AutoGainEnabled);
+    );
     button_agc_toggle.draw_toggle_button();
 
-    AGCEnabled ? (
+    AutoGainEnabled ? (
       button_agcset_toggle.select = 0;
       agc_set = button_agcset_toggle.handle_toggle_button();
       button_agcset_toggle.draw_toggle_button();
-      agc_set == 1 ? ( 
-        agcOverride = 10;
-        agcControl = 0;
-        AGCEnabled = 0;
+      agc_set == 1 ? (
+        // Move the make-up gain into Gain and switch auto gain off. Gain uses
+        // 6dB per doubling, so convert the same way to keep the level exact.
+        AutoGainEnabled = 0;
+        Gain = min(max(Gain + 6 * log(AG_Target) / log(2), -136), 30);
+        gainDb = 2 ^ (Gain / 6);
+        ag_gain = 1;
+        button_gain.db = Gain;
+        slider_automate(Gain);
+        slider_automate(AutoGainEnabled);
       );
     );
 
@@ -5607,9 +5684,6 @@ gfx_r = gfx_g = gfx_b = gfx_a = 1.0; gfx_x = 100; gfx_y = 120;
 //gfx_printf("Global = %d", _global.test);  gfx_x = 100; gfx_y += 30;
 
 
-//rms = RMSSidechain.RMS_getDB();
-//gfx_printf("RMS pre = %f", RMSPre.RMS_getDB());  gfx_x = 100; gfx_y += 30;
-//gfx_printf("RMS post = %f", RMSPost.RMS_getDB());  gfx_x = 100; gfx_y += 30;
 
 //gfx_printf("gain_diff         = %f", diffdb);  gfx_x = 100; gfx_y += 120;
 
