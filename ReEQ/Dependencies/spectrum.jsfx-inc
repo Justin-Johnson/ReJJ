@@ -659,6 +659,25 @@ function spectrum.draw(bufindex)
   bottom = gfx_h - spectrum.bottom_margin - gfx_texth;
   top = spectrum.top_margin;
 
+  // Heat (fill 2): a fill under the spectrum line like Fill, each column coloured by its level, from
+  // heat_r0/g0/b0 for quiet energy to the spectrum's colour where it's loud, fading towards the floor
+  spectrum_fill == 2 ? (
+    c = 0;
+    loop(last + 1,
+      y = floor(min(spectrum.01_to_y(yb[c]), bottom));
+      span = yb[c] > 0 ? yb[c] ^ 1.6 : 0;
+      y < bottom && span > 0.004 ? (
+        // Strength rises faster near the top, so loud regions glow without lifting the quiet ones
+        ty = min(1, a * (0.25 + 0.75 * span) * (0.85 + 0.45 * span * span));
+        gfx_gradrect(c, y, 1, bottom - y,
+          spectrum.heat_r0 + (r - spectrum.heat_r0) * span,
+          spectrum.heat_g0 + (g - spectrum.heat_g0) * span,
+          spectrum.heat_b0 + (b - spectrum.heat_b0) * span,
+          ty, 0, 0, 0, 0, 0, 0, 0, -0.9 * ty / max(bottom - y, 1));
+      );
+      c += 1;
+    );
+  ) :
   // Fill: a vertical fade per column, anchored to the graph so loud regions read brighter
   spectrum_fill ? (
     span = max(bottom - top, 1);
@@ -670,8 +689,11 @@ function spectrum.draw(bufindex)
     );
   );
 
-  // Line: a pale tint of the fill colour over a filled spectrum, or the colour itself
-  spectrum_fill ? (
+  // Line: a thin, faint tint over a heat map, a pale tint of the fill colour over a filled spectrum,
+  // or the colour itself
+  spectrum_fill == 2 ? (
+    gfx_r = r + (1 - r) * 0.35; gfx_g = g + (1 - g) * 0.35; gfx_b = b + (1 - b) * 0.35; gfx_a = 0.5;
+  ) : spectrum_fill ? (
     gfx_r = r + (1 - r) * 0.45; gfx_g = g + (1 - g) * 0.45; gfx_b = b + (1 - b) * 0.45; gfx_a = 0.7;
   ) : (
     gfx_r = r; gfx_g = g; gfx_b = b; gfx_a = a;

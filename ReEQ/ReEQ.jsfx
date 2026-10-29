@@ -13,7 +13,7 @@ slider5:SRGain=0<-136,30,0.01>-Side/Right Gain
 slider6:Scale=100<0,200,0.01>-Scale
 
 slider7:Spectrum_Mode=3<0,6,1{Full,Mid,Side,Mid / Side,Left,Right,Left / Right}>-Spectrum
-slider8:Display_Mode=0<0,2,1{Fill,Line,None}>-Display
+slider8:Display_Mode=0<0,3,1{Fill,Line,None,Heat}>-Display
 slider9:Ceiling_Value=0<0,2,1{0dB,20dB,40dB}>-Ceiling
 slider10:Floor_Value=0<0,2,1{-90dB,-140dB,-200dB}>-Floor
 slider11:Tilt_Value=3<0,4,1{0dB/oct,1.5dB/oct,3dB/oct,4.5dB/oct,6dB/oct}>-Tilt
@@ -247,7 +247,7 @@ function create_color(r, g, b)
 /*
  * Update the state of any changes
  */
-function update_state() local (blocks, fade, fill_r, fill_g, fill_b, fill_a, line_r, line_g, line_b, line_a) (
+function update_state() local (dm, blocks, fade, fill_r, fill_g, fill_b, fill_a, line_r, line_g, line_b, line_a) (
   spectrum.ceiling = Ceiling_Value == 0 ? 0 : Ceiling_Value == 1 ? 20 : Ceiling_Value == 2 ? 40;
   spectrum.noise_floor = Floor_Value == 0 ? -90 : Floor_Value == 1 ? -140 : Floor_Value == 2 ? -200;
   spectrum.noise_floor = Floor_Value == 0 ? -90 : Floor_Value == 1 ? -140 : Floor_Value == 2 ? -200;
@@ -269,7 +269,11 @@ function update_state() local (blocks, fade, fill_r, fill_g, fill_b, fill_a, lin
   listline_g = (101 / 255) * 0.80;
   listline_b = (76 / 255) * 0.80;
 
-  Display_Mode == 0 ? (
+  // The spectrum mode the analyser feeds and draws
+  SPEC_MODE = Spectrum_Mode;
+  dm = Display_Mode;
+
+  dm == 0 ? (
     // Light fills: Mid or Left in cool slate, Side or Right in warm sand (the fill fades
     // down from the top of the graph; the spectrum draws a paler line along its edge)
     fill_r = 93 / 255;
@@ -299,7 +303,29 @@ function update_state() local (blocks, fade, fill_r, fill_g, fill_b, fill_a, lin
     spectrum.set_fill(5, 0);
     spectrum.set_color(5, listline_r*0.80, listline_g*0.80, listline_b*0.80, 1);
 
-  ) : Display_Mode == 1 ? (
+  ) : dm == 3 ? (
+    // Heat: Mid or Left as a fill coloured by level, deep plum for quiet energy rising to a soft red
+    // where it's loud; Side or Right as a sand line over a faint sand fill, as in Fill
+    spectrum.heat_r0 = 92 / 255 * fade; spectrum.heat_g0 = 52 / 255 * fade; spectrum.heat_b0 = 86 / 255 * fade;
+    spectrum.set_fill(0, 2);
+    spectrum.set_color(0, 240 / 255 * fade, 86 / 255 * fade, 98 / 255 * fade, 0.65);
+
+    spectrum.set_fill(1, 1);
+    spectrum.set_color(1, 176 / 255 * fade, 150 / 255 * fade, 110 / 255 * fade, 0.12);
+
+    spectrum.set_fill(2, 0);
+    spectrum.set_color(2, 138 / 255, 148 / 255, 153 / 255, 0.5);
+
+    spectrum.set_fill(3, 0);
+    spectrum.set_color(3, 138 / 255, 148 / 255, 153 / 255, 0.4);
+
+    spectrum.set_fill(4, 0);
+    spectrum.set_color(4, listline_r, listline_g, listline_b, 1);
+
+    spectrum.set_fill(5, 0);
+    spectrum.set_color(5, listline_r*0.80, listline_g*0.80, listline_b*0.80, 1);
+
+  ) : dm == 1 ? (
     line_a=1.0;
     line_r = 114 / 255; line_g = 215 / 255; line_b = 253 / 255;;
     spectrum.set_fill(0, 0);
@@ -1416,13 +1442,13 @@ in_pk1 = max(in_pk1, abs(spl1));
 
 // Feed the correct buffers depending on spectrum modes
 Show_PreEQ ? (
-  Spectrum_Mode == 0 ? spectrum.sample2(spl0 + spl1) :
-  Spectrum_Mode == 1 ? spectrum.sample2((spl0 + spl1) * 0.5) :
-  Spectrum_Mode == 2 ? spectrum.sample2((spl0 - spl1) * 0.5) :
-  Spectrum_Mode == 3 ? (spectrum.sample2((spl0 + spl1) * 0.5); spectrum.sample3((spl0 - spl1) * 0.5)) :
-  Spectrum_Mode == 4 ? spectrum.sample2(spl0);
-  Spectrum_Mode == 5 ? spectrum.sample2(spl1) :
-  Spectrum_Mode == 6 ? (spectrum.sample2(spl0); spectrum.sample3(spl1));
+  SPEC_MODE == 0 ? spectrum.sample2(spl0 + spl1) :
+  SPEC_MODE == 1 ? spectrum.sample2((spl0 + spl1) * 0.5) :
+  SPEC_MODE == 2 ? spectrum.sample2((spl0 - spl1) * 0.5) :
+  SPEC_MODE == 3 ? (spectrum.sample2((spl0 + spl1) * 0.5); spectrum.sample3((spl0 - spl1) * 0.5)) :
+  SPEC_MODE == 4 ? spectrum.sample2(spl0);
+  SPEC_MODE == 5 ? spectrum.sample2(spl1) :
+  SPEC_MODE == 6 ? (spectrum.sample2(spl0); spectrum.sample3(spl1));
 );
 
 // Interpolate filter coefficients
@@ -1685,22 +1711,22 @@ Listen_Process ? (
 );
 
 // Feed the correct buffers depending on spectrum modes
-Spectrum_Mode == 0 ? spectrum.sample0(spl0 + spl1) :
-Spectrum_Mode == 1 ? spectrum.sample0((spl0 + spl1) * 0.5) :
-Spectrum_Mode == 2 ? spectrum.sample0((spl0 - spl1) * 0.5) :
-Spectrum_Mode == 3 ? (spectrum.sample0((spl0 + spl1) * 0.5); spectrum.sample1((spl0 - spl1) * 0.5)) :
-Spectrum_Mode == 4 ? spectrum.sample0(spl0);
-Spectrum_Mode == 5 ? spectrum.sample0(spl1) :
-Spectrum_Mode == 6 ? (spectrum.sample0(spl0); spectrum.sample1(spl1));
+SPEC_MODE == 0 ? spectrum.sample0(spl0 + spl1) :
+SPEC_MODE == 1 ? spectrum.sample0((spl0 + spl1) * 0.5) :
+SPEC_MODE == 2 ? spectrum.sample0((spl0 - spl1) * 0.5) :
+SPEC_MODE == 3 ? (spectrum.sample0((spl0 + spl1) * 0.5); spectrum.sample1((spl0 - spl1) * 0.5)) :
+SPEC_MODE == 4 ? spectrum.sample0(spl0);
+SPEC_MODE == 5 ? spectrum.sample0(spl1) :
+SPEC_MODE == 6 ? (spectrum.sample0(spl0); spectrum.sample1(spl1));
 
 Listen_Process ? (
-  Spectrum_Mode == 0 ? spectrum.sample4(spl0list + spl1list) :
-  Spectrum_Mode == 1 ? spectrum.sample4((spl0list + spl1list) * 0.5) :
-  Spectrum_Mode == 2 ? spectrum.sample4((spl0list - spl1list) * 0.5) :
-  Spectrum_Mode == 3 ? (spectrum.sample4((spl0list + spl1list) * 0.5); spectrum.sample5((spl0list - spl1list) * 0.5)) :
-  Spectrum_Mode == 4 ? spectrum.sample4(spl0list);
-  Spectrum_Mode == 5 ? spectrum.sample4(spl1list) :
-  Spectrum_Mode == 6 ? (spectrum.sample4(spl0list); spectrum.sample5(spl1list));
+  SPEC_MODE == 0 ? spectrum.sample4(spl0list + spl1list) :
+  SPEC_MODE == 1 ? spectrum.sample4((spl0list + spl1list) * 0.5) :
+  SPEC_MODE == 2 ? spectrum.sample4((spl0list - spl1list) * 0.5) :
+  SPEC_MODE == 3 ? (spectrum.sample4((spl0list + spl1list) * 0.5); spectrum.sample5((spl0list - spl1list) * 0.5)) :
+  SPEC_MODE == 4 ? spectrum.sample4(spl0list);
+  SPEC_MODE == 5 ? spectrum.sample4(spl1list) :
+  SPEC_MODE == 6 ? (spectrum.sample4(spl0list); spectrum.sample5(spl1list));
   spl0 = spl0list;
   spl1 = spl1list;
 );
@@ -4586,14 +4612,14 @@ function ui_draw_analyzer_pop() local(s, pad, pw, ph, px, py, x, y, w, tw, th, i
 
   x = px + pad; w = pw - 2 * pad; y = py + 30 * s + 10 * s;
 
-  // Display: Off, Fill, Line, each with a tiny preview
+  // Display: Off, Fill, Line, Heat, each with a tiny preview
   gfx_setfont(5); ui_rgb(109, 119, 124);
   ui_text_l(x, y, 10 * s, "DISPLAY");
   y += 10 * s + 6 * s;
-  tw = (w - 8 * s) / 3; th = 46 * s;
+  tw = (w - 12 * s) / 4; th = 46 * s;
   i = 0;
-  loop(3,
-    m = i == 0 ? 2 : i - 1;
+  loop(4,
+    m = i == 0 ? 2 : i == 3 ? 3 : i - 1;
     tx = floor(x + i * (tw + 4 * s)); ty = floor(y);
     on = Display_Mode == m;
     hov = ui_in(tx, ty, tw, th);
@@ -4604,6 +4630,17 @@ function ui_draw_analyzer_pop() local(s, pad, pw, ph, px, py, x, y, w, tw, th, i
     i == 0 ? (
       k = 0;
       loop(9, gfx_line(cx0 + k * 4.5 * s, ty + 19 * s, cx0 + (k * 4.5 + 2.5) * s, ty + 19 * s, 1); k += 1);
+    ) : i == 3 ? (
+      // A small spectrum filled with level colours, plum to red, as the Heat display draws it
+      k = 0;
+      loop(floor(40 * s),
+        t = k / (40 * s);
+        yy = 0.5 + 0.42 * cos(t * 7.2) * (1 - t * 0.4) - 0.12 * t;
+        ui_rgba(92 + (240 - 92) * yy, 52 + (86 - 52) * yy, 86 + (98 - 86) * yy, 0.3 + 0.7 * yy);
+        gfx_line(cx0 + k, ty + (21 - 15 * yy) * s, cx0 + k, ty + 21 * s, 0);
+        k += 1;
+      );
+      gfx_a = 1;
     ) : (
       // A small spectrum: filled under the line for Fill
       k = 0;
@@ -4620,7 +4657,7 @@ function ui_draw_analyzer_pop() local(s, pad, pw, ph, px, py, x, y, w, tw, th, i
     gfx_a = 1;
     gfx_setfont(7);
     on ? ui_rgb(232, 246, 251) : hov ? ui_rgb(223, 230, 233) : ui_rgb(138, 148, 153);
-    ui_text_c(tx, ty + th - 17 * s, tw, 13 * s, i == 0 ? "Off" : i == 1 ? "Fill" : "Line");
+    ui_text_c(tx, ty + th - 17 * s, tw, 13 * s, i == 0 ? "Off" : i == 1 ? "Fill" : i == 2 ? "Line" : "Heat");
     pr && hov ? (Display_Mode = m; update_state());
     i += 1;
   );
@@ -4974,18 +5011,18 @@ update_visual_filters();
 ui_bg_h = max(gfx_h - BOTTOM_MARGIN, 1);
 gfx_gradrect(0, 0, gfx_w, ui_bg_h, 16/255, 19/255, 22/255, 1, 0, 0, 0, 0, -8/255/ui_bg_h, -10/255/ui_bg_h, -12/255/ui_bg_h, 0);
 
-Display_Mode < 2 ? (
+Display_Mode != 2 ? (
   spectrum.draw(0);
-  Spectrum_Mode == 3 || Spectrum_Mode == 6 ? spectrum.draw(1);
+  SPEC_MODE == 3 || SPEC_MODE == 6 ? spectrum.draw(1);
 
   Show_PreEQ ? (
     spectrum.draw(2);
-    Spectrum_Mode == 3 || Spectrum_Mode == 6 ? spectrum.draw(3);
+    SPEC_MODE == 3 || SPEC_MODE == 6 ? spectrum.draw(3);
   );
 
   do_listen || listen_node != -1 ? ( 
     spectrum.draw(4);
-    Spectrum_Mode == 3 || Spectrum_Mode == 6 ? spectrum.draw(5);
+    SPEC_MODE == 3 || SPEC_MODE == 6 ? spectrum.draw(5);
   );
 );
 
