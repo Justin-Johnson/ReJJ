@@ -22,11 +22,11 @@ slider14:Show_Piano=0<0,1,1{Off,On}>-Show Piano
 slider15:Show_Peaks=0<0,1,1{Off,On}>-Show Peaks
 slider16:Show_PreEQ=0<0,1,1{Off,On}>-Show Pre-EQ
 slider17:Db_Range=2<0,4,1{6dB,12dB,18dB,24dB,30dB}>-dB Range
-slider135:Smoothing_Value=1<0,4,1{Off,1/48 oct,1/24 oct,1/12 oct,1/6 oct}>-Spectrum Smoothing
+slider135:Smoothing_Value=1<0,4,1{Off,1/48 Oct,1/24 Oct,1/12 Oct,1/6 Oct}>-Spectrum Smoothing
 
 slider18:Node1_Enabled=<0,2,1{Off,Disabled,Enabled}>-Filter1 Mode
 slider19:Node1_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter1 Group
-slider20:Node1_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter1 Type
+slider20:Node1_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter1 Type
 slider21:Node1_Frequency=50.81<0,100,0.01>-Filter1 Frequency
 slider22:Node1_Gain=8.0<-18.0,18.0,0.01>-Filter1 Gain
 slider23:Node1_Q=32.647<0,100.0,0.01>-Filter1 Q
@@ -34,7 +34,7 @@ slider24:Node1_Slope=0<0,19,1>-Filter1 Slope
 
 slider25:Node2_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter2 Mode
 slider26:Node2_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter2 Group
-slider27:Node2_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter2 Type
+slider27:Node2_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter2 Type
 slider28:Node2_Frequency=30<0,100,0.01>-Filter2 Frequency
 slider29:Node2_Gain=0.0<-18.0,18.0,0.01>-Filter2 Gain
 slider30:Node2_Q=32.647<0,100.0,0.01>-Filter2 Q
@@ -42,7 +42,7 @@ slider31:Node2_Slope=0<0,19,1>-Filter2 Slope
 
 slider32:Node3_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter3 Mode
 slider33:Node3_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter3 Group
-slider34:Node3_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter3 Type
+slider34:Node3_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter3 Type
 slider35:Node3_Frequency=40<0,100,0.01>-Filter3 Frequency
 slider36:Node3_Gain=0.0<-18.0,18.0,0.01>-Filter3 Gain
 slider37:Node3_Q=32.647<0,100.0,0.01>-Filter3 Q
@@ -50,7 +50,7 @@ slider38:Node3_Slope=0<0,19,1>-Filter3 Slope
 
 slider39:Node4_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter4 Mode
 slider40:Node4_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter4 Group
-slider41:Node4_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter4 Type
+slider41:Node4_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter4 Type
 slider42:Node4_Frequency=70<0,100,0.01>-Filter4 Frequency
 slider43:Node4_Gain=0.0<-18.0,18.0,0.01>-Filter4 Gain
 slider44:Node4_Q=32.647<0,100.0,0.01>-Filter4 Q
@@ -58,7 +58,7 @@ slider45:Node4_Slope=0<0,19,1>-Filter4 Slope
 
 slider46:Node5_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter5 Mode
 slider47:Node5_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter5 Group
-slider48:Node5_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter5 Type
+slider48:Node5_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter5 Type
 slider49:Node5_Frequency=70<0,100,0.01>-Filter5 Frequency
 slider50:Node5_Gain=0.0<-18.0,18.0,0.01>-Filter5 Gain
 slider51:Node5_Q=32.647<0,100.0,0.01>-Filter5 Q
@@ -72,7 +72,7 @@ slider57:PanelEnabled=1<0,1,1>-Panel Enabled
 
 slider58:Node6_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter6 Mode
 slider59:Node6_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter6 Group
-slider60:Node6_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter6 Type
+slider60:Node6_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter6 Type
 slider61:Node6_Frequency=50<0,100,0.01>-Filter6 Frequency
 slider62:Node6_Gain=0.0<-18.0,18.0,0.01>-Filter6 Gain
 slider63:Node6_Q=32.647<0,100.0,0.01>-Filter6 Q
@@ -80,7 +80,7 @@ slider64:Node6_Slope=0<0,19,1>-Filter6 Slope
 
 slider65:Node7_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter7 Mode
 slider66:Node7_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter7 Group
-slider67:Node7_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter7 Type
+slider67:Node7_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter7 Type
 slider68:Node7_Frequency=50<0,100,0.01>-Filter7 Frequency
 slider69:Node7_Gain=0.0<-18.0,18.0,0.01>-Filter7 Gain
 slider70:Node7_Q=32.647<0,100.0,0.01>-Filter7 Q
@@ -88,7 +88,7 @@ slider71:Node7_Slope=0<0,19,1>-Filter7 Slope
 
 slider72:Node8_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter8 Mode
 slider73:Node8_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter8 Group
-slider74:Node8_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter8 Type
+slider74:Node8_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter8 Type
 slider75:Node8_Frequency=50<0,100,0.01>-Filter8 Frequency
 slider76:Node8_Gain=0.0<-18.0,18.0,0.01>-Filter8 Gain
 slider77:Node8_Q=32.647<0,100.0,0.01>-Filter8 Q
@@ -96,7 +96,7 @@ slider78:Node8_Slope=0<0,19,1>-Filter8 Slope
 
 slider79:Node9_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter9 Mode
 slider80:Node9_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter9 Group
-slider81:Node9_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter9 Type
+slider81:Node9_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter9 Type
 slider82:Node9_Frequency=50<0,100,0.01>-Filter9 Frequency
 slider83:Node9_Gain=0.0<-18.0,18.0,0.01>-Filter9 Gain
 slider84:Node9_Q=32.647<0,100.0,0.01>-Filter9 Q
@@ -104,7 +104,7 @@ slider85:Node9_Slope=0<0,19,1>-Filter9 Slope
 
 slider86:Node10_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter10 Mode
 slider87:Node10_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter10 Group
-slider88:Node10_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter10 Type
+slider88:Node10_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter10 Type
 slider89:Node10_Frequency=50<0,100,0.01>-Filter10 Frequency
 slider90:Node10_Gain=0.0<-18.0,18.0,0.01>-Filter10 Gain
 slider91:Node10_Q=32.647<0,100.0,0.01>-Filter10 Q
@@ -112,7 +112,7 @@ slider92:Node10_Slope=0<0,19,1>-Filter10 Slope
 
 slider93:Node11_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter11 Mode
 slider94:Node11_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter11 Group
-slider95:Node11_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter11 Type
+slider95:Node11_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter11 Type
 slider96:Node11_Frequency=50<0,100,0.01>-Filter11 Frequency
 slider97:Node11_Gain=0.0<-18.0,18.0,0.01>-Filter11 Gain
 slider98:Node11_Q=32.647<0,100.0,0.01>-Filter11 Q
@@ -120,7 +120,7 @@ slider99:Node11_Slope=0<0,19,1>-Filter11 Slope
 
 slider100:Node12_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter12 Mode
 slider101:Node12_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter12 Group
-slider102:Node12_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter12 Type
+slider102:Node12_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter12 Type
 slider103:Node12_Frequency=50<0,100,0.01>-Filter12 Frequency
 slider104:Node12_Gain=0.0<-18.0,18.0,0.01>-Filter12 Gain
 slider105:Node12_Q=32.647<0,100.0,0.01>-Filter12 Q
@@ -128,7 +128,7 @@ slider106:Node12_Slope=0<0,19,1>-Filter12 Slope
 
 slider107:Node13_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter13 Mode
 slider108:Node13_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter13 Group
-slider109:Node13_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter13 Type
+slider109:Node13_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter13 Type
 slider110:Node13_Frequency=50<0,100,0.01>-Filter13 Frequency
 slider111:Node13_Gain=0.0<-18.0,18.0,0.01>-Filter13 Gain
 slider112:Node13_Q=32.647<0,100.0,0.01>-Filter13 Q
@@ -136,7 +136,7 @@ slider113:Node13_Slope=0<0,19,1>-Filter13 Slope
 
 slider114:Node14_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter14 Mode
 slider115:Node14_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter14 Group
-slider116:Node14_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter14 Type
+slider116:Node14_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter14 Type
 slider117:Node14_Frequency=50<0,100,0.01>-Filter14 Frequency
 slider118:Node14_Gain=0.0<-18.0,18.0,0.01>-Filter14 Gain
 slider119:Node14_Q=32.647<0,100.0,0.01>-Filter14 Q
@@ -144,7 +144,7 @@ slider120:Node14_Slope=0<0,19,1>-Filter14 Slope
 
 slider121:Node15_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter15 Mode
 slider122:Node15_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter15 Group
-slider123:Node15_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter15 Type
+slider123:Node15_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter15 Type
 slider124:Node15_Frequency=50<0,100,0.01>-Filter15 Frequency
 slider125:Node15_Gain=0.0<-18.0,18.0,0.01>-Filter15 Gain
 slider126:Node15_Q=32.647<0,100.0,0.01>-Filter15 Q
@@ -152,7 +152,7 @@ slider127:Node15_Slope=0<0,19,1>-Filter15 Slope
 
 slider128:Node16_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter16 Mode
 slider129:Node16_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter16 Group
-slider130:Node16_Type=0<0,13,1{Bell,Low cut,Low cut BW,Low shelf,High shelf,High cut,High cut BW,Notch,Band pass,Tilt shelf,Pultec low,All pass,Vintage low,Vintage high}>-Filter16 Type
+slider130:Node16_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter16 Type
 slider131:Node16_Frequency=50<0,100,0.01>-Filter16 Frequency
 slider132:Node16_Gain=0.0<-18.0,18.0,0.01>-Filter16 Gain
 slider133:Node16_Q=32.647<0,100.0,0.01>-Filter16 Q
@@ -1197,19 +1197,19 @@ init_rate != srate ? (
   // Define filter display order
   FilterTypes = MEMORY.alloc_memory(14);
   FilterTypes[0] = "Bell";
-  FilterTypes[1] = "Low cut";
-  FilterTypes[2] = "Low cut BW";
-  FilterTypes[3] = "Vintage low";
-  FilterTypes[4] = "Low shelf";
-  FilterTypes[5] = "High shelf";
-  FilterTypes[6] = "High cut";
-  FilterTypes[7] = "High cut BW";
-  FilterTypes[8] = "Vintage high";
+  FilterTypes[1] = "Low Cut";
+  FilterTypes[2] = "Low Cut BW";
+  FilterTypes[3] = "Vintage Lo";
+  FilterTypes[4] = "Low Shelf";
+  FilterTypes[5] = "High Shelf";
+  FilterTypes[6] = "High Cut";
+  FilterTypes[7] = "High Cut BW";
+  FilterTypes[8] = "Vintage Hi";
   FilterTypes[9] = "Notch";
-  FilterTypes[10] = "Band pass";
-  FilterTypes[11] = "Tilt shelf";
-  FilterTypes[12] = "Pultec low";
-  FilterTypes[13] = "All pass";
+  FilterTypes[10] = "Band Pass";
+  FilterTypes[11] = "Tilt Shelf";
+  FilterTypes[12] = "Pultec Low";
+  FilterTypes[13] = "All Pass";
 
   // Define mapping from display order to index
   FilterMappingTo = MEMORY.alloc_memory(14);
@@ -2237,8 +2237,7 @@ function ui_icon(kind, cx, cy) local(s, w, k, a) (
 /*
  * Bordered button. style: 0 normal, 1 on (accent), 2 danger on hover. Returns 1 when clicked.
  */
-function ui_button(x, y, w, h, label, style) local(hov) (
-  hov = ui_hover(x, y, w, h);
+function ui_button_draw(x, y, w, h, label, style, hov) (
   style == 1 ? ui_box(x, y, w, h, ui_pt(5), 15, 42, 51, 1, 29, 90, 109) :
     style == 2 && hov ? ui_box(x, y, w, h, ui_pt(5), 42, 18, 21, 1, 106, 42, 49) :
       ui_box(x, y, w, h, ui_pt(5), hov ? 22 : 13, hov ? 27 : 16, hov ? 30 : 18, 1, 42, 49, 53);
@@ -2248,18 +2247,25 @@ function ui_button(x, y, w, h, label, style) local(hov) (
     gfx_a = 1;
     ui_text_c(x, y, w, h, label);
   );
+);
+
+function ui_button(x, y, w, h, label, style) (
+  ui_button_draw(x, y, w, h, label, style, ui_hover(x, y, w, h));
   ui_clicked(x, y, w, h);
 );
 
 /*
  * Icon button. style as ui_button. Returns 1 when clicked.
  */
-function ui_icon_button(x, y, w, h, kind, style) local(hov) (
-  hov = ui_hover(x, y, w, h);
-  ui_button(x, y, w, h, "", style);
+function ui_icon_button_draw(x, y, w, h, kind, style, hov) (
+  ui_button_draw(x, y, w, h, "", style, hov);
   style == 1 ? ui_rgb(92, 200, 234) : style == 2 && hov ? ui_rgb(240, 131, 143) : hov ? ui_rgb(223, 230, 233) : ui_rgb(154, 165, 170);
   gfx_a = 1;
   ui_icon(kind, x + w * 0.5, y + h * 0.5);
+);
+
+function ui_icon_button(x, y, w, h, kind, style) (
+  ui_icon_button_draw(x, y, w, h, kind, style, ui_hover(x, y, w, h));
   ui_clicked(x, y, w, h);
 );
 
@@ -2335,9 +2341,9 @@ function ui_fmt_db(s, v) (
 );
 
 function ui_shape_name(t) (
-  t == 0 ? "Bell" : t == 1 ? "Low cut" : t == 2 ? "Low cut BW" : t == 3 ? "Low shelf" : t == 4 ? "High shelf" :
-    t == 5 ? "High cut" : t == 6 ? "High cut BW" : t == 7 ? "Notch" : t == 8 ? "Band pass" : t == 9 ? "Tilt shelf" :
-      t == 10 ? "Pultec low" : t == 11 ? "All pass" : t == 12 ? "Vintage low" : "Vintage high";
+  t == 0 ? "Bell" : t == 1 ? "Low Cut" : t == 2 ? "Low Cut BW" : t == 3 ? "Low Shelf" : t == 4 ? "High Shelf" :
+    t == 5 ? "High Cut" : t == 6 ? "High Cut BW" : t == 7 ? "Notch" : t == 8 ? "Band Pass" : t == 9 ? "Tilt Shelf" :
+      t == 10 ? "Pultec Low" : t == 11 ? "All Pass" : t == 12 ? "Vintage Lo" : "Vintage Hi";
 );
 
 function ui_is_cut(t) (
@@ -4085,10 +4091,10 @@ function handle_menu_button() instance (x, y, width, menutext, label, pressed, h
 
       #menu += ">Smoothing|";
       Smoothing_Value == 0 ? #menu += "!"; #menu += "Off|";
-      Smoothing_Value == 1 ? #menu += "!"; #menu += "1/48 octave|";
-      Smoothing_Value == 2 ? #menu += "!"; #menu += "1/24 octave|";
-      Smoothing_Value == 3 ? #menu += "!"; #menu += "1/12 octave|";
-      Smoothing_Value == 4 ? #menu += "!"; #menu += "<1/6 octave|";
+      Smoothing_Value == 1 ? #menu += "!"; #menu += "1/48 Octave|";
+      Smoothing_Value == 2 ? #menu += "!"; #menu += "1/24 Octave|";
+      Smoothing_Value == 3 ? #menu += "!"; #menu += "1/12 Octave|";
+      Smoothing_Value == 4 ? #menu += "!"; #menu += "<1/6 Octave|";
 
       gfx_x = mouse_x;
       gfx_y = mouse_y;
@@ -4229,8 +4235,9 @@ function ui_shape_base(type) (
 /*
  * Shape icon in a 40 x 22 pt box at x, y, in the current colour
  */
-function ui_shape_icon(type, x, y) local(s, m, flip, i, n, t0, t1, y0, y1, base, r, g, b) (
-  s = ui_pt(1);
+// k scales the 40 x 22pt icon
+function ui_shape_icon(type, x, y, k) local(s, m, flip, i, n, t0, t1, y0, y1, base, r, g, b) (
+  s = ui_pt(1) * k;
   // High cuts draw as mirrored low cuts
   m = type == 5 ? 1 : type == 6 ? 2 : type == 13 ? 12 : type;
   flip = type == 5 || type == 6 || type == 13;
@@ -4451,7 +4458,7 @@ function ui_draw_bar()
   ui_button(x, y, w_auto, h, ag, AutoGainEnabled ? 1 : 0) ? (AutoGainEnabled = !AutoGainEnabled; slider_automate(AutoGainEnabled));
   AutoGainEnabled && ui_rpress && ui_free() && ui_in(x, y, w_auto, h) ? (
     gfx_x = x; gfx_y = y - ui_pt(4);
-    gfx_showmenu("Apply make-up to output") == 1 ? (
+    gfx_showmenu("Apply Make-Up to Output") == 1 ? (
       // Gain uses 6dB per doubling, so convert the same way to keep the level exact
       AutoGainEnabled = 0;
       Gain = min(max(Gain + 6 * log(AG_Target) / log(2), -136), 30);
@@ -4511,7 +4518,7 @@ function ui_draw_top() local(s, h, y, gw, gx, aw, ax, lab, r) (
     Display_Mode == 2 ? #menu += "!"; #menu += "Off|";
     Display_Mode == 0 ? #menu += "!"; #menu += "Fill|";
     Display_Mode == 1 ? #menu += "!"; #menu += "Line||";
-    Show_PreEQ ? #menu += "!"; #menu += "Show pre-EQ||";
+    Show_PreEQ ? #menu += "!"; #menu += "Show Pre-EQ||";
     Spectrum_Mode == 0 ? #menu += "!"; #menu += "Full|";
     Spectrum_Mode == 1 ? #menu += "!"; #menu += "Mid|";
     Spectrum_Mode == 2 ? #menu += "!"; #menu += "Side|";
@@ -4574,7 +4581,7 @@ function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on,
        : hov ? ui_box(tx, ty, tw, th, 5 * s, 26, 31, 34, 1, 44, 52, 56);
     on ? ui_band_rgb(b) : ui_rgb(154, 165, 170);
     gfx_a = 1;
-    ui_shape_icon(t, tx + tw * 0.5 - 20 * s, ty + 7 * s);
+    ui_shape_icon(t, tx + tw * 0.5 - 20 * s, ty + 7 * s, 1);
     gfx_setfont(7);
     on ? ui_rgb(243, 220, 178) : hov ? ui_rgb(223, 230, 233) : ui_rgb(138, 148, 153);
     ui_text_c(tx, ty + th - 18 * s, tw, 14 * s, ui_shape_name(t));
@@ -4623,9 +4630,22 @@ function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on,
 );
 
 /*
+ * Stereo placement glyph centred on cx, cy in the current colour, scaled by k.
+ * Two circles, one per side: outline = passes, filled = this part, faint = untouched.
+ */
+function ui_stereo_glyph(g, cx, cy, k) local(s, r) (
+  s = ui_pt(1) * k; r = 5.5 * s;
+  g == 0 ? (ui_thick_arc(cx - 4 * s, cy, r, 0, 2 * $pi, 1.4 * s); ui_thick_arc(cx + 4 * s, cy, r, 0, 2 * $pi, 1.4 * s)) :
+    g == 1 ? gfx_circle(cx, cy, r, 1, 1) :
+      g == 2 ? (ui_thick_arc(cx - 8 * s, cy, r, 0, 2 * $pi, 1.4 * s); ui_thick_arc(cx + 8 * s, cy, r, 0, 2 * $pi, 1.4 * s)) :
+        (gfx_circle(g == 3 ? cx - 6 * s : cx + 6 * s, cy, r, 1, 1);
+         ui_rgb(53, 61, 65); ui_thick_arc(g == 3 ? cx + 6 * s : cx - 6 * s, cy, r, 0, 2 * $pi, 1.4 * s));
+);
+
+/*
  * Stereo placement picker: one row of five tiles
  */
-function ui_draw_stereo_pop(b) local(s, pw, ph, px, py, tw, th, g, tx, ty, on, hov, ax, cx, cy, r, inpop, c0, c1, c2, pr) (
+function ui_draw_stereo_pop(b) local(s, pw, ph, px, py, tw, th, g, tx, ty, on, hov, inpop, pr) (
   s = ui_pt(1);
   pr = ui_press && !ui_pop_skip; ui_pop_skip = 0;
   pw = 312 * s; tw = (pw - 16 * s - 16 * s) / 5; th = 52 * s;
@@ -4634,7 +4654,6 @@ function ui_draw_stereo_pop(b) local(s, pw, ph, px, py, tw, th, g, tx, ty, on, h
   py = ui_pop_frame(px, pw, ph);
   inpop = ui_in(px, py, pw, ph);
 
-  r = 5.5 * s;
   g = 0;
   loop(5,
     tx = floor(px + 8 * s + g * (tw + 4 * s)); ty = floor(py + 8 * s);
@@ -4643,16 +4662,9 @@ function ui_draw_stereo_pop(b) local(s, pw, ph, px, py, tw, th, g, tx, ty, on, h
     on ? (ui_band_rgb(b); gfx_a = 0.10; ui_fill_rrect(tx, ty, tw, th, 5 * s); gfx_a = 1; gfx_roundrect(tx, ty, tw - 1, th - 1, 5 * s, 1))
        : hov ? ui_box(tx, ty, tw, th, 5 * s, 26, 31, 34, 1, 44, 52, 56);
 
-    // Two circles, one per side: outline = passes, filled = this part, faint = untouched
-    cx = tx + tw * 0.5; cy = ty + 16 * s;
     on ? ui_band_rgb(b) : ui_rgb(154, 165, 170);
-    c0 = gfx_r; c1 = gfx_g; c2 = gfx_b;
     gfx_a = 1;
-    g == 0 ? (ui_thick_arc(cx - 4 * s, cy, r, 0, 2 * $pi, 1.4 * s); ui_thick_arc(cx + 4 * s, cy, r, 0, 2 * $pi, 1.4 * s)) :
-      g == 1 ? gfx_circle(cx, cy, r, 1, 1) :
-        g == 2 ? (ui_thick_arc(cx - 8 * s, cy, r, 0, 2 * $pi, 1.4 * s); ui_thick_arc(cx + 8 * s, cy, r, 0, 2 * $pi, 1.4 * s)) :
-          (gfx_circle(g == 3 ? cx - 6 * s : cx + 6 * s, cy, r, 1, 1);
-           ui_rgb(53, 61, 65); ui_thick_arc(g == 3 ? cx + 6 * s : cx - 6 * s, cy, r, 0, 2 * $pi, 1.4 * s));
+    ui_stereo_glyph(g, tx + tw * 0.5, ty + 16 * s, 1);
     gfx_setfont(7);
     on ? ui_rgb(243, 220, 178) : hov ? ui_rgb(223, 230, 233) : ui_rgb(138, 148, 153);
     ui_text_c(tx, ty + th - 18 * s, tw, 14 * s, ui_group_name(g));
@@ -4667,6 +4679,169 @@ function ui_draw_stereo_pop(b) local(s, pw, ph, px, py, tw, th, g, tx, ty, on, h
   );
 
   pr ? (!inpop ? ui_popup = 0; ui_block = 1);
+  gfx_setfont(1);
+);
+
+/*
+ * Node action card: the right-click menu on a node. Acts on the selected nodes, as the old menu did;
+ * the header and the highlights describe the band that was right-clicked.
+ */
+function ui_draw_node_card()
+  local(s, b, pad, W, H, x0, y0, x, y, tw, th, i, t, m, tx, ty, on, hov, cut, cur, cw, k, chip, g, bw, bh, inpop, pr, skip, close, lab)
+(
+  s = ui_pt(1);
+  b = ui_card_band;
+  // The right press that opened the card is not an outside press
+  skip = ui_pop_skip; ui_pop_skip = 0;
+  pr = ui_press && !skip;
+  close = 0;
+
+  pad = 9 * s; W = 420 * s;
+  tw = (W - 2 * pad - 18 * s) / 7; th = 44 * s;
+  H = pad + 22 * s + 8 * s + 1 + 8 * s + 10 * s + 5 * s + th * 2 + 3 * s + 8 * s + 20 * s
+      + 8 * s + 1 + 8 * s + 10 * s + 5 * s + 34 * s + 8 * s + 1 + 8 * s + 24 * s + pad;
+  x0 = floor(max(4 * s, min(ui_card_x + 10 * s, gfx_w - W - 4 * s)));
+  y0 = floor(max(4 * s, min(ui_card_y + 6 * s, gfx_h - H - 4 * s)));
+  inpop = ui_in(x0, y0, W, H);
+  ui_box(x0, y0, W, H, 8 * s, 16, 19, 21, 0.94, 44, 52, 56);
+
+  // Header: badge, shape (and slope), frequency; bypass, duplicate and delete on the right
+  x = x0 + pad; y = y0 + pad;
+  ui_band_rgb(b); gfx_a = 1;
+  gfx_circle(x + 8 * s, y + 11 * s, 8 * s, 1, 1);
+  gfx_setfont(9); ui_rgb(16, 18, 20);
+  ui_text_at(x + 8 * s, y + 11 * s, sprintf(#, "%d", b + 1));
+  cut = ui_is_cut(Band_Type[b]);
+  lab = #;
+  cut ? sprintf(lab, "%s · %d", ui_shape_name(Band_Type[b]), ui_slope_db(ui_slope_index(Band_Slope[b]))) : strcpy(lab, ui_shape_name(Band_Type[b]));
+  gfx_setfont(4); ui_rgb(223, 230, 233);
+  ui_text_l(x + 24 * s, y, 22 * s, lab);
+  k = x + 24 * s + ui_text_w(lab) + 8 * s;
+  gfx_setfont(7); ui_rgb(109, 119, 124);
+  ui_text_l(k, y, 22 * s, Band_Frequency[b] < 1000 ? sprintf(#, Band_Frequency[b] < 100 ? "%.1f Hz" : "%.0f Hz", Band_Frequency[b]) : sprintf(#, "%.2f kHz", Band_Frequency[b] / 1000));
+
+  bw = 26 * s; bh = 22 * s;
+  tx = x0 + W - pad - bw;
+  hov = ui_in(tx, y, bw, bh);
+  ui_icon_button_draw(tx, y, bw, bh, 4, 2, hov);
+  pr && hov ? (delete_selected_nodes(); close = 1);
+  tx -= bw + 4 * s;
+  hov = ui_in(tx, y, bw, bh);
+  ui_icon_button_draw(tx, y, bw, bh, 3, 0, hov);
+  pr && hov ? (duplicate_selected_nodes(); close = 1);
+  tx -= bw + 4 * s;
+  hov = ui_in(tx, y, bw, bh);
+  ui_icon_button_draw(tx, y, bw, bh, 2, Band_Enabled[b] == BAND_STATE_DISABLED ? 1 : 0, hov);
+  pr && hov ? toggle_nodes_enabled(b);
+
+  y += 22 * s + 8 * s;
+  ui_rgb(35, 42, 46); gfx_line(x, y, x0 + W - pad, y, 0);
+  y += 1 + 8 * s;
+
+  // Shape tiles
+  gfx_setfont(5); ui_rgb(109, 119, 124);
+  ui_text_l(x, y, 10 * s, "SHAPE");
+  y += 10 * s + 5 * s;
+  i = 0;
+  loop(14,
+    t = ui_tile_type(i);
+    tx = floor(x + (i % 7) * (tw + 3 * s)); ty = floor(y + floor(i / 7) * (th + 3 * s));
+    on = t == Band_Type[b];
+    hov = ui_in(tx, ty, tw, th);
+    on ? (ui_band_rgb(b); gfx_a = 0.10; ui_fill_rrect(tx, ty, tw, th, 4 * s); gfx_a = 1; gfx_roundrect(tx, ty, tw - 1, th - 1, 4 * s, 1))
+       : ui_box(tx, ty, tw, th, 4 * s, hov ? 26 : 16, hov ? 31 : 19, hov ? 34 : 21, 1, hov ? 52 : 32, hov ? 60 : 38, hov ? 64 : 42);
+    on ? ui_band_rgb(b) : ui_rgb(154, 165, 170);
+    gfx_a = 1;
+    ui_shape_icon(t, tx + tw * 0.5 - 17 * s, ty + 4 * s, 0.85);
+    gfx_setfont(11);
+    on ? ui_rgb(243, 220, 178) : hov ? ui_rgb(223, 230, 233) : ui_rgb(138, 148, 153);
+    ui_text_c(tx, ty + th - 15 * s, tw, 13 * s, ui_shape_name(t));
+    pr && hov && !on ? (
+      // The old menu's item order: find this type's position in it
+      m = 0;
+      while (m < 13 && FilterMappingTo[m] != t ? (m += 1; 1) : 0);
+      set_shape_selected_nodes(m, cut);
+    );
+    i += 1;
+  );
+  y += th * 2 + 3 * s + 8 * s;
+
+  // Slope row, for cuts
+  cut = ui_is_cut(Band_Type[b]);
+  cur = cut ? ui_slope_index(Band_Slope[b]) : -1;
+  gfx_a = cut ? 1 : 0.35;
+  gfx_setfont(5); ui_rgb(109, 119, 124);
+  ui_text_l(x, y, 20 * s, "SLOPE");
+  gfx_setfont(7); ui_rgb(91, 100, 104);
+  ui_text_r(x0 + W - pad - 40 * s, y, 40 * s, 20 * s, "dB/oct");
+  cw = (W - 2 * pad - 40 * s - 46 * s - 27 * s) / 10;
+  k = 0;
+  loop(10,
+    chip = floor(x + 40 * s + k * (cw + 3 * s));
+    hov = cut && ui_in(chip, y, cw, 20 * s);
+    k == cur ? (ui_band_rgb(b); gfx_a = 0.14; ui_fill_rrect(chip, y, cw, 20 * s, 4 * s); gfx_a = 1; gfx_roundrect(chip, y, cw - 1, 20 * s - 1, 4 * s, 1))
+             : (gfx_a = cut ? 1 : 0.35; ui_rgb(hov ? 26 : 13, hov ? 31 : 16, hov ? 34 : 18); ui_fill_rrect(chip, y, cw, 20 * s, 4 * s);
+                ui_rgb(42, 49, 53); gfx_roundrect(chip, y, cw - 1, 20 * s - 1, 4 * s, 1));
+    gfx_setfont(k == cur ? 4 : 3);
+    k == cur ? ui_rgb(243, 220, 178) : hov ? ui_rgb(223, 230, 233) : ui_rgb(154, 165, 170);
+    gfx_a = k == cur || cut ? 1 : 0.35;
+    ui_text_c(chip, y, cw, 20 * s, sprintf(#, "%d", ui_slope_db(k)));
+    pr && hov ? set_slopes_selected_nodes(ui_slope_db(k) / 6 - 1);
+    k += 1;
+  );
+  gfx_a = 1;
+  y += 20 * s + 8 * s;
+  ui_rgb(35, 42, 46); gfx_line(x, y, x0 + W - pad, y, 0);
+  y += 1 + 8 * s;
+
+  // Stereo placement: the picker's glyphs and names, a little smaller
+  gfx_setfont(5); ui_rgb(109, 119, 124);
+  ui_text_l(x, y, 10 * s, "STEREO");
+  y += 10 * s + 5 * s;
+  cw = (W - 2 * pad - 12 * s) / 5;
+  g = 0;
+  loop(5,
+    tx = floor(x + g * (cw + 3 * s));
+    on = g == Band_Group[b];
+    hov = ui_in(tx, y, cw, 34 * s);
+    on ? (ui_band_rgb(b); gfx_a = 0.10; ui_fill_rrect(tx, y, cw, 34 * s, 4 * s); gfx_a = 1; gfx_roundrect(tx, y, cw - 1, 34 * s - 1, 4 * s, 1))
+       : ui_box(tx, y, cw, 34 * s, 4 * s, hov ? 26 : 16, hov ? 31 : 19, hov ? 34 : 21, 1, hov ? 52 : 32, hov ? 60 : 38, hov ? 64 : 42);
+    on ? ui_band_rgb(b) : ui_rgb(154, 165, 170);
+    gfx_a = 1;
+    ui_stereo_glyph(g, tx + cw * 0.5, y + 12 * s, 0.8);
+    gfx_setfont(11);
+    on ? ui_rgb(243, 220, 178) : hov ? ui_rgb(223, 230, 233) : ui_rgb(138, 148, 153);
+    ui_text_c(tx, y + 21 * s, cw, 11 * s, ui_group_name(g));
+    pr && hov ? (stereo_selected_nodes(g); selected_node_group = g);
+    g += 1;
+  );
+  y += 34 * s + 8 * s;
+  ui_rgb(35, 42, 46); gfx_line(x, y, x0 + W - pad, y, 0);
+  y += 1 + 8 * s;
+
+  // Gain and split
+  cw = (W - 2 * pad - 8 * s) / 3;
+  hov = ui_in(x, y, cw, 24 * s);
+  ui_button_draw(x, y, cw, 24 * s, "Invert Gain", 0, hov);
+  pr && hov ? invert_nodes_gain();
+  tx = floor(x + cw + 4 * s);
+  hov = ui_in(tx, y, cw, 24 * s);
+  ui_button_draw(tx, y, cw, 24 * s, "Zero Gain", 0, hov);
+  pr && hov ? zero_nodes_gain();
+  tx = floor(x + 2 * (cw + 4 * s));
+  hov = ui_in(tx, y, cw, 24 * s);
+  ui_button_draw(tx, y, cw, 24 * s, "Split", 0, hov);
+  pr && hov ? (split_selected_nodes(); close = 1);
+
+  // Any press while open is the card's: an outside left or right press closes it. An outside
+  // left press on a node is passed on, so the node drags straight away; others are swallowed.
+  (ui_rpress && !inpop && !skip) || close ? ui_popup = 0;
+  pr ? (
+    !inpop ? (
+      ui_popup = 0;
+      get_nearest_node() == -1 || mouse_within_panel() ? ui_block = 1;
+    ) : ui_block = 1;
+  );
   gfx_setfont(1);
 );
 
@@ -4860,7 +5035,7 @@ function ui_draw_panel()
   ui_th1 = gfx_texth;
   gfx_setfont(2,"Arial",floor(rscale(11, 18) + 0.5),'b');
 
-  // UI fonts: 3 label, 4 label bold, 5 small caps, 6 dial value, 7 axis, 8 card title, 9 badge, 10 node number
+  // UI fonts: 3 label, 4 label bold, 5 small caps, 6 dial value, 7 axis, 8 card title, 9 badge, 10 node number, 11 tile label
   gfx_setfont(3,"Arial",floor(ui_pt(11) + 0.5));
   gfx_setfont(4,"Arial",floor(ui_pt(11) + 0.5),'b');
   gfx_setfont(5,"Arial",floor(ui_pt(9) + 0.5));
@@ -4869,6 +5044,7 @@ function ui_draw_panel()
   gfx_setfont(8,"Arial",floor(ui_pt(12) + 0.5),'b');
   gfx_setfont(9,"Arial",floor(ui_pt(12) + 0.5),'b');
   gfx_setfont(10,"Arial",floor(ui_pt(10.5) + 0.5),'b');
+  gfx_setfont(11,"Arial",floor(ui_pt(9) + 0.5));
   gfx_setfont(1);
 );
 
@@ -5010,97 +5186,102 @@ do_general_mouse ? (
         selected_node = band;
         selected_node_group = Band_Group[band];
 
-        #menu = "";
-        Band_Enabled[band] == BAND_STATE_DISABLED ? #menu += "Enable" : #menu += "Disable";
-        #menu += "|Invert Gain";
-        #menu += "|Zero Gain";
-        #menu += "||>Shape|";
-        Band_Type[band] == 0 ? #menu += "!"; #menu += "Bell|";
-        Band_Type[band] == 1 ? #menu += "!"; #menu += "Low cut|";
-        Band_Type[band] == 2 ? #menu += "!"; #menu += "Low cut BW|";
-        Band_Type[band] == 12 ? #menu += "!"; #menu += "Vintage low|";
-        Band_Type[band] == 3 ? #menu += "!"; #menu += "Low shelf|";
-        Band_Type[band] == 4 ? #menu += "!"; #menu += "High shelf|";
-        Band_Type[band] == 5 ? #menu += "!"; #menu += "High cut|";
-        Band_Type[band] == 6 ? #menu += "!"; #menu += "High cut BW|";
-        Band_Type[band] == 13 ? #menu += "!"; #menu += "Vintage high|";
-        Band_Type[band] == 7 ? #menu += "!"; #menu += "Notch|";
-        Band_Type[band] == 8 ? #menu += "!"; #menu += "Band pass|";
-        Band_Type[band] == 9 ? #menu += "!"; #menu += "Tilt shelf|";
-        Band_Type[band] == 10 ? #menu += "!"; #menu += "Pultec low|";
-        Band_Type[band] == 11 ? #menu += "!"; #menu += "<All pass|";
+        // The action card, or the native menu where the window is too small for it
+        !compact_width && !compact_height ? (
+          ui_popup = 3; ui_card_band = band; ui_card_x = mouse_x; ui_card_y = mouse_y; ui_pop_skip = 1;
+        ) : (
+          #menu = "";
+          Band_Enabled[band] == BAND_STATE_DISABLED ? #menu += "Enable" : #menu += "Disable";
+          #menu += "|Invert Gain";
+          #menu += "|Zero Gain";
+          #menu += "||>Shape|";
+          Band_Type[band] == 0 ? #menu += "!"; #menu += "Bell|";
+          Band_Type[band] == 1 ? #menu += "!"; #menu += "Low Cut|";
+          Band_Type[band] == 2 ? #menu += "!"; #menu += "Low Cut BW|";
+          Band_Type[band] == 12 ? #menu += "!"; #menu += "Vintage Lo|";
+          Band_Type[band] == 3 ? #menu += "!"; #menu += "Low Shelf|";
+          Band_Type[band] == 4 ? #menu += "!"; #menu += "High Shelf|";
+          Band_Type[band] == 5 ? #menu += "!"; #menu += "High Cut|";
+          Band_Type[band] == 6 ? #menu += "!"; #menu += "High Cut BW|";
+          Band_Type[band] == 13 ? #menu += "!"; #menu += "Vintage Hi|";
+          Band_Type[band] == 7 ? #menu += "!"; #menu += "Notch|";
+          Band_Type[band] == 8 ? #menu += "!"; #menu += "Band Pass|";
+          Band_Type[band] == 9 ? #menu += "!"; #menu += "Tilt Shelf|";
+          Band_Type[band] == 10 ? #menu += "!"; #menu += "Pultec Low|";
+          Band_Type[band] == 11 ? #menu += "!"; #menu += "<All Pass|";
 
-        // Only slope for cut filters
-        has_slope_menu = 0;
-        Band_Type[band] == FILTER_LOW_CUT || Band_Type[band] == FILTER_LOW_CUT_BUTTERWORTH || Band_Type[band] == FILTER_HIGH_CUT || Band_Type[band] == FILTER_HIGH_CUT_BUTTERWORTH ? (
-          #menu += ">Slope|";
+          // Only slope for cut filters
+          has_slope_menu = 0;
+          Band_Type[band] == FILTER_LOW_CUT || Band_Type[band] == FILTER_LOW_CUT_BUTTERWORTH || Band_Type[band] == FILTER_HIGH_CUT || Band_Type[band] == FILTER_HIGH_CUT_BUTTERWORTH ? (
+            #menu += ">Slope|";
 
-          slope = 0;
-          while(
-            match("%ddB", FilterSlopes[slope], value);
+            slope = 0;
+            while(
+              match("%ddB", FilterSlopes[slope], value);
 
-            Band_Slope[band] == ((value / 6)-1) ? #menu += "!";
-            slope == NumFilterSlopes-1 ? #menu += "<";
-            #menu += FilterSlopes[slope]; #menu += "|";
+              Band_Slope[band] == ((value / 6)-1) ? #menu += "!";
+              slope == NumFilterSlopes-1 ? #menu += "<";
+              #menu += FilterSlopes[slope]; #menu += "|";
 
-            slope += 1;
-            slope < NumFilterSlopes;
+              slope += 1;
+              slope < NumFilterSlopes;
+            );
+            has_slope_menu = 1;
           );
-          has_slope_menu = 1;
-        );
 
-        #menu += ">Stereo Placement|";
-        Band_Group[band] == 0 ? #menu += "!"; #menu += "Stereo|";
-        Band_Group[band] == 1 ? #menu += "!"; #menu += "Mid|";
-        Band_Group[band] == 2 ? #menu += "!"; #menu += "Side|";
-        Band_Group[band] == 3 ? #menu += "!"; #menu += "Left|";
-        Band_Group[band] == 4 ? #menu += "!"; #menu += "<Right|";
+          #menu += ">Stereo Placement|";
+          Band_Group[band] == 0 ? #menu += "!"; #menu += "Stereo|";
+          Band_Group[band] == 1 ? #menu += "!"; #menu += "Mid|";
+          Band_Group[band] == 2 ? #menu += "!"; #menu += "Side|";
+          Band_Group[band] == 3 ? #menu += "!"; #menu += "Left|";
+          Band_Group[band] == 4 ? #menu += "!"; #menu += "<Right|";
 
-        #menu += "|Split|Duplicate|Delete";
+          #menu += "|Split|Duplicate|Delete";
 
-        gfx_x = mouse_x;
-        gfx_y = mouse_y;
+          gfx_x = mouse_x;
+          gfx_y = mouse_y;
 
-        last_clicked_item = gfx_showmenu(#menu);
+          last_clicked_item = gfx_showmenu(#menu);
 
-        last_clicked_item == 1 ? (
-          toggle_nodes_enabled(band);
-        );
-
-        last_clicked_item == 2 ? (
-          invert_nodes_gain();
-        );
-
-        last_clicked_item == 3 ? (
-          zero_nodes_gain();
-        );
-
-        last_clicked_item >= 4 && last_clicked_item <= 17 ? (
-          set_shape_selected_nodes(last_clicked_item - 4, has_slope_menu);
-        );
-
-        has_slope_menu ? (
-          last_clicked_item >= 18 && last_clicked_item <= 27 ? (
-            match("%ddB", FilterSlopes[last_clicked_item - 18], value);
-
-            set_slopes_selected_nodes((value / 6) - 1);
+          last_clicked_item == 1 ? (
+            toggle_nodes_enabled(band);
           );
-        ) : last_clicked_item += 10;
 
-        last_clicked_item >= 28 && last_clicked_item <= 32 ? (
-          stereo_selected_nodes(last_clicked_item - 28);
-        );
+          last_clicked_item == 2 ? (
+            invert_nodes_gain();
+          );
 
-        last_clicked_item == 33 ? (
-          split_selected_nodes();
-        );
+          last_clicked_item == 3 ? (
+            zero_nodes_gain();
+          );
 
-        last_clicked_item == 34 ? (
-          duplicate_selected_nodes();
-        );
+          last_clicked_item >= 4 && last_clicked_item <= 17 ? (
+            set_shape_selected_nodes(last_clicked_item - 4, has_slope_menu);
+          );
 
-        last_clicked_item == 35 ? (
-          delete_selected_nodes();
+          has_slope_menu ? (
+            last_clicked_item >= 18 && last_clicked_item <= 27 ? (
+              match("%ddB", FilterSlopes[last_clicked_item - 18], value);
+
+              set_slopes_selected_nodes((value / 6) - 1);
+            );
+          ) : last_clicked_item += 10;
+
+          last_clicked_item >= 28 && last_clicked_item <= 32 ? (
+            stereo_selected_nodes(last_clicked_item - 28);
+          );
+
+          last_clicked_item == 33 ? (
+            split_selected_nodes();
+          );
+
+          last_clicked_item == 34 ? (
+            duplicate_selected_nodes();
+          );
+
+          last_clicked_item == 35 ? (
+            delete_selected_nodes();
+          );
         );
 
         band = NUM_BANDS;
@@ -5459,7 +5640,8 @@ box_region_drag_mode ? (
 // Bottom toolbar, top-right controls and the node panel
 
 // Close a picker when its band or the panel goes away, or on Escape
-ui_popup != 0 && (!ShowPanel || selected_node < 0 || Band_Enabled[selected_node] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
+(ui_popup == 1 || ui_popup == 2) && (!ShowPanel || selected_node < 0 || Band_Enabled[selected_node] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
+ui_popup == 3 && (compact_width || compact_height || Band_Enabled[ui_card_band] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
 
 // Output peak meter: the audio side holds the peak since the last frame, this side decays it
 ui_t = time_precise();
@@ -5476,6 +5658,7 @@ button_focus != -1 || mouse_within_window() || node_drag_mode != 0 || is_box_dra
   !compact_height && !compact_width ? ui_draw_bar();
   !compact_height ? ui_draw_top();
   ShowPanel && selected_node != -1 ? ui_draw_panel();
+  ui_popup == 3 ? ui_draw_node_card();
 );
 
 gainDb = 2 ^ (Gain/6);
