@@ -1897,6 +1897,49 @@ LimitOutput ? (
 
 @gfx 922 564
 
+/*
+ * Retina scaling. gfx_ext_retina is 2 on a Mac Retina display, and on Windows it
+ * follows the display scaling (1.25, 1.5...). Sizes were tuned at 1x and 2x, so
+ * interpolate between the two, and scale up beyond 2x.
+ */
+function rscale(v1, v2) local(s) (
+  s = max(gfx_ext_retina, 1);
+  s <= 2 ? v1 + (v2 - v1) * (s - 1) : v2 * s * 0.5;
+);
+
+// Draw the extra strokes meant for high resolution displays
+HIDPI = gfx_ext_retina >= 1.5;
+
+/*
+ * Height of a pill button
+ */
+function pill_height(small) (
+  small == 1 ? rscale(16, 30) : rscale(20, 32);
+);
+
+/*
+ * Centre text in a pill drawn by draw_capsule. The font renderer does the
+ * centring, so the text sits right with every platform's font metrics. The
+ * box takes in the round ends so wide labels aren't clipped.
+ */
+function draw_pill_text(x, y, width, height, str) (
+  gfx_x = x - height * 0.5;
+  gfx_y = y;
+  gfx_drawstr(str, 1 | 4, x + width + height * 0.5, y + height);
+);
+
+/*
+ * Draw the polarity symbol (a slashed circle) in the centre of a pill
+ */
+function draw_pill_polarity(x, y, width, height) local(cx, cy, dx, dy) (
+  cx = x + width * 0.5;
+  cy = y + height * 0.5;
+  dx = rscale(4, 6.5);
+  dy = rscale(5, 9);
+  gfx_circle(cx, cy, rscale(4, 7), 0, 1);
+  gfx_line(cx - dx, cy + dy, cx + dx, cy - dy);
+);
+
 gfx_mode = 0;
 
 gfx_set(1,1,1,1);
@@ -1919,8 +1962,8 @@ very_compact_width = actual_width < 300;
 very_compact_height = actual_height < 160;
 
 TOP_MARGIN = 10;
-BOTTOM_MARGIN = gfx_ext_retina == 2 ? 64 : 32;
-RAISED_BOTTOM = gfx_ext_retina == 2 ? 240 : 120;
+BOTTOM_MARGIN = rscale(32, 64);
+RAISED_BOTTOM = rscale(120, 240);
 
 compact_width || compact_height ? BOTTOM_MARGIN = 0;
 
@@ -2041,7 +2084,7 @@ function get_filter_y(band) local(y, s) (
  * Used for mid/side and left/right indicators
  */
 function draw_node_stereo(band, x, y, alpha) local (size, nx, ny, x1, x2, x3, y1, y2, y3) (
-  gfx_ext_retina == 2 ? size = 13 : size = 7;
+  size = rscale(7, 13);
 
   gfx_r = gfx_g = gfx_b = 1; gfx_a = alpha;
 
@@ -2052,14 +2095,14 @@ function draw_node_stereo(band, x, y, alpha) local (size, nx, ny, x1, x2, x3, y1
 
     gfx_arc(x-1, y-1, size*2, start, end, 1);
     gfx_arc(x-1, y-1, (size*2)-0.5, start, end, 1);
-    gfx_ext_retina == 2 ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
+    HIDPI ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
    
     start = 22 * (2*$pi/16);
     end = 26 * (2*$pi/16);
 
     gfx_arc(x-1, y-1, size*2, start, end, 1);
     gfx_arc(x-1, y-1, (size*2)-0.5, start, end, 1);
-    gfx_ext_retina == 2 ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
+    HIDPI ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
   );
 
   // Left
@@ -2069,7 +2112,7 @@ function draw_node_stereo(band, x, y, alpha) local (size, nx, ny, x1, x2, x3, y1
 
     gfx_arc(x-1, y-1, size*2, start, end, 1);
     gfx_arc(x-1, y-1, (size*2)-0.5, start, end, 1);
-    gfx_ext_retina == 2 ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
+    HIDPI ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
   );
 
   // Right
@@ -2079,7 +2122,7 @@ function draw_node_stereo(band, x, y, alpha) local (size, nx, ny, x1, x2, x3, y1
 
     gfx_arc(x-1, y-1, size*2, start, end, 1);
     gfx_arc(x-1, y-1, (size*2)-0.5, start, end, 1);
-    gfx_ext_retina == 2 ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
+    HIDPI ? gfx_arc(x-1, y-1, (size*2)-1.0, start, end, 1);
   );
 );
 
@@ -2092,7 +2135,7 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
   y = get_filter_y(band);
 
   //gfx_ext_retina == 2 ? size = 12 : size = 6;
-  gfx_ext_retina == 2 ? size = 18 : size = 9;
+  size = rscale(9, 18);
 
   y > gfx_h - gfx_texth - BOTTOM_MARGIN - (RAISED_BOTTOM * ENABLE_RAISED_BOTTOM) ? (
     node_alpha = 0.5;
@@ -2111,7 +2154,7 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
   gfx_r = 1; gfx_g = 1; gfx_b = 1; gfx_a -= 0.1;
   gfx_circle(x-1, y-1, size, 0, 1); gfx_a -= 0.1;
   gfx_circle(x-1, y-1, size-1, 0, 1); gfx_a -= 0.1;
-  gfx_ext_retina == 2 ? (
+  HIDPI ? (
     gfx_circle(x-1, y-1, size-2, 0, 1); gfx_a -= 0.1;
     gfx_circle(x-1, y-1, size-3, 0, 1);
   );
@@ -2128,13 +2171,8 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
       gfx_r = 1; gfx_g = 1; gfx_b = 0.3; gfx_a = node_alpha * 0.2;
     );
     // Add extra circle when hovering over band
-    gfx_ext_retina == 2 ?(
-      gfx_circle(x-1, y-0.7, 20, 0, 1);
-      gfx_circle(x-1, y-0.7, 20, 1, 1);
-    ):(
-      gfx_circle(x-1, y-0.7, 10, 0, 1);
-      gfx_circle(x-1, y-1, 10, 1, 1);
-    );
+    gfx_circle(x-1, y-0.7, rscale(10, 20), 0, 1);
+    gfx_circle(x-1, HIDPI ? y-0.7 : y-1, rscale(10, 20), 1, 1);
   );
 
   // Draw the band index number
@@ -2340,7 +2378,7 @@ function draw_filter_bands()
             y0 = min(yo1, bottom);
             state == BAND_STATE_ENABLED ? (
               tx0>lx0 ? (
-                gfx_ext_retina == 2 ? gfx_triangle(xo1, y0+2, xf-1, y1+2, xf-1, midp, xo1, midp) :
+                HIDPI ? gfx_triangle(xo1, y0+2,xf-1, y1+2, xf-1, midp, xo1, midp) :
                   gfx_triangle(xo1, y0+1, xf-1, y1+1, xf-1, midp, xo1, midp);
               );
             );
@@ -2448,7 +2486,7 @@ function draw_filter_response(group, red, green, blue)
 
       gfx_a = 1;
 
-      gfx_ext_retina == 2 ? (
+      HIDPI ? (
         draw_thick_line(x0, y0, x1, y1);
 
         // If we're not in very compact mode then thicken the line up more
@@ -2511,13 +2549,8 @@ function draw_grid() local (db, y, scx, size) (
   gfx_r=gfx_g=0.3; gfx_b=0; gfx_a=1.0;
 
   // Draw db scale button area
-  gfx_ext_retina == 2 ? (
-    gfx_rect(gfx_w - 40, 0, gfx_w - (gfx_w - 40), gfx_texth*1.2);
-    gfx_circle(gfx_w - 40, gfx_texth/2+2, 12, 1);
-  ) : ( 
-    gfx_rect(gfx_w - 22, 0, gfx_w - (gfx_w - 30), gfx_texth*1.7);
-    gfx_circle(gfx_w - 22, gfx_texth/2+2, 12, 1);
-  );
+  gfx_rect(gfx_w - rscale(22, 40), 0, rscale(30, 40), gfx_texth*rscale(1.7, 1.2));
+  gfx_circle(gfx_w - rscale(22, 40), gfx_texth/2+2, 12, 1);
 
   // Draw gain db
   gfx_y=-100;
@@ -2535,7 +2568,7 @@ function draw_grid() local (db, y, scx, size) (
       abs(db) <= DB_EQ_RANGE ? (
         gfx_line((gfx_texth*2), y, gfx_w-(gfx_texth*2.2), y, 0);
         gfx_r=gfx_g=0.75; gfx_b=0; gfx_a=1.0;
-        gfx_x = scx-gfx_texth*(gfx_ext_retina == 2 ? 2 : 2); gfx_y = y - gfx_texth/2;
+        gfx_x = scx-gfx_texth*2;gfx_y = y - gfx_texth/2;
         db > 0 ? gfx_printf("+%d", db) : db < 0 ? gfx_printf("%d", db) : gfx_printf("  %d", db);
       ) : (
         y < gfx_h - gfx_texth*2 - BOTTOM_MARGIN ? gfx_line((gfx_texth*2), y, gfx_w - gfx_texth, y, 0);
@@ -2593,7 +2626,7 @@ function get_node_in_range(dist)
 function get_nearby_node()
   local(band, found, founddist, dist, x, y, d)
 (
-  get_node_in_range(gfx_ext_retina == 1 ? dist = sqrt(70 * 70) : dist = sqrt(140 * 140));
+  get_node_in_range(dist = rscale(70, 140));
 );
 
 /*
@@ -2602,7 +2635,7 @@ function get_nearby_node()
 function get_nearest_node()
   local(band, found, founddist, dist, x, y, d)
 (
-  get_node_in_range(gfx_ext_retina == 1 ? dist = sqrt(12 * 12) : dist = sqrt(24 * 24));
+  get_node_in_range(dist = rscale(12, 24));
 );
 
 /*
@@ -2698,7 +2731,7 @@ function draw_info_panel(note_select)
       x = freq_to_scx(read_freq);
       y = db_to_y(read_amp);
     
-      gfx_ext_retina != 2 ? x += 20;
+      x += rscale(20, 0);
       rect_height = 4.2;
       q != -1 ? rect_height += 1;
       slope != -1 ? rect_height += 1;
@@ -2708,26 +2741,18 @@ function draw_info_panel(note_select)
       panel_offset_x = 50;
       panel_offset_y = 60;
       
-      gfx_ext_retina != 2 ? ( width -= 50; panel_offset_x += 45; );
+      width -= rscale(50, 0);
+      panel_offset_x += rscale(45, 0);
 
       gfx_x = x - 50;
 
       // Clamp x position so the panel is never off screen horizontally
-      gfx_ext_retina != 2 ? (
-        gfx_x = max(32, gfx_x);
-        gfx_x = min(gfx_w - width - 18, gfx_x);
-      ) : ( 
-        gfx_x = max(48, gfx_x);
-        gfx_x = min(gfx_w - width - 32, gfx_x);
-      );
+      gfx_x = max(rscale(32, 48), gfx_x);
+      gfx_x = min(gfx_w - width - rscale(18, 32), gfx_x);
 
       xbase = gfx_x;
       
-      gfx_ext_retina != 2 ? (
-        panel_offset_y -= 130;
-      ):(
-       panel_offset_y -= 190;
-     );
+      panel_offset_y -= rscale(130, 190);
      
       //Show panel below band node when dragged under 0db
       read_amp > 0 ?
@@ -2744,10 +2769,10 @@ function draw_info_panel(note_select)
         );
       );
       
-      gfx_ext_retina != 2 ? rect_height += 1.0;
+      rect_height += rscale(1, 0);
       
       //draw_filled_rect(gfx_x-15, gfx_y-15, width+10, gfx_texth*rect_height+10, 8, 1);
-      gfx_ext_retina != 2 ?
+      !HIDPI ?
       (
         gfx_r = 0; gfx_g = 0; gfx_b = 0; gfx_a = 0.2; //shadow
         gfx_rect(gfx_x-15,gfx_y-7,width+5, gfx_texth*rect_height);
@@ -2779,7 +2804,7 @@ function draw_info_panel(note_select)
           0.0, 0.0, 0.0, -0.0025 /gfx_texth*rect_height); 
       );
    
-      gfx_ext_retina != 2 ? x -= 17;
+      x -= rscale(17, 0);
 
       //Text Color
       gfx_r = 1; gfx_g = 1; gfx_b = 0.3; gfx_a = 1;
@@ -2832,7 +2857,7 @@ function draw_info_panel(note_select)
       gfx_y += gfx_texth+2;
       gfx_drawstr(nn); 
 
-      gfx_x = xbase + (gfx_ext_retina != 2 ? 35 : 65);
+      gfx_x = xbase + rscale(35, 65);
       gfx_drawstr(centstr);
       
       gfx_x = xbase;
@@ -3706,11 +3731,7 @@ function draw_close_button() instance (x, y, width, menutext, label, pressed, he
 
   strlen(label) == 0 ? gfx_measurestr("*", w, h) : gfx_measurestr(label, w, h);
 
-  height = small == 1 ? (
-    gfx_ext_retina == 1 ? 16 : 30;
-  ) : (
-    gfx_ext_retina == 1 ? 20 : 32;  
-  );
+  height = pill_height(small);
 
   h = height;
 
@@ -3731,32 +3752,13 @@ function draw_close_button() instance (x, y, width, menutext, label, pressed, he
   gfx_g = (215 / 255);
   gfx_b = (253 / 255);
   gfx_a = 1;
-  gfx_x = x + (width / 2) - (w / 2);
-
-  gfx_y = y + 4 * gfx_ext_retina;
-
   gfx_set(0.9, 0.9, 0.9, 1);
 
-
-  gfx_ext_retina == 2 ? (
-    small == 1 ? gfx_y = y + 4 :
-      gfx_y = y + 4;
-  ) : ( 
-    small == 1 ? gfx_y = y + 2 :
-      gfx_y = y + 4;
-  );
-
   strlen(label) == 0 ? (
-    gfx_ext_retina == 2 ? (
-      gfx_circle(gfx_x+6, gfx_y+11, 7, 0, 1);
-      gfx_line(gfx_x, gfx_y+20, gfx_x+13, gfx_y+2);
-    ) : (
-      gfx_circle(gfx_x+3, gfx_y+5, 4, 0, 1);
-      gfx_line(gfx_x-1, gfx_y+10, gfx_x+7, gfx_y);
-    );
+    draw_pill_polarity(x, y, width, height);
   ) : (
     select == 1 ? gfx_set(0.9, 0.9, 0.9, 1);
-    gfx_drawstr(label);
+    draw_pill_text(x, y, width, height, label);
   );
 );
 
@@ -3818,11 +3820,7 @@ function draw_toggle_button() instance (x, y, width, menutext, label, pressed, h
 
   strlen(label) == 0 ? gfx_measurestr("*", w, h) : gfx_measurestr(label, w, h);
 
-  height = small == 1 ? (
-    gfx_ext_retina == 1 ? 16 : 30;
-  ) : (
-    gfx_ext_retina == 1 ? 20 : 32;  
-  );
+  height = pill_height(small);
 
   h = height;
 
@@ -3848,27 +3846,11 @@ function draw_toggle_button() instance (x, y, width, menutext, label, pressed, h
   gfx_g = (215 / 255);
   gfx_b = (253 / 255);
   gfx_a = 1;
-  gfx_x = x + (width / 2) - (w / 2);
-
-  gfx_ext_retina == 2 ? (
-    small == 1 ? gfx_y = y + 4 :
-      gfx_y = y + 4;
-  ) : ( 
-    small == 1 ? gfx_y = y + 2 :
-      gfx_y = y + 4;
-  );
-
   strlen(label) == 0 ? (
-    gfx_ext_retina == 2 ? (
-      gfx_circle(gfx_x+3, gfx_y+11, 7, 0, 1);
-      gfx_line(gfx_x-3, gfx_y+20, gfx_x+10, gfx_y+2);
-    ) : (
-      gfx_circle(gfx_x+3, gfx_y+6, 4, 0, 1);
-      gfx_line(gfx_x-1, gfx_y+11, gfx_x+7, gfx_y+1);
-    );
+    draw_pill_polarity(x, y, width, height);
   ) : (
     select == 1 ? gfx_set(0.9, 0.9, 0.9, 1);
-    gfx_drawstr(label);
+    draw_pill_text(x, y, width, height, label);
   );
 
   gfx_setfont(1);
@@ -3931,11 +3913,7 @@ function draw_options_button2() instance (x, y, width, menutext, label, pressed,
 
   gfx_measurestr(label, w, h);
 
-  height = small == 1 ? (
-    gfx_ext_retina == 1 ? 16 : 30;
-  ) : (
-    gfx_ext_retina == 1 ? 20 : 32;  
-  );
+  height = pill_height(small);
 
   h = height;
 
@@ -3957,17 +3935,7 @@ function draw_options_button2() instance (x, y, width, menutext, label, pressed,
   gfx_b = (253 / 255);
   gfx_a = 1;
 
-  gfx_x = x + (width / 2) - (w / 2);
-
-  gfx_ext_retina == 2 ? (
-    small == 1 ? gfx_y = y + 4 :
-      gfx_y = y + 4;
-  ) : ( 
-    small == 1 ? gfx_y = y + 2 :
-      gfx_y = y + 4;
-  );
-
-  gfx_drawstr(label);
+  draw_pill_text(x, y, width, height, label);
 
   gfx_setfont(1);
 );
@@ -4044,11 +4012,7 @@ function draw_options_button() instance (x, y, width, menutext, label, pressed, 
 
   gfx_measurestr(label, w, h);
 
-  height = small == 1 ? (
-    gfx_ext_retina == 1 ? 16 : 30;
-  ) : (
-    gfx_ext_retina == 1 ? 20 : 32;  
-  );
+  height = pill_height(small);
 
   h = height;
 
@@ -4070,17 +4034,7 @@ function draw_options_button() instance (x, y, width, menutext, label, pressed, 
   gfx_b = (253 / 255);
   gfx_a = 1;
 
-  gfx_x = x + (width / 2) - (w / 2);
-
-  gfx_ext_retina == 2 ? (
-    small == 1 ? gfx_y = y + 4 :
-      gfx_y = y + 4;
-  ) : ( 
-    small == 1 ? gfx_y = y + 2 :
-      gfx_y = y + 4;
-  );
-
-  gfx_drawstr(label);
+  draw_pill_text(x, y, width, height, label);
 
   gfx_setfont(1);
 );
@@ -4151,11 +4105,7 @@ function draw_number_button() instance (x, y, width, label, drag, height, db, ty
 
   gfx_measurestr(txt, w, h);
 
-  height = small == 1 ? (
-    gfx_ext_retina == 1 ? 16 : 30;
-  ) : (
-    gfx_ext_retina == 1 ? 20 : 32;  
-  );
+  height = pill_height(small);
 
   h = height;
 
@@ -4176,9 +4126,7 @@ function draw_number_button() instance (x, y, width, label, drag, height, db, ty
   gfx_g = (215 / 255);
   gfx_b = (253 / 255);
   gfx_a = 1;
-  gfx_x = x + (width / 2) - (w / 2);
-  gfx_y = y + 4;
-  gfx_drawstr(txt);
+  draw_pill_text(x, y, width, height, txt);
 );
 
 /*
@@ -4352,11 +4300,7 @@ function draw_menu_button() instance (x, y, width, menutext, label, pressed, hei
 
     gfx_measurestr(label, w, h);
 
-    height = small == 1 ? (
-      gfx_ext_retina == 1 ? 16 : 30;
-    ) : (
-      gfx_ext_retina == 1 ? 20 : 32;  
-    );
+    height = pill_height(small);
 
     node_drag_mode == 0 && (!is_box_dragging()) && mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
       gfx_r = (114 / 255) * 0.6;
@@ -4374,9 +4318,7 @@ function draw_menu_button() instance (x, y, width, menutext, label, pressed, hei
     gfx_g = (215 / 255);
     gfx_b = (253 / 255);
     gfx_a = 1;
-    gfx_x = x + (width / 2) - (w / 2);
-    gfx_y = y + 4;
-    gfx_drawstr(label);
+    draw_pill_text(x, y, width, height, label);
   );
 );
 
@@ -4547,13 +4489,8 @@ function handle_dbscale_button() instance (x, y, width, pressed, height)
 gfx_ext_retina != last_gfx_ext_retina ? (
   last_gfx_ext_retina = gfx_ext_retina;
   
-  gfx_ext_retina > 1 ? (
-    gfx_setfont(1,"Arial",20,'b');
-    gfx_setfont(2,"Arial",18,'b');
-  ) : (
-    gfx_setfont(1,"Arial",12,'b');
-    gfx_setfont(2,"Arial",11,'b');
-  );
+  gfx_setfont(1,"Arial",floor(rscale(12, 20) + 0.5),'b');
+  gfx_setfont(2,"Arial",floor(rscale(11, 18) + 0.5),'b');
   gfx_setfont(1);
 );
 
@@ -4654,17 +4591,8 @@ loop(NUM_BANDS, (
 initialise_gfx == 0 ? ( 
   initialise_gfx = 1;
 
-  gfx_ext_retina == 2 ? (
-    menu.init_menu_button(gfx_w - 200, 10, 120, "Settings", "");
-    dbscale.init_dbscale_button(gfx_w - 60, 0, gfx_w - (gfx_w - 60), gfx_texth*1.2);
-    //piano.init_piano_button(gfx_w - 300, 10, 100);
-    //peaks.init_peak_button(gfx_w - 420, 10, 100);
-  ) : ( 
-    menu.init_menu_button(gfx_w - 140, 5, 60, "Settings", "");
-    dbscale.init_dbscale_button(gfx_w - 30, 0, gfx_w - (gfx_w - 30), gfx_texth*2.4);
-    //piano.init_piano_button(gfx_w - 300, 10, 60);
-    //peaks.init_peak_button(gfx_w - 420, 10, 60);
-  );
+  menu.init_menu_button(gfx_w - rscale(140, 200), rscale(5, 10), rscale(60, 120), "Settings", "");
+  dbscale.init_dbscale_button(gfx_w - rscale(30, 60), 0, rscale(30, 60), gfx_texth*rscale(2.4, 1.2));
 
   spectrum.set_show_peaks(Show_Peaks);
 );
@@ -5131,59 +5059,31 @@ box_region_drag_mode ? (
 
 // Set the button positions each time in case we move between
 // retina and non-retina displays (like I do!)
-gfx_ext_retina == 2 ? (
-  button_oversample_xoffset = 0;
-  button_oversample_width = 70;
-  button_stereo_mode_xoffset = 110;
-  button_stereo_mode_width = 70;
-  button_scale_xoffset = 220;
-  button_scale_width = 90;
-  button_gain_xoffset = 350;
-  button_gain_width = 90;
-  button_mid_gain_xoffset = 480;
-  button_mid_gain_width = 100;
-  button_side_gain_xoffset = 660;
-  button_side_gain_width = 100;
-  button_mid_toggle_xoffset = 610;
-  button_mid_toggle_width = 10;
-  button_side_toggle_xoffset = 790;
-  button_side_toggle_width = 10;
-  button_limit_toggle_xoffset = 840;
-  button_limit_toggle_width = 50;
-  button_agc_toggle_xoffset = 1030;
-  button_agc_toggle_width = 60;
-  button_agcset_toggle_xoffset = 1105;
-  button_agcset_toggle_width = 5;
-  button_panel_toggle_xoffset = 930;
-  button_panel_toggle_width = 60;
-  py = gfx_h - (gfx_texth+28);
-) : ( 
-  button_oversample_xoffset = 0;
-  button_oversample_width = 40;
-  button_stereo_mode_xoffset = 65;
-  button_stereo_mode_width = 40;
-  button_scale_xoffset = 130;
-  button_scale_width = 40;
-  button_gain_xoffset = 195;
-  button_gain_width = 50;
-  button_mid_gain_xoffset = 270;
-  button_mid_gain_width = 60;
-  button_side_gain_xoffset = 380;
-  button_side_gain_width = 60;
-  button_mid_toggle_xoffset = 345;
-  button_mid_toggle_width = 10;
-  button_side_toggle_xoffset = 455;
-  button_side_toggle_width = 10;
-  button_limit_toggle_xoffset = 490;
-  button_limit_toggle_width = 40;
-  button_agc_toggle_xoffset = 620;
-  button_agc_toggle_width = 40;
-  button_agcset_toggle_xoffset = 665;
-  button_agcset_toggle_width = 5;
-  button_panel_toggle_xoffset = 555;
-  button_panel_toggle_width = 40;
-  py = gfx_h - (gfx_texth);
-);
+button_oversample_xoffset = rscale(0, 0);
+button_oversample_width = rscale(40, 70);
+button_stereo_mode_xoffset = rscale(65, 110);
+button_stereo_mode_width = rscale(40, 70);
+button_scale_xoffset = rscale(130, 220);
+button_scale_width = rscale(40, 90);
+button_gain_xoffset = rscale(195, 350);
+button_gain_width = rscale(50, 90);
+button_mid_gain_xoffset = rscale(270, 480);
+button_mid_gain_width = rscale(60, 100);
+button_side_gain_xoffset = rscale(380, 660);
+button_side_gain_width = rscale(60, 100);
+button_mid_toggle_xoffset = rscale(345, 610);
+button_mid_toggle_width = rscale(10, 10);
+button_side_toggle_xoffset = rscale(455, 790);
+button_side_toggle_width = rscale(10, 10);
+button_limit_toggle_xoffset = rscale(490, 840);
+button_limit_toggle_width = rscale(40, 50);
+button_agc_toggle_xoffset = rscale(620, 1030);
+button_agc_toggle_width = rscale(40, 60);
+button_agcset_toggle_xoffset = rscale(665, 1105);
+button_agcset_toggle_width = rscale(5, 5);
+button_panel_toggle_xoffset = rscale(555, 930);
+button_panel_toggle_width = rscale(40, 60);
+py = gfx_h - (gfx_texth + rscale(0, 28));
 
 // TODO: work in progress for panel to track selected node
 /*
@@ -5220,7 +5120,7 @@ buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
   panel_x = floor(gfx_w/2 - panel_w/2);
   panel_y = gfx_h - BOTTOM_MARGIN - gfx_texth*2.5 - panel_h;
 
-  gfx_ext_retina == 2 ? panel_y += 10 * (gfx_ext_retina * 0.4) : panel_y += 10;
+  panel_y += rscale(10, 8);
 
   panel_side_margin = 26 * gfx_ext_retina;
   panel_vert_margin = 8 * gfx_ext_retina;
@@ -5280,8 +5180,8 @@ buttons_init == 0 || gfx_w != OLD_WIDTH || gfx_h != OLD_HEIGHT ? (
 );
 
 button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y < gfx_h) || node_drag_mode != 0 || is_box_dragging() ? (
-  gfx_ext_retina == 2 ? px = (gfx_w / 2) - (1090/2) : px = (gfx_w / 2) - (660/2);
-  gfx_ext_retina == 2 ? py = gfx_h - (gfx_texth+28) : py = gfx_h - (gfx_texth+14);
+  px = (gfx_w / 2) - (rscale(660, 1090) / 2);
+  py = gfx_h - (gfx_texth + rscale(14, 28));
   button_oversample.x = px+button_oversample_xoffset; button_oversample.y = py;
   button_stereo_mode.x = px+button_stereo_mode_xoffset; button_stereo_mode.y = py;
   button_scale.x = px+button_scale_xoffset; button_scale.y = py;
@@ -5369,25 +5269,15 @@ button_focus != -1 || (mouse_x >= 0 && mouse_x < gfx_w && mouse_y >=0 && mouse_y
     PanelEnabled = button_panel_toggle.handle_toggle_button();
     button_panel_toggle.draw_toggle_button();
 
-    gfx_ext_retina == 2 ? (
-      dbscale.x = gfx_w - 60;
-      dbscale.width = gfx_w - (gfx_w - 60);
-    ) : (
-      dbscale.x = gfx_w - 40;
-      dbscale.width = gfx_w - (gfx_w - 40);
-    );
+    dbscale.x = gfx_w - rscale(40, 60);
+    dbscale.width = rscale(40, 60);
 
     dbscale.handle_dbscale_button();
   );
 
   !compact_height ? ( 
-    gfx_ext_retina == 2 ? (
-      menu.x = gfx_w - 200; 
-      menu.width = 120;
-    ) : (
-      menu.x = gfx_w - 120; 
-      menu.width = 60;
-    );
+    menu.x = gfx_w - rscale(120, 200);
+    menu.width = rscale(60, 120);
 
     menu.draw_menu_button();
     menu.handle_menu_button();
