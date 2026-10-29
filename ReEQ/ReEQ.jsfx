@@ -5240,14 +5240,22 @@ function ui_draw_header() local(s, x, i) (
     ui_rgba(13, 16, 18, 1); gfx_rect(0, 0, gfx_w, HEADER_H);
     ui_rgba(29, 35, 38, 1); gfx_line(0, HEADER_H, gfx_w, HEADER_H, 0);
 
-    // Wordmark: Re in white, EQ in bold amber; then a hairline and a spaced descriptor when there's room
+    // Wordmark: Re in white, EQ in bold amber with a superscript 2 (ReEQ squared); then a hairline and a
+    // spaced descriptor when there's room
     x = 12 * s;
     gfx_setfont(13); ui_rgb(232, 238, 240);
     ui_text_l(x, 0, HEADER_H, "Re");
     x += ui_text_w("Re");
     gfx_setfont(14); ui_rgb(227, 168, 75);
     ui_text_l(x, 0, HEADER_H, "EQ");
-    x += ui_text_w("EQ");
+    x += ui_text_w("EQ") + 1 * s;
+    // The 2's top at about the capitals' top (the wordmark's line is centred in the header)
+    gfx_setfont(16);
+    gfx_x = floor(x); gfx_y = floor(HEADER_H * 0.5 - 7.5 * s);
+    gfx_drawstr("2");
+    x += ui_text_w("2");
+    // A click on the wordmark opens the credits
+    ui_clicked(0, 0, x + 6 * s, HEADER_H) ? (ui_popup = 8; ui_pop_skip = 1; ui_block = 1);
     actual_width >= 700 && !compact_height ? (
       x += 10 * s;
       ui_rgb(42, 49, 53); gfx_rect(floor(x), floor(HEADER_H * 0.5 - 7 * s), max(1, floor(s)), floor(14 * s));
@@ -5881,6 +5889,133 @@ function ui_draw_settings_pop() local(s, pad, pw, ph, px, py, x, y, w, r, pr, sk
 /*
  * Range popover for the top scale button: the graph's dB range
  */
+/*
+ * Letter-spaced small capitals centred on cx, as the header's descriptor
+ */
+function ui_spaced_c(cx, y, h, str) local(s, i, w, x) (
+  s = ui_pt(1);
+  w = 0; i = 0;
+  loop(strlen(str),
+    strcpy_substr(#ui_ch, str, i, 1);
+    w += ui_text_w(#ui_ch) + 1.4 * s;
+    i += 1;
+  );
+  x = cx - (w - 1.4 * s) * 0.5;
+  i = 0;
+  loop(strlen(str),
+    strcpy_substr(#ui_ch, str, i, 1);
+    ui_text_l(x, y, h, #ui_ch);
+    x += ui_text_w(#ui_ch) + 1.4 * s;
+    i += 1;
+  );
+);
+
+/*
+ * The credits, opened from the wordmark: a rounded card in the middle of the window over a dimmed
+ * view. OK, a press outside it or Escape closes it.
+ */
+function ui_draw_credits()
+  local(s, pr, rpr, inside, cw, ch, cx, cy, x, y, w1, w2, w3, mid, t, zt, zb, n, colw, i, u, e, hh, cr, cg, cb, x0, w0, y0, h1, h2, a1,
+        okw, okh, okx, oky, hov)
+(
+  s = ui_pt(1);
+  pr = ui_press && !ui_pop_skip; rpr = ui_rpress && !ui_pop_skip; ui_pop_skip = 0;
+
+  gfx_r = gfx_g = gfx_b = 0; gfx_a = 0.45;
+  gfx_rect(0, 0, gfx_w, gfx_h);
+
+  cw = 360 * s; ch = 404 * s;
+  cx = floor(gfx_w * 0.5 - cw * 0.5); cy = floor(max(4 * s, gfx_h * 0.5 - ch * 0.5));
+  mid = cx + cw * 0.5;
+  inside = ui_in(cx, cy, cw, ch);
+  ui_box(cx, cy, cw, ch, 12 * s, 18, 21, 24, 0.97, 44, 52, 56);
+
+  // The card's text is a size up from the rest of the UI: it borrows fonts 3, 4, 5, 7, 13, 14 and 16 at
+  // its own sizes (every frame sets them back)
+  gfx_setfont(3, "Arial", floor(ui_pt(13) + 0.5));
+  gfx_setfont(4, "Arial", floor(ui_pt(13) + 0.5), 'b');
+  gfx_setfont(5, "Arial", floor(ui_pt(10) + 0.5));
+  gfx_setfont(7, "Arial", floor(ui_pt(12) + 0.5));
+  gfx_setfont(13, "Arial", floor(ui_pt(30) + 0.5));
+  gfx_setfont(14, "Arial", floor(ui_pt(30) + 0.5), 'b');
+  gfx_setfont(16, "Arial", floor(ui_pt(17) + 0.5), 'b');
+
+  // Behind the wordmark: soft spectrum columns in the band colours, breathing, fading out towards the
+  // sides, and kept above the descriptor. Each column fades in from its top, then thins towards its foot.
+  t = time_precise();
+  zt = cy + 12 * s; zb = cy + 66 * s;
+  n = 48; colw = cw / n;
+  i = 0;
+  loop(n,
+    u = (i + 0.5) / n;
+    e = min(1, min(u, 1 - u) / 0.25);
+    hh = (0.35 + 0.65 * abs(sin(u * 9 + t / 0.7) * sin(u * 3.3 - t / 1.1))) * (zb - zt) * 0.85;
+    ui_band_rgb(floor(u * 5) % 5); cr = gfx_r; cg = gfx_g; cb = gfx_b;
+    x0 = floor(cx + i * colw + 1); w0 = max(1, floor(colw - 2));
+    y0 = zb - hh; h1 = max(1, floor(hh * 0.35)); h2 = max(1, floor(hh - h1));
+    a1 = 0.16 * e;
+    gfx_gradrect(x0, floor(y0), w0, h1, cr, cg, cb, 0, 0, 0, 0, 0, 0, 0, 0, a1 / h1);
+    gfx_gradrect(x0, floor(y0) + h1, w0, h2, cr, cg, cb, a1, 0, 0, 0, 0, 0, 0, 0, (0.05 * e - a1) / h2);
+    i += 1;
+  );
+
+  // The wordmark at twice its header size
+  gfx_setfont(13); w1 = ui_text_w("Re");
+  gfx_setfont(14); w2 = ui_text_w("EQ");
+  gfx_setfont(16); w3 = ui_text_w("2");
+  x = mid - (w1 + w2 + 2 * s + w3) * 0.5; y = cy + 26 * s;
+  gfx_a = 1;
+  gfx_setfont(13); ui_rgb(232, 238, 240); ui_text_l(x, y, 40 * s, "Re");
+  gfx_setfont(14); ui_rgb(227, 168, 75); ui_text_l(x + w1, y, 40 * s, "EQ");
+  gfx_setfont(16);
+  gfx_x = floor(x + w1 + w2 + 2 * s); gfx_y = floor(y + 20 * s - 15 * s);
+  gfx_drawstr("2");
+
+  gfx_setfont(5); ui_rgb(109, 119, 124);
+  ui_spaced_c(mid, cy + 72 * s, 13 * s, "PARAMETRIC EQUALISER");
+  gfx_setfont(3); ui_rgb(154, 165, 170);
+  ui_text_c(cx, cy + 92 * s, cw, 16 * s, sprintf(#, "Version %s", #VERSION));
+
+  ui_rgb(35, 42, 46); gfx_line(cx + 40 * s, cy + 120 * s, cx + cw - 40 * s, cy + 120 * s, 0);
+
+  gfx_setfont(4); ui_rgb(223, 230, 233);
+  ui_text_c(cx, cy + 132 * s, cw, 18 * s, "Justin Johnson");
+  gfx_setfont(7); ui_rgb(154, 165, 170);
+  ui_text_c(cx, cy + 152 * s, cw, 16 * s, "© 2021–2026 · MIT License");
+
+  ui_rgb(35, 42, 46); gfx_line(cx + 40 * s, cy + 178 * s, cx + cw - 40 * s, cy + 178 * s, 0);
+
+  gfx_setfont(5); ui_rgb(109, 119, 124);
+  ui_spaced_c(mid, cy + 190 * s, 13 * s, "FILTERS");
+  gfx_setfont(7); ui_rgb(200, 208, 212);
+  ui_text_c(cx, cy + 205 * s, cw, 16 * s, "ivantsov-filters by Yuriy Ivantsov (MIT)");
+
+  gfx_setfont(5); ui_rgb(109, 119, 124);
+  ui_spaced_c(mid, cy + 229 * s, 13 * s, "THANKS");
+  gfx_setfont(7); ui_rgb(200, 208, 212);
+  ui_text_c(cx, cy + 244 * s, cw, 16 * s, "Cockos, for REAPER");
+  ui_text_c(cx, cy + 261 * s, cw, 16 * s, "The REAPER community");
+
+  gfx_setfont(7); ui_rgb(92, 200, 234);
+  ui_text_c(cx, cy + 284 * s, cw, 16 * s, "github.com/Justin-Johnson/ReJJ");
+
+  ui_rgb(35, 42, 46); gfx_line(cx + 40 * s, cy + 310 * s, cx + cw - 40 * s, cy + 310 * s, 0);
+
+  gfx_setfont(7); ui_rgb(200, 208, 212);
+  ui_text_c(cx, cy + 320 * s, cw, 16 * s, "ReEQ² is free, but if you'd like to buy me a beer:");
+  ui_rgb(92, 200, 234);
+  ui_text_c(cx, cy + 337 * s, cw, 16 * s, "paypal.me/nitsujdsp");
+
+  // OK, at the foot
+  okw = 76 * s; okh = 26 * s; okx = floor(mid - okw * 0.5); oky = floor(cy + ch - 16 * s - okh);
+  hov = ui_in(okx, oky, okw, okh);
+  ui_button_draw(okx, oky, okw, okh, "OK", 1, hov);
+
+  (pr && (hov || !inside)) || (rpr && !inside) ? ui_popup = 0;
+  pr || rpr ? ui_block = 1;
+  gfx_setfont(1);
+);
+
 function ui_draw_range_pop() local(s, pw, ph, px, py, i, ry, on, hov, pr, skip, rx, rw) (
   s = ui_pt(1);
   skip = ui_pop_skip; ui_pop_skip = 0;
@@ -6364,7 +6499,7 @@ function ui_draw_panel()
   gfx_setfont(2,"Arial",floor(rscale(11, 18) + 0.5),'b');
 
   // UI fonts: 3 label, 4 label bold, 5 small caps, 6 dial value, 7 axis, 8 card title, 9 badge, 10 node number, 11 tile label, 12 segment on, 13-14 wordmark,
-  // 15 dynamics knob label
+  // 15 dynamics knob label, 16 wordmark superscript
   gfx_setfont(3,"Arial",floor(ui_pt(11) + 0.5));
   gfx_setfont(4,"Arial",floor(ui_pt(11) + 0.5),'b');
   gfx_setfont(5,"Arial",floor(ui_pt(9) + 0.5));
@@ -6378,6 +6513,7 @@ function ui_draw_panel()
   gfx_setfont(13,"Arial",floor(ui_pt(15) + 0.5));
   gfx_setfont(14,"Arial",floor(ui_pt(15) + 0.5),'b');
   gfx_setfont(15,"Arial",floor(ui_pt(8) + 0.5));
+  gfx_setfont(16,"Arial",floor(ui_pt(9) + 0.5),'b');
   gfx_setfont(1);
 );
 
@@ -7059,6 +7195,7 @@ Dyn_Listen >= 0 && !(Band_Dyn_On[Dyn_Listen] && band_dyn_capable(Band_Type[Dyn_L
 ui_popup == 3 && (compact_width || compact_height || Band_Enabled[ui_card_band] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
 (ui_popup == 4 || ui_popup == 5) && (compact_height || compact_width || ui_key == 27) ? ui_popup = 0;
 ui_popup == 6 && (compact_width || compact_height || ui_key == 27) ? ui_popup = 0;
+ui_popup == 8 && (UI_EMBED || ui_key == 27) ? ui_popup = 0;
 
 // Output peak meter: the audio side holds the peak since the last frame, this side decays it
 ui_t = time_precise();
@@ -7092,6 +7229,7 @@ ui_fade > 0 ? (
   ui_popup == 4 ? ui_draw_analyzer_pop();
   ui_popup == 5 ? ui_draw_settings_pop();
   ui_popup == 6 ? ui_draw_range_pop();
+  ui_popup == 8 ? ui_draw_credits();
 );
 
 // Mid-fade: blend the graph saved earlier back over the fading elements
