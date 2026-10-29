@@ -177,6 +177,9 @@ options:no_meter
 #VERSION = "1.2.0";
 
 gfx_ext_retina  = 1;
+
+// Embedded in the TCP/MCP, draw without REAPER's decoration (REAPER 7.45+, set in @init)
+gfx_ext_flags |= 0x100;
 ext_nodenorm    = 1;
 ext_noinit = 1;
 last_gfx_ext_retina = -1;
@@ -308,7 +311,7 @@ function update_state() local (dm, blocks, fade, fill_r, fill_g, fill_b, fill_a,
     // where it's loud; Side or Right as a sand line over a faint sand fill, as in Fill
     spectrum.heat_r0 = 92 / 255 * fade; spectrum.heat_g0 = 52 / 255 * fade; spectrum.heat_b0 = 86 / 255 * fade;
     spectrum.set_fill(0, 2);
-    spectrum.set_color(0, 240 / 255 * fade, 86 / 255 * fade, 98 / 255 * fade, 0.65);
+    spectrum.set_color(0, 240 / 255 * fade, 86 / 255 * fade, 98 / 255 * fade, 0.85);
 
     spectrum.set_fill(1, 1);
     spectrum.set_color(1, 176 / 255 * fade, 150 / 255 * fade, 110 / 255 * fade, 0.12);
@@ -2170,6 +2173,11 @@ compact_width = actual_width < 600;
 compact_height = actual_height < 320;
 very_compact_width = actual_width < 300;
 very_compact_height = actual_height < 160;
+
+// Embedded in the track or mixer panel (gfx_ext_flags bit 1, REAPER 6.30+): curves, fills, nodes and the
+// analyser only, with no header, toolbar, panel, labels or hover card
+UI_EMBED = gfx_ext_flags & 1;
+UI_EMBED ? (compact_width = compact_height = very_compact_width = very_compact_height = 1);
 
 // A header strip holds the logo and the top buttons; the graph starts below it. Compact sizes keep
 // just the wordmark (short windows in a slimmer strip); very short windows drop it.
@@ -5683,6 +5691,16 @@ gfx_r = gfx_g = gfx_b = gfx_a = 1.0; gfx_x = 100; gfx_y = 120;
 // gfx_printf("srate         = %f", srate);  gfx_x = 100; gfx_y = 120;
 //gfx_printf("bands enabled = %d %d %d %d %d %d %d %d", Band_Enabled[0], Band_Enabled[1], Band_Enabled[2], Band_Enabled[3], Band_Enabled[4], Band_Enabled[5], Band_Enabled[6], Band_Enabled[7]);  gfx_x = 100; gfx_y = 180;
 
+
+// Embedded: a click over a node stays here, so nodes drag in place, without REAPER's tooltip in the
+// way; a click anywhere else opens the full window (0x200, REAPER 7.45+; 0x400, REAPER 7.79+).
+// Bits 1 and 2 are REAPER's and are kept.
+UI_EMBED ? (
+  ui_on_node = node_drag_mode != 0 || get_nearest_node() != -1;
+  gfx_ext_flags = (gfx_ext_flags & 0xFF) | 0x100 | (ui_on_node ? 0x400 : 0x200);
+) : (
+  gfx_ext_flags = (gfx_ext_flags & 0xFF) | 0x100;
+);
 
 // Remember the mouse buttons for the next frame's fresh-press test
 ui_prev_cap = mouse_cap;
