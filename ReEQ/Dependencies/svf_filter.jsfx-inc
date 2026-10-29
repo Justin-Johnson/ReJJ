@@ -1187,7 +1187,7 @@ function svf_phase(freq)
  */
 function svf_magnitude(freq)
   instance(a2, t_k, g, k, nlp, onepole, cas1, cas2, cas3, cas4, cas5, cas6, cas7, cas8, cas9, cutoff, op0, op1)
-  local(m)
+  local(m, wdcutoff, coff, wdeval, svalue)
 (
   // Our svf magnitude maps to the same magnitude z transfer function as biquad
 
