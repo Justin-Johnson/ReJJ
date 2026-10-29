@@ -2355,8 +2355,12 @@ function draw_thick_line(x1, y1, x2, y2)
  * Draw the colored filter bands
  */
 function draw_filter_bands()
-  local(xf, step, xo1, yo1, freq, m, scy, midp, tx0, lx0, x0, y0, x1, y1, bottom)
-( 
+  local(xf, step, xo1, yo1, freq, m, scy, midp, tx0, lx0, x0, y0, x1, y1, bottom, yc, fh)
+(
+  // Band fill opacity at the curve and at the 0dB line
+  FILL_ALPHA_CURVE = 0.5;
+  FILL_ALPHA_LINE = 0.05;
+
   // Frequency to track
   xf = 0;
 
@@ -2438,16 +2442,24 @@ function draw_filter_bands()
                 draw_thick_line(x0, y0, x1, y1);
             );
 
-            // Fill in
-            gfx_a = 0.5;
+            // Fill in, one column per step, fading from the curve towards the 0dB line
             tx0=xf|0;
             lx0=xo1|0;
             y1 = min(scy, bottom);
             y0 = min(yo1, bottom);
             state == BAND_STATE_ENABLED ? (
               tx0>lx0 ? (
-                HIDPI ? gfx_triangle(xo1, y0+2,xf-1, y1+2, xf-1, midp, xo1, midp) :
-                  gfx_triangle(xo1, y0+1, xf-1, y1+1, xf-1, midp, xo1, midp);
+                yc = (y0 + y1) * 0.5 + (HIDPI ? 2 : 1);
+                fh = midp - yc;
+                fh >= 1 ? (
+                  // Boost, the curve is above the line
+                  gfx_gradrect(lx0, yc, tx0 - lx0, fh, Band_Red[band], Band_Green[band], Band_Blue[band], FILL_ALPHA_CURVE,
+                    0, 0, 0, 0, 0, 0, 0, (FILL_ALPHA_LINE - FILL_ALPHA_CURVE) / fh);
+                ) : fh <= -1 ? (
+                  // Cut, the curve is below the line
+                  gfx_gradrect(lx0, midp, tx0 - lx0, -fh, Band_Red[band], Band_Green[band], Band_Blue[band], FILL_ALPHA_LINE,
+                    0, 0, 0, 0, 0, 0, 0, (FILL_ALPHA_CURVE - FILL_ALPHA_LINE) / -fh);
+                );
               );
             );
           );
