@@ -436,6 +436,34 @@ function cubic_hermite(A, B, C, D, t) local(a0, a1, a2, a3, t2)
    a0 * t * t2 + a1 * t2 + a2 * t + a3;
 );
 
+/*
+ * Catmull-Rom through B (t = 0) and C (t = 1), with A and D as the outer points
+ */
+function spectrum.catmull(A, B, C, D, t) local(t2)
+(
+  t2 = t * t;
+  0.5 * (2 * B + (C - A) * t + (2 * A - 5 * B + 4 * C - D) * t2 + (3 * B - A - 3 * C + D) * t2 * t);
+);
+
+/*
+ * One box blur pass of radius r over buf (n values), using tmp as scratch
+ */
+function spectrum.box_pass(buf, tmp, n, r) local(i, sum, w, lo, hi)
+(
+  sum = 0; i = 0;
+  loop(min(r, n), sum += buf[i]; i += 1);
+  i = 0;
+  loop(n,
+    hi = i + r; lo = i - r - 1;
+    hi < n ? sum += buf[hi];
+    lo >= 0 ? sum -= buf[lo];
+    w = min(hi, n - 1) - max(lo + 1, 0) + 1;
+    tmp[i] = sum / w;
+    i += 1;
+  );
+  memcpy(buf, tmp, n);
+);
+
 function spectrum.draw_line(x1, y1, x2, y2)
 (
   x1 = floor(x1);
@@ -451,8 +479,8 @@ function spectrum.draw_line(x1, y1, x2, y2)
  * Draw the specified spectrum
  */
 function spectrum.draw(bufindex)
-  local(i, pwr, windowpos, dwindowpos, buf1, buf2, buf3, tx, ty, spectrum_fill, tpx, tpy, fill_slast, fill_slmin,
-        lx, ly, tx0, lx0, num_bins, last_bin, bin, ipnt, mag, freq, bottom, delta, time, rate_over_fftsize)
+  local(i, pwr, windowpos, dwindowpos, buf1, buf2, buf3, nb, mag, freq, rate_over_fftsize, ncol, lev, x, x2, v,
+        p0, p2, p3, c, c1, sg, r, g, b, a, time, delta, yb, pk, spectrum_fill, bottom, top, span, y, ly, ty)
 (
   // Select buffer to draw
   bufindex == 0 ? ( 
@@ -559,135 +587,111 @@ function spectrum.draw(bufindex)
 
   buf3 = spectrum.fftworkspace;
 
-  memset(spectrum.bin_mag, spectrum.small_mag, spectrum.max_buffer);
-
-  i = 1;
-  ipnt = 0;
-  num_bins = 0;
-  last_bin = -1;
-
+  // Per FFT bin: level (0..1, tilt applied) in bin_mag and screen x in bin_freq. Both are
+  // scratch per buffer now; the display works per pixel column from here on.
+  nb = spectrum.fftsize * 0.5;
   rate_over_fftsize = srate / spectrum.fftsize;
-
-  loop(spectrum.fftsize * 0.5,
+  i = 1;
+  loop(nb - 1,
     mag = sqr(buf3[i*2+0]) + sqr(buf3[i*2+1]);
-
     freq = i * rate_over_fftsize;
-
-    bin = floor(32 * log(freq) / log(2));
-
-    bin != last_bin ? (
-      num_bins += 1;
-      last_bin = bin;
-    );
-
-    // Set the dominant frequency for the bin
-    spectrum.bin_freq[num_bins] = freq;
-    spectrum.bin_peakfreq[num_bins] = freq;
-
-    // Set the maximum magnitudes for the quantized bin
-    spectrum.bin_mag[num_bins] = max(mag, spectrum.bin_mag[num_bins]);
-    spectrum.bin_peakmag[num_bins] = max(mag, spectrum.bin_peakmag[num_bins]);
-
-    i+=1;
-    ipnt += 1;
+    spectrum.bin_mag[i] = max(spectrum.magnitude_to_01(max(mag, spectrum.small_mag), freq), 0);
+    spectrum.bin_freq[i] = spectrum.freq_to_x(freq);
+    i += 1;
   );
 
-  gfx_r = spectrum.red[bufindex];
-  gfx_g = spectrum.green[bufindex];
-  gfx_b = spectrum.blue[bufindex];
-  gfx_a = spectrum.alpha[bufindex];
+  // Per pixel column (point_x): the loudest bin in the column where bins are dense, and a
+  // smooth curve between bins where they're further apart than a pixel (the low end)
+  ncol = min(floor(gfx_w), 16384);
+  lev = spectrum.point_x;
+  memset(lev, -1, ncol);
+  i = 1;
+  loop(nb - 1,
+    x = spectrum.bin_freq[i]; v = spectrum.bin_mag[i];
+    c = floor(x);
+    c >= 0 && c < ncol ? lev[c] = max(lev[c], v);
+    i < nb - 1 ? (
+      x2 = spectrum.bin_freq[i + 1];
+      x2 - x > 1 && x2 >= 0 && x < ncol ? (
+        p0 = spectrum.bin_mag[max(i - 1, 1)]; p2 = spectrum.bin_mag[i + 1]; p3 = spectrum.bin_mag[min(i + 2, nb - 1)];
+        c = max(floor(x) + 1, 0); c1 = min(ceil(x2) - 1, ncol - 1);
+        while (c <= c1 ? (
+          lev[c] = max(lev[c], min(max(spectrum.catmull(p0, v, p2, p3, (c - x) / (x2 - x)), 0), 1));
+          c += 1; 1) : 0);
+      );
+    );
+    i += 1;
+  );
 
-  spectrum_fill = spectrum.fill[bufindex];
+  // Columns left of the first bin take its level; anything else unset is the floor
+  c = 0; v = -1;
+  while (c < ncol && v < 0 ? (v = lev[c]; c += 1; 1) : 0);
+  v = max(v, 0);
+  c = 0;
+  loop(ncol, lev[c] < 0 ? lev[c] = v : v = lev[c]; c += 1);
 
-  bottom = gfx_h - spectrum.bottom_margin - gfx_texth;
+  // Optional smoothing, in octaves: three box passes approximate a Gaussian
+  spectrum.smooth > 0 ? (
+    sg = spectrum.smooth * (gfx_w - spectrum.left_margin - spectrum.right_margin) * log(2) / spectrum.freq_log_max;
+    r = floor((sqrt(4 * sg * sg + 1) - 1) * 0.5);
+    r >= 1 ? loop(3, spectrum.box_pass(lev, spectrum.point_y, ncol, r));
+  );
 
+  // Ballistics per column: rise at once, fall back gently. Peak hold keeps the maximum.
   time = time_precise();
   delta = 0.99 ^ ((time - spectrum.last_time[bufindex]) * 30);
-
   spectrum.last_time[bufindex] = time;
 
-  ly = 0;
-  lx = -1;
+  yb = spectrum.bin_y; pk = spectrum.bin_peakmag;
+  c = 0;
+  loop(ncol,
+    yb[c] = max(lev[c], yb[c] * delta);
+    pk[c] = max(pk[c], lev[c]);
+    c += 1;
+  );
 
-  // Bins are stored from index 1
-  ipnt = 1;
+  spectrum_fill = spectrum.fill[bufindex];
+  r = spectrum.red[bufindex]; g = spectrum.green[bufindex]; b = spectrum.blue[bufindex]; a = spectrum.alpha[bufindex];
 
-  loop(num_bins, (
-    // Bins below the display range are off the left edge, skip them
-    spectrum.bin_freq[ipnt] >= spectrum.min_freq ? (
-      tx = spectrum.freq_to_x(spectrum.bin_freq[ipnt]);
-      ty = spectrum.magnitude_to_01(spectrum.bin_mag[ipnt], spectrum.bin_freq[ipnt]);
+  bottom = gfx_h - spectrum.bottom_margin - gfx_texth;
+  top = spectrum.top_margin;
 
-      // Decay
-      spectrum.bin_y[ipnt] *= delta;
-
-      spectrum.bin_y[ipnt] = max(ty, spectrum.bin_y[ipnt]);
-
-      ty = spectrum.01_to_y(spectrum.bin_y[ipnt]);
-
-      // Start the curve at the left edge, level with the first visible bin
-      lx == -1 ? (lx = spectrum.left_margin; ly = ty);
-
-      tx >= spectrum.left_margin && (ly < bottom-1 || ty < bottom-1) ?
-      (
-        spectrum_fill ? (
-          tx0=tx|0;
-          lx0=lx|0;
-          tx0>lx0? (
-            ly < bottom || ty < bottom ? gfx_triangle(lx0,bottom,lx0,ly,tx0-1,ty,tx0-1,bottom);
-          ) : (
-            tx0 > fill_slast ? (
-             fill_slast < bottom ? gfx_line(fill_slast,bottom,fill_slast,fill_slmin);
-             fill_slmin=bottom;
-           ) : (
-             fill_slmin=min(fill_slmin,ty);
-            );
-          );
-          fill_slast=tx0;
-
-          // Draw a capping line for antialiasing
-          spectrum.draw_line(lx, ly, tx, ty);
-
-        ) : (
-          (ly < bottom || ty < bottom) && !(ly > bottom - 1 && ty > bottom - 1) ? (
-            //Line
-            spectrum.draw_line(lx, ly, tx, ty);
-          );
-        );
-      );
-
-      lx=tx; ly=ty;
+  // Fill: a vertical fade per column, anchored to the graph so loud regions read brighter
+  spectrum_fill ? (
+    span = max(bottom - top, 1);
+    c = 0;
+    loop(ncol,
+      y = floor(min(spectrum.01_to_y(yb[c]), bottom));
+      y < bottom ? gfx_gradrect(c, y, 1, bottom - y, r, g, b, a * (0.07 + 0.93 * (bottom - y) / span), 0, 0, 0, 0, 0, 0, 0, -0.93 * a / span);
+      c += 1;
     );
-    ipnt += 1;
-  ));
+  );
+
+  // Line: a pale tint of the fill colour over a filled spectrum, or the colour itself
+  spectrum_fill ? (
+    gfx_r = r + (1 - r) * 0.45; gfx_g = g + (1 - g) * 0.45; gfx_b = b + (1 - b) * 0.45; gfx_a = 0.7;
+  ) : (
+    gfx_r = r; gfx_g = g; gfx_b = b; gfx_a = a;
+  );
+  ly = min(spectrum.01_to_y(yb[0]), bottom);
+  c = 1;
+  loop(ncol - 1,
+    ty = min(spectrum.01_to_y(yb[c]), bottom);
+    ly < bottom - 1 || ty < bottom - 1 ? spectrum.draw_line(c - 1, ly, c, ty);
+    ly = ty;
+    c += 1;
+  );
 
   spectrum.show_peaks ? (
-    gfx_r = gfx_g = gfx_b = 0.8; gfx_a = 1;
-
-    lpx = -1; lpy = 0; tpy = 0; tpx = -1;
-    ipnt = 1;
-
-    loop(num_bins, (
-      spectrum.bin_peakfreq[ipnt] >= spectrum.min_freq ? (
-        // Calc max peaks
-        tpx = spectrum.freq_to_x(spectrum.bin_peakfreq[ipnt]);
-        tpy = spectrum.magnitude_to_01(spectrum.bin_peakmag[ipnt], spectrum.bin_peakfreq[ipnt]);
-        tpy = spectrum.01_to_y(tpy);
-
-        tpy = min(bottom, tpy);
-
-        lpx == -1 ? (lpx = spectrum.left_margin; lpy = tpy);
-
-        // Draw max peaks
-        lpy < bottom || tpy < bottom ? (
-          //Line
-          spectrum.draw_line(lpx, lpy, tpx, tpy);
-        );
-
-        lpx=tpx; lpy=tpy;
-      );
-      ipnt += 1;
-    ));
+    gfx_r = gfx_g = gfx_b = 0.8; gfx_a = 0.35;
+    ly = min(spectrum.01_to_y(pk[0]), bottom);
+    c = 1;
+    loop(ncol - 1,
+      ty = min(spectrum.01_to_y(pk[c]), bottom);
+      ly < bottom || ty < bottom ? spectrum.draw_line(c - 1, ly, c, ty);
+      ly = ty;
+      c += 1;
+    );
   );
 
 /*

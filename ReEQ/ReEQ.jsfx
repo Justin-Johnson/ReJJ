@@ -22,6 +22,7 @@ slider14:Show_Piano=0<0,1,1{Off,On}>-Show Piano
 slider15:Show_Peaks=0<0,1,1{Off,On}>-Show Peaks
 slider16:Show_PreEQ=0<0,1,1{Off,On}>-Show Pre-EQ
 slider17:Db_Range=2<0,4,1{6dB,12dB,18dB,24dB,30dB}>-dB Range
+slider135:Smoothing_Value=1<0,4,1{Off,1/48 oct,1/24 oct,1/12 oct,1/6 oct}>-Spectrum Smoothing
 
 slider18:Node1_Enabled=<0,2,1{Off,Disabled,Enabled}>-Filter1 Mode
 slider19:Node1_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter1 Group
@@ -290,6 +291,8 @@ function update_state() local (blocks, fade, fill_r, fill_g, fill_b, fill_a, lin
 
   blocks = (2 ^ (Block_Value+1)) * 1024;
 
+  spectrum.smooth = Smoothing_Value == 1 ? 1/48 : Smoothing_Value == 2 ? 1/24 : Smoothing_Value == 3 ? 1/12 : Smoothing_Value == 4 ? 1/6 : 0;
+
   spectrum.windowsize != blocks ? spectrum.set_block_size(blocks);
 
   fade = do_listen ? 0.5 : 1.0;
@@ -300,25 +303,28 @@ function update_state() local (blocks, fade, fill_r, fill_g, fill_b, fill_a, lin
   listline_b = (76 / 255) * 0.80;
 
   Display_Mode == 0 ? (
-    fill_r = 46 / 255;
-    fill_g = 71 / 255;
-    fill_b = 83 / 255;
-    fill_a = 1.0;
+    // Light fills: Mid or Left in cool slate, Side or Right in warm sand (the fill fades
+    // down from the top of the graph; the spectrum draws a paler line along its edge)
+    fill_r = 93 / 255;
+    fill_g = 138 / 255;
+    fill_b = 160 / 255;
+    fill_a = 0.35;
     spectrum.set_fill(0, 1);
     spectrum.set_color(0, fill_r*fade, fill_g*fade, fill_b*fade, fill_a);
 
+    // Pre-EQ: dim grey lines
     spectrum.set_fill(2, 0);
-    spectrum.set_color(2, 0.5, 0.5, 0.5, 1);
+    spectrum.set_color(2, 138 / 255, 148 / 255, 153 / 255, 0.5);
 
-    fill_r = 96 / 255;
-    fill_g = 223 / 255;
-    fill_b = 255 / 255;
-    fill_a = 0.5;
+    fill_r = 176 / 255;
+    fill_g = 150 / 255;
+    fill_b = 110 / 255;
+    fill_a = 0.28;
     spectrum.set_fill(1, 1); 
     spectrum.set_color(1, fill_r*fade, fill_g*fade, fill_b*fade, fill_a);
 
     spectrum.set_fill(3, 0);
-    spectrum.set_color(3, 0.5, 0.5, 0.5, 1);
+    spectrum.set_color(3, 138 / 255, 148 / 255, 153 / 255, 0.4);
 
     spectrum.set_fill(4, 0);
     spectrum.set_color(4, listline_r, listline_g, listline_b, 1);
@@ -333,14 +339,14 @@ function update_state() local (blocks, fade, fill_r, fill_g, fill_b, fill_a, lin
     spectrum.set_color(0, line_r*fade, line_g*fade, line_b*fade, line_a);
     
     spectrum.set_fill(2, 0);
-    spectrum.set_color(2, 0.5, 0.5, 0.5, 1);
+    spectrum.set_color(2, 138 / 255, 148 / 255, 153 / 255, 0.5);
 
     line_r = 253 / 255; line_g = 185 / 255; line_b = 21 / 255;;
     spectrum.set_fill(1, 0);
     spectrum.set_color(1, line_r*fade, line_g*fade, line_b*fade, line_a);
 
     spectrum.set_fill(3, 0);
-    spectrum.set_color(3, 0.5, 0.5, 0.5, 1);
+    spectrum.set_color(3, 138 / 255, 148 / 255, 153 / 255, 0.4);
 
     spectrum.set_fill(4, 0);
     spectrum.set_color(4, listline_r, listline_g, listline_b, 1);
@@ -4071,7 +4077,14 @@ function handle_menu_button() instance (x, y, width, menutext, label, pressed, h
 
       #menu += ">Display Pre-EQ|";
       Show_PreEQ == 0 ? #menu += "!"; #menu += "Off|";
-      Show_PreEQ == 1 ? #menu += "!"; #menu += "On|";
+      Show_PreEQ == 1 ? #menu += "!"; #menu += "<On|";
+
+      #menu += ">Smoothing|";
+      Smoothing_Value == 0 ? #menu += "!"; #menu += "Off|";
+      Smoothing_Value == 1 ? #menu += "!"; #menu += "1/48 octave|";
+      Smoothing_Value == 2 ? #menu += "!"; #menu += "1/24 octave|";
+      Smoothing_Value == 3 ? #menu += "!"; #menu += "1/12 octave|";
+      Smoothing_Value == 4 ? #menu += "!"; #menu += "<1/6 octave|";
 
       gfx_x = mouse_x;
       gfx_y = mouse_y;
@@ -4113,6 +4126,10 @@ function handle_menu_button() instance (x, y, width, menutext, label, pressed, h
 
       last_clicked_item >= 30 && last_clicked_item <= 31 ? ( 
         Show_PreEQ = last_clicked_item - 30;
+      );
+
+      last_clicked_item >= 32 && last_clicked_item <= 36 ? ( 
+        Smoothing_Value = last_clicked_item - 32;
       );
 
       last_clicked_item >= 1 ? update_state();
