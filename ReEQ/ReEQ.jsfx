@@ -5129,7 +5129,26 @@ drawRight ? draw_filter_response(4, 213/255, 65/255, 66/255);
 // Stereo
 draw_filter_response(0, 1.0, 1.0, 1.0);
 
-mouse_within_window() ? (
+// What shows while the mouse is over the window (nodes, hover card, toolbar, top buttons, panel)
+// fades in and out with a smoothstep instead of popping
+ui_vis = mouse_within_window() || button_focus != -1 || node_drag_mode != 0 || is_box_dragging() || ui_popup != 0;
+ui_ft = time_precise();
+ui_fdt = min(max(ui_ft - ui_flast, 0), 0.1);
+ui_flast = ui_ft;
+ui_fraw = ui_vis ? min(1, ui_fraw + ui_fdt / 0.15) : max(0, ui_fraw - ui_fdt / 0.3);
+ui_fade = ui_fraw * ui_fraw * (3 - 2 * ui_fraw);
+
+// Mid-fade, keep a copy of the graph as it is now; the end of the frame blends it back over
+// those elements at 1 - fade, so they fade with their own translucency intact
+ui_fading = ui_fade > 0 && ui_fade < 1;
+ui_fading ? (
+  ui_snap_w != gfx_w || ui_snap_h != gfx_h ? (gfx_setimgdim(100, gfx_w, gfx_h); ui_snap_w = gfx_w; ui_snap_h = gfx_h);
+  gfx_dest = 100; gfx_x = gfx_y = 0; gfx_a = 1; gfx_mode = 2;
+  gfx_blit(-1, 1, 0);
+  gfx_dest = -1; gfx_mode = 0;
+);
+
+ui_fade > 0 ? (
 
   do_listen || listen_node != -1 ? draw_listen_helper();
 
@@ -5654,11 +5673,18 @@ out_pk0 = out_pk1 = 0;
 
 // ui_draw_top and ui_draw_bar record the buttons they drew; the mouse code reads them next frame
 ui_top_h = 0; ui_db_vis = 0;
-button_focus != -1 || mouse_within_window() || node_drag_mode != 0 || is_box_dragging() || ui_popup != 0 ? (
+ui_fade > 0 ? (
   !compact_height && !compact_width ? ui_draw_bar();
   !compact_height ? ui_draw_top();
   ShowPanel && selected_node != -1 ? ui_draw_panel();
   ui_popup == 3 ? ui_draw_node_card();
+);
+
+// Mid-fade: blend the graph saved earlier back over the fading elements
+ui_fading ? (
+  gfx_dest = -1; gfx_x = gfx_y = 0; gfx_a = 1 - ui_fade; gfx_mode = 2;
+  gfx_blit(100, 1, 0);
+  gfx_mode = 0; gfx_a = 1;
 );
 
 gainDb = 2 ^ (Gain/6);
