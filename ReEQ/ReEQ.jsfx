@@ -159,6 +159,105 @@ slider132:Node16_Gain=0.0<-18.0,18.0,0.01>-Filter16 Gain
 slider133:Node16_Q=32.647<0,100.0,0.01>-Filter16 Q
 slider134:Node16_Slope=0<0,19,1>-Filter16 Slope
 
+// Dynamics: per band on, threshold, ratio, range, attack and release; then the global lookahead
+slider137:Node1_DynOn=0<0,1,1{Off,On}>-Filter1 Dynamic
+slider138:Node1_DynThresh=-24<-60,0,0.1>-Filter1 Dynamic Threshold
+slider139:Node1_DynRatio=4<1,20,0.01>-Filter1 Dynamic Ratio
+slider140:Node1_DynRange=-6<-24,24,0.1>-Filter1 Dynamic Range
+slider141:Node1_DynAttack=5<0.1,200,0.1>-Filter1 Dynamic Attack
+slider142:Node1_DynRelease=80<5,2000,1>-Filter1 Dynamic Release
+slider143:Node2_DynOn=0<0,1,1{Off,On}>-Filter2 Dynamic
+slider144:Node2_DynThresh=-24<-60,0,0.1>-Filter2 Dynamic Threshold
+slider145:Node2_DynRatio=4<1,20,0.01>-Filter2 Dynamic Ratio
+slider146:Node2_DynRange=-6<-24,24,0.1>-Filter2 Dynamic Range
+slider147:Node2_DynAttack=5<0.1,200,0.1>-Filter2 Dynamic Attack
+slider148:Node2_DynRelease=80<5,2000,1>-Filter2 Dynamic Release
+slider149:Node3_DynOn=0<0,1,1{Off,On}>-Filter3 Dynamic
+slider150:Node3_DynThresh=-24<-60,0,0.1>-Filter3 Dynamic Threshold
+slider151:Node3_DynRatio=4<1,20,0.01>-Filter3 Dynamic Ratio
+slider152:Node3_DynRange=-6<-24,24,0.1>-Filter3 Dynamic Range
+slider153:Node3_DynAttack=5<0.1,200,0.1>-Filter3 Dynamic Attack
+slider154:Node3_DynRelease=80<5,2000,1>-Filter3 Dynamic Release
+slider155:Node4_DynOn=0<0,1,1{Off,On}>-Filter4 Dynamic
+slider156:Node4_DynThresh=-24<-60,0,0.1>-Filter4 Dynamic Threshold
+slider157:Node4_DynRatio=4<1,20,0.01>-Filter4 Dynamic Ratio
+slider158:Node4_DynRange=-6<-24,24,0.1>-Filter4 Dynamic Range
+slider159:Node4_DynAttack=5<0.1,200,0.1>-Filter4 Dynamic Attack
+slider160:Node4_DynRelease=80<5,2000,1>-Filter4 Dynamic Release
+slider161:Node5_DynOn=0<0,1,1{Off,On}>-Filter5 Dynamic
+slider162:Node5_DynThresh=-24<-60,0,0.1>-Filter5 Dynamic Threshold
+slider163:Node5_DynRatio=4<1,20,0.01>-Filter5 Dynamic Ratio
+slider164:Node5_DynRange=-6<-24,24,0.1>-Filter5 Dynamic Range
+slider165:Node5_DynAttack=5<0.1,200,0.1>-Filter5 Dynamic Attack
+slider166:Node5_DynRelease=80<5,2000,1>-Filter5 Dynamic Release
+slider167:Node6_DynOn=0<0,1,1{Off,On}>-Filter6 Dynamic
+slider168:Node6_DynThresh=-24<-60,0,0.1>-Filter6 Dynamic Threshold
+slider169:Node6_DynRatio=4<1,20,0.01>-Filter6 Dynamic Ratio
+slider170:Node6_DynRange=-6<-24,24,0.1>-Filter6 Dynamic Range
+slider171:Node6_DynAttack=5<0.1,200,0.1>-Filter6 Dynamic Attack
+slider172:Node6_DynRelease=80<5,2000,1>-Filter6 Dynamic Release
+slider173:Node7_DynOn=0<0,1,1{Off,On}>-Filter7 Dynamic
+slider174:Node7_DynThresh=-24<-60,0,0.1>-Filter7 Dynamic Threshold
+slider175:Node7_DynRatio=4<1,20,0.01>-Filter7 Dynamic Ratio
+slider176:Node7_DynRange=-6<-24,24,0.1>-Filter7 Dynamic Range
+slider177:Node7_DynAttack=5<0.1,200,0.1>-Filter7 Dynamic Attack
+slider178:Node7_DynRelease=80<5,2000,1>-Filter7 Dynamic Release
+slider179:Node8_DynOn=0<0,1,1{Off,On}>-Filter8 Dynamic
+slider180:Node8_DynThresh=-24<-60,0,0.1>-Filter8 Dynamic Threshold
+slider181:Node8_DynRatio=4<1,20,0.01>-Filter8 Dynamic Ratio
+slider182:Node8_DynRange=-6<-24,24,0.1>-Filter8 Dynamic Range
+slider183:Node8_DynAttack=5<0.1,200,0.1>-Filter8 Dynamic Attack
+slider184:Node8_DynRelease=80<5,2000,1>-Filter8 Dynamic Release
+slider185:Node9_DynOn=0<0,1,1{Off,On}>-Filter9 Dynamic
+slider186:Node9_DynThresh=-24<-60,0,0.1>-Filter9 Dynamic Threshold
+slider187:Node9_DynRatio=4<1,20,0.01>-Filter9 Dynamic Ratio
+slider188:Node9_DynRange=-6<-24,24,0.1>-Filter9 Dynamic Range
+slider189:Node9_DynAttack=5<0.1,200,0.1>-Filter9 Dynamic Attack
+slider190:Node9_DynRelease=80<5,2000,1>-Filter9 Dynamic Release
+slider191:Node10_DynOn=0<0,1,1{Off,On}>-Filter10 Dynamic
+slider192:Node10_DynThresh=-24<-60,0,0.1>-Filter10 Dynamic Threshold
+slider193:Node10_DynRatio=4<1,20,0.01>-Filter10 Dynamic Ratio
+slider194:Node10_DynRange=-6<-24,24,0.1>-Filter10 Dynamic Range
+slider195:Node10_DynAttack=5<0.1,200,0.1>-Filter10 Dynamic Attack
+slider196:Node10_DynRelease=80<5,2000,1>-Filter10 Dynamic Release
+slider197:Node11_DynOn=0<0,1,1{Off,On}>-Filter11 Dynamic
+slider198:Node11_DynThresh=-24<-60,0,0.1>-Filter11 Dynamic Threshold
+slider199:Node11_DynRatio=4<1,20,0.01>-Filter11 Dynamic Ratio
+slider200:Node11_DynRange=-6<-24,24,0.1>-Filter11 Dynamic Range
+slider201:Node11_DynAttack=5<0.1,200,0.1>-Filter11 Dynamic Attack
+slider202:Node11_DynRelease=80<5,2000,1>-Filter11 Dynamic Release
+slider203:Node12_DynOn=0<0,1,1{Off,On}>-Filter12 Dynamic
+slider204:Node12_DynThresh=-24<-60,0,0.1>-Filter12 Dynamic Threshold
+slider205:Node12_DynRatio=4<1,20,0.01>-Filter12 Dynamic Ratio
+slider206:Node12_DynRange=-6<-24,24,0.1>-Filter12 Dynamic Range
+slider207:Node12_DynAttack=5<0.1,200,0.1>-Filter12 Dynamic Attack
+slider208:Node12_DynRelease=80<5,2000,1>-Filter12 Dynamic Release
+slider209:Node13_DynOn=0<0,1,1{Off,On}>-Filter13 Dynamic
+slider210:Node13_DynThresh=-24<-60,0,0.1>-Filter13 Dynamic Threshold
+slider211:Node13_DynRatio=4<1,20,0.01>-Filter13 Dynamic Ratio
+slider212:Node13_DynRange=-6<-24,24,0.1>-Filter13 Dynamic Range
+slider213:Node13_DynAttack=5<0.1,200,0.1>-Filter13 Dynamic Attack
+slider214:Node13_DynRelease=80<5,2000,1>-Filter13 Dynamic Release
+slider215:Node14_DynOn=0<0,1,1{Off,On}>-Filter14 Dynamic
+slider216:Node14_DynThresh=-24<-60,0,0.1>-Filter14 Dynamic Threshold
+slider217:Node14_DynRatio=4<1,20,0.01>-Filter14 Dynamic Ratio
+slider218:Node14_DynRange=-6<-24,24,0.1>-Filter14 Dynamic Range
+slider219:Node14_DynAttack=5<0.1,200,0.1>-Filter14 Dynamic Attack
+slider220:Node14_DynRelease=80<5,2000,1>-Filter14 Dynamic Release
+slider221:Node15_DynOn=0<0,1,1{Off,On}>-Filter15 Dynamic
+slider222:Node15_DynThresh=-24<-60,0,0.1>-Filter15 Dynamic Threshold
+slider223:Node15_DynRatio=4<1,20,0.01>-Filter15 Dynamic Ratio
+slider224:Node15_DynRange=-6<-24,24,0.1>-Filter15 Dynamic Range
+slider225:Node15_DynAttack=5<0.1,200,0.1>-Filter15 Dynamic Attack
+slider226:Node15_DynRelease=80<5,2000,1>-Filter15 Dynamic Release
+slider227:Node16_DynOn=0<0,1,1{Off,On}>-Filter16 Dynamic
+slider228:Node16_DynThresh=-24<-60,0,0.1>-Filter16 Dynamic Threshold
+slider229:Node16_DynRatio=4<1,20,0.01>-Filter16 Dynamic Ratio
+slider230:Node16_DynRange=-6<-24,24,0.1>-Filter16 Dynamic Range
+slider231:Node16_DynAttack=5<0.1,200,0.1>-Filter16 Dynamic Attack
+slider232:Node16_DynRelease=80<5,2000,1>-Filter16 Dynamic Release
+slider233:Lookahead_Value=0<0,3,1{Off,1 ms,5 ms,10 ms}>-Lookahead
+
 import Dependencies/spectrum.jsfx-inc
 import Dependencies/ivantsov_filter.jsfx-inc
 
@@ -166,6 +265,10 @@ in_pin:left input
 in_pin:right input
 in_pin:sc input left
 in_pin:sc input right
+in_pin:sc 2 input left
+in_pin:sc 2 input right
+in_pin:sc 3 input left
+in_pin:sc 3 input right
 out_pin:left output
 out_pin:right output
 
@@ -429,9 +532,33 @@ function notify_touched_Q(node) (
                                 node == 15 ? slider_automate(Node16_Q);
 );
 
+/*
+ * Notify REAPER that a dynamics setting changed: p is 0 on, 1 threshold, 2 ratio, 3 range, 4 attack,
+ * 5 release
+ */
+function notify_touched_dyn(node, p) (
+  p == 0 ? (node == 0 ? slider_automate(Node1_DynOn) : node == 1 ? slider_automate(Node2_DynOn) : node == 2 ? slider_automate(Node3_DynOn) : node == 3 ? slider_automate(Node4_DynOn) : node == 4 ? slider_automate(Node5_DynOn) : node == 5 ? slider_automate(Node6_DynOn) : node == 6 ? slider_automate(Node7_DynOn) : node == 7 ? slider_automate(Node8_DynOn) : node == 8 ? slider_automate(Node9_DynOn) : node == 9 ? slider_automate(Node10_DynOn) : node == 10 ? slider_automate(Node11_DynOn) : node == 11 ? slider_automate(Node12_DynOn) : node == 12 ? slider_automate(Node13_DynOn) : node == 13 ? slider_automate(Node14_DynOn) : node == 14 ? slider_automate(Node15_DynOn) : slider_automate(Node16_DynOn)) :
+  p == 1 ? (node == 0 ? slider_automate(Node1_DynThresh) : node == 1 ? slider_automate(Node2_DynThresh) : node == 2 ? slider_automate(Node3_DynThresh) : node == 3 ? slider_automate(Node4_DynThresh) : node == 4 ? slider_automate(Node5_DynThresh) : node == 5 ? slider_automate(Node6_DynThresh) : node == 6 ? slider_automate(Node7_DynThresh) : node == 7 ? slider_automate(Node8_DynThresh) : node == 8 ? slider_automate(Node9_DynThresh) : node == 9 ? slider_automate(Node10_DynThresh) : node == 10 ? slider_automate(Node11_DynThresh) : node == 11 ? slider_automate(Node12_DynThresh) : node == 12 ? slider_automate(Node13_DynThresh) : node == 13 ? slider_automate(Node14_DynThresh) : node == 14 ? slider_automate(Node15_DynThresh) : slider_automate(Node16_DynThresh)) :
+  p == 2 ? (node == 0 ? slider_automate(Node1_DynRatio) : node == 1 ? slider_automate(Node2_DynRatio) : node == 2 ? slider_automate(Node3_DynRatio) : node == 3 ? slider_automate(Node4_DynRatio) : node == 4 ? slider_automate(Node5_DynRatio) : node == 5 ? slider_automate(Node6_DynRatio) : node == 6 ? slider_automate(Node7_DynRatio) : node == 7 ? slider_automate(Node8_DynRatio) : node == 8 ? slider_automate(Node9_DynRatio) : node == 9 ? slider_automate(Node10_DynRatio) : node == 10 ? slider_automate(Node11_DynRatio) : node == 11 ? slider_automate(Node12_DynRatio) : node == 12 ? slider_automate(Node13_DynRatio) : node == 13 ? slider_automate(Node14_DynRatio) : node == 14 ? slider_automate(Node15_DynRatio) : slider_automate(Node16_DynRatio)) :
+  p == 3 ? (node == 0 ? slider_automate(Node1_DynRange) : node == 1 ? slider_automate(Node2_DynRange) : node == 2 ? slider_automate(Node3_DynRange) : node == 3 ? slider_automate(Node4_DynRange) : node == 4 ? slider_automate(Node5_DynRange) : node == 5 ? slider_automate(Node6_DynRange) : node == 6 ? slider_automate(Node7_DynRange) : node == 7 ? slider_automate(Node8_DynRange) : node == 8 ? slider_automate(Node9_DynRange) : node == 9 ? slider_automate(Node10_DynRange) : node == 10 ? slider_automate(Node11_DynRange) : node == 11 ? slider_automate(Node12_DynRange) : node == 12 ? slider_automate(Node13_DynRange) : node == 13 ? slider_automate(Node14_DynRange) : node == 14 ? slider_automate(Node15_DynRange) : slider_automate(Node16_DynRange)) :
+  p == 4 ? (node == 0 ? slider_automate(Node1_DynAttack) : node == 1 ? slider_automate(Node2_DynAttack) : node == 2 ? slider_automate(Node3_DynAttack) : node == 3 ? slider_automate(Node4_DynAttack) : node == 4 ? slider_automate(Node5_DynAttack) : node == 5 ? slider_automate(Node6_DynAttack) : node == 6 ? slider_automate(Node7_DynAttack) : node == 7 ? slider_automate(Node8_DynAttack) : node == 8 ? slider_automate(Node9_DynAttack) : node == 9 ? slider_automate(Node10_DynAttack) : node == 10 ? slider_automate(Node11_DynAttack) : node == 11 ? slider_automate(Node12_DynAttack) : node == 12 ? slider_automate(Node13_DynAttack) : node == 13 ? slider_automate(Node14_DynAttack) : node == 14 ? slider_automate(Node15_DynAttack) : slider_automate(Node16_DynAttack)) :
+  p == 5 ? (node == 0 ? slider_automate(Node1_DynRelease) : node == 1 ? slider_automate(Node2_DynRelease) : node == 2 ? slider_automate(Node3_DynRelease) : node == 3 ? slider_automate(Node4_DynRelease) : node == 4 ? slider_automate(Node5_DynRelease) : node == 5 ? slider_automate(Node6_DynRelease) : node == 6 ? slider_automate(Node7_DynRelease) : node == 7 ? slider_automate(Node8_DynRelease) : node == 8 ? slider_automate(Node9_DynRelease) : node == 9 ? slider_automate(Node10_DynRelease) : node == 10 ? slider_automate(Node11_DynRelease) : node == 11 ? slider_automate(Node12_DynRelease) : node == 12 ? slider_automate(Node13_DynRelease) : node == 13 ? slider_automate(Node14_DynRelease) : node == 14 ? slider_automate(Node15_DynRelease) : slider_automate(Node16_DynRelease));
+);
+
+/*
+ * Tell REAPER (undo, project modified) about a dynamics change that has no slider of its own: timing or
+ * source. The band's DYN slider stands in for it.
+ */
+function notify_dyn_state(node) (
+  node == 0 ? sliderchange(Node1_DynOn) : node == 1 ? sliderchange(Node2_DynOn) : node == 2 ? sliderchange(Node3_DynOn) : node == 3 ? sliderchange(Node4_DynOn) : node == 4 ? sliderchange(Node5_DynOn) : node == 5 ? sliderchange(Node6_DynOn) : node == 6 ? sliderchange(Node7_DynOn) : node == 7 ? sliderchange(Node8_DynOn) : node == 8 ? sliderchange(Node9_DynOn) : node == 9 ? sliderchange(Node10_DynOn) : node == 10 ? sliderchange(Node11_DynOn) : node == 11 ? sliderchange(Node12_DynOn) : node == 12 ? sliderchange(Node13_DynOn) : node == 13 ? sliderchange(Node14_DynOn) : node == 14 ? sliderchange(Node15_DynOn) : sliderchange(Node16_DynOn);
+);
+
 function band_init()
-  instance (enabled, type, frequency, gain, q, filter, color) (
+  instance (enabled, type, frequency, gain, q, filter, color, det, dlive) (
   filter.ivf_init(srate);
+  det.ivf_init(srate);
+  // A dynamic band sets its section up again from scratch
+  dlive = 0;
   color.create_color(0,0,0);
 );
 
@@ -463,6 +590,248 @@ function band_set_filter(t, f, g, qval, slope)
                         type == 11 ? filter.ivf_all_pass(frequency, q) :
                           type == 12 ? filter.ivf_vintage_low(frequency, q, gain) :
                             type == 13 ? filter.ivf_vintage_high(frequency, q, gain);
+);
+
+/*
+ * Dynamics, per band (band b, in the band's namespace with its filter).
+ *
+ * A dynamic band always runs its one section, at its static gain plus the dynamic change (both scaled
+ * by Scale). Its detector hears ReEQ's input after the IN trim (or a sidechain pair) in the band's
+ * placement, through its own filter: a band-pass at the band's frequency and Q for a bell, a low or
+ * high pass at a shelf's frequency. The level is RMS-style, over about a cycle. Every DYN_STEP samples
+ * the gain computer (soft knee, ratio, range) gives the change it wants, attack and release move the
+ * change towards it, and when it has moved the section glides to it over the next DYN_STEP samples.
+ */
+function band_dyn_section(t, f, qval, db)
+  instance (filter) (
+  filter.s1.ivf_sec_calc(t == FILTER_LOW_SHELF ? 4 : t == FILTER_HIGH_SHELF ? 3 : 7, f, 0.5 / qval, 10^(db / 40));
+);
+
+/*
+ * A dynamic band's detector design, into this filter. Linked to the band: a band-pass at its frequency
+ * and Q for a bell, a low or high pass at a shelf's frequency. Unlinked: 24dB/oct Butterworth high and
+ * low passes either side of the detector frequency, Band_Dyn_DetWidth octaves apart, with the centre
+ * brought back to 0dB (so a narrow pair is a band-pass). Returns that centre gain (1 when linked).
+ */
+/*
+ * An unlinked detector's frequency (20Hz to 20kHz, below Nyquist) and width (0.25 to 8 octaves), clamped
+ * whatever was loaded or dragged
+ */
+function dyn_det_freq_u(b) (
+  min(max(Band_Dyn_DetFreq[b], 20), min(20000, 0.45 * srate));
+);
+
+function dyn_det_width(b) (
+  min(max(Band_Dyn_DetWidth[b], 0.25), 8);
+);
+
+function dyn_det_put(b) local (t, f, w, fl, fh, n, m) (
+  t = Band_Type[b];
+  Band_Dyn_Link[b] ? (
+    f = Band_Frequency[b];
+    t == FILTER_LOW_SHELF ? this.ivf_put(1, 1, f, 0.7071, 1) :
+      t == FILTER_HIGH_SHELF ? this.ivf_put(1, 0, f, 0.7071, 1) :
+        this.ivf_put(1, 5, f, 0.5 / Band_Q[b], 1);
+    this.ivf_commit(1, 0);
+    this.ivf_set_to_target();
+    1;
+  ) : (
+    f = dyn_det_freq_u(b); w = dyn_det_width(b);
+    fl = max(f * 2 ^ (-0.5 * w), 10); fh = min(f * 2 ^ (0.5 * w), 0.45 * srate);
+    fh < fl * 1.05 ? (fl = fh / 1.05);
+    n = this.ivf_put_butterworth(1, 0, fl, 4);
+    n = this.ivf_put_butterworth(n, 1, fh, 4);
+    this.ivf_commit(n - 1, 0);
+    this.ivf_set_to_target();
+    // 0dB where the pair peaks, between its corners (the response the audio actually gets)
+    m = this.ivf_magnitude(sqrt(fl * fh));
+    1 / max(m, 0.05);
+  );
+);
+
+/*
+ * The detector's lowest frequency of interest (for the RMS time), and its frequency and Q for Auto timing
+ */
+function dyn_det_low(b) (
+  Band_Dyn_Link[b] ? Band_Frequency[b] : max(dyn_det_freq_u(b) * 2 ^ (-0.5 * dyn_det_width(b)), 10);
+);
+
+function dyn_det_freq(b) (
+  Band_Dyn_Link[b] ? Band_Frequency[b] : dyn_det_freq_u(b);
+);
+
+function dyn_det_q(b) (
+  Band_Dyn_Link[b] ? Band_Q[b] : 1.41 / dyn_det_width(b);
+);
+
+/*
+ * A dynamic band's settings changed (or it just became dynamic). New frequency, Q, gain and Scale become
+ * targets that the tick glides to, so automating them never holds the dynamics up. Only when the band
+ * has just become dynamic, or its shape changed, does the section glide in the normal way (30ms),
+ * holding the dynamics for that long. The detector follows straight away.
+ */
+function band_dyn_set_filter(b, scal)
+  instance (filter, det, dgap, dkrms, dstatic_glide, dlive, dtype, dsf, dsq, dsg, dss, dtf, dtq, dtg, dts,
+            dsmooth, dnorm, dlink) local (t, f) (
+  t = Band_Type[b];
+  dtf = Band_Frequency[b]; dtq = Band_Q[b]; dtg = Band_Gain[b]; dts = scal;
+  !dlive || t != dtype ? (
+    dtype = t;
+    dsf = dtf; dsq = dtq; dsg = dtg; dss = dts;
+    this.band_dyn_section(t, dsf, dsq, (dsg + dgap) * dss);
+    filter.ivf_set_sample_rate(srate);
+    filter.ivf_commit(1, 0);
+    dstatic_glide = 1;
+    dlive = 1;
+    // The detector's kind may have changed too: start it clean
+    det.ivf_reset();
+  );
+  // Linking or unlinking changes the detector's kind as well
+  dlink != Band_Dyn_Link[b] ? (dlink = Band_Dyn_Link[b]; det.ivf_reset());
+  // Static changes glide with a 10ms time constant, stepped every DYN_STEP samples
+  dsmooth = 1 - exp(-DYN_STEP / (0.01 * srate));
+
+  // The detector: its own filter, linked to the band or at the detector node
+  dnorm = det.dyn_det_put(b);
+
+  // RMS over about a cycle of the detector's lowest frequency (at least 1ms)
+  f = dyn_det_low(b);
+  dkrms = 1 - exp(-1 / (max(1 / f, 0.001) * srate));
+);
+
+/*
+ * Auto timing: the attack from the detector's frequency and Q (about 1.5 cycles, plus the detector's
+ * settling time Q / (pi f), plus 0.5ms), and the fast release from the attack, in ms
+ */
+function band_dyn_auto_attack(b) local (f) (
+  f = dyn_det_freq(b);
+  min(max(1000 * (1.5 / f + dyn_det_q(b) / ($pi * f)) + 0.5, 0.5), 30);
+);
+
+function band_dyn_auto_release(b) (
+  min(max(8 * band_dyn_auto_attack(b), 25), 300);
+);
+
+/*
+ * Per block: the band's dynamics settings into its smoothing coefficients
+ */
+function band_dyn_block(b)
+  instance (dthr, dratio, drange, datt, drel, datt2, drel2, dauto) local (a, rf, rs, k) (
+  dthr = Band_Dyn_Thresh[b];
+  dratio = max(Band_Dyn_Ratio[b], 1);
+  drange = Band_Dynamic_Range[b];
+  dauto = Band_Dyn_Auto[b];
+  k = DYN_STEP / (0.001 * srate);
+  dauto ? (
+    // Auto: a fast release for transients, and a slower envelope that only charges on sustained
+    // material and releases smoothly
+    a = band_dyn_auto_attack(b);
+    rf = band_dyn_auto_release(b);
+    rs = min(max(40 * a, 150), 1500);
+    datt = 1 - exp(-k / a);
+    drel = 1 - exp(-k / rf);
+    datt2 = 1 - exp(-k / max(10 * a, 50));
+    drel2 = 1 - exp(-k / rs);
+  ) : (
+    datt = 1 - exp(-k / max(Band_Dyn_Attack[b], 0.05));
+    drel = 1 - exp(-k / max(Band_Dyn_Release[b], 1));
+  );
+);
+
+/*
+ * The band is no longer dynamic: forget its state
+ */
+function band_dyn_reset()
+  instance (filter, dms0, dms1, dg, dg1, dg2, dgap, dcnt, dlive, dpend) (
+  dms0 = dms1 = dg = dg1 = dg2 = dgap = 0;
+  dcnt = 0;
+  dlive = dpend = 0;
+  // The lean update leaves the glide at DYN_STEP samples: back to the normal 30ms
+  filter.ivf_set_sample_rate(srate);
+);
+
+/*
+ * The band is off or bypassed: forget its dynamics, and glide to nothing at the normal rate
+ */
+function band_off()
+  instance (filter) (
+  this.band_dyn_reset();
+  filter.ivf_bypass();
+);
+
+/*
+ * One sample of a dynamic band's detector, and every DYN_STEP samples its gain
+ */
+function band_dyn_tick(b, grp, src)
+  instance (filter, det, dms0, dms1, dkrms, dg, dg1, dg2, dgap, dcnt, dthr, dratio, drange, datt, drel,
+            datt2, drel2, dauto, dstatic_glide, dsf, dsq, dsg, dss, dtf, dtq, dtg, dts, dsmooth, dlive, dpend,
+            dnorm)
+  local (l, r, x, lvl, over, y, want, mv) (
+  // The detector's input in the band's placement: Stereo hears the louder of left and right
+  // (a silent sidechain gets the same tiny offset as the main input, and the RMS a tiny floor, so
+  // neither decays into denormals)
+  src > 0 ? (l = spl(2 * src) + 0.0000000001; r = spl(2 * src + 1) + 0.0000000001) : (l = spl0; r = spl1);
+  grp == 0 ? (
+    x = det.ivf_process0(l) * dnorm; dms0 += dkrms * (x * x - dms0) + 0.000000000000000000000000000001;
+    b == Dyn_Listen ? Dyn_ListenL = x;
+    x = det.ivf_process1(r) * dnorm; dms1 += dkrms * (x * x - dms1) + 0.000000000000000000000000000001;
+    b == Dyn_Listen ? Dyn_ListenR = x;
+  ) : (
+    x = det.ivf_process0(grp == 1 ? (l + r) * 0.5 : grp == 2 ? (l - r) * 0.5 : grp == 3 ? l : r) * dnorm;
+    dms0 += dkrms * (x * x - dms0) + 0.000000000000000000000000000001;
+    b == Dyn_Listen ? Dyn_ListenL = Dyn_ListenR = x;
+  );
+
+  (dcnt -= 1) <= 0 ? (
+    dcnt = DYN_STEP;
+    // Level in dB, so a sine reads its peak level
+    lvl = 10 * log10(max(grp == 0 ? max(dms0, dms1) : dms0, 0.00000000000000000001)) + 3.0103;
+    Band_Dyn_Level[b] = lvl;
+
+    // Soft knee (DYN_KNEE dB wide), then the ratio, capped by the range (its sign is the direction)
+    over = lvl - dthr;
+    y = over <= -DYN_KNEE * 0.5 ? 0 : over >= DYN_KNEE * 0.5 ? over : sqr(over + DYN_KNEE * 0.5) / (2 * DYN_KNEE);
+    y *= 1 - 1 / dratio;
+    want = drange < 0 ? -min(y, -drange) : min(y, drange);
+
+    // Attack while the change is growing, release while it shrinks. Auto runs two envelopes, fast and
+    // slow, and the larger change wins.
+    dauto ? (
+      dg1 += (abs(want) > abs(dg1) ? datt : drel) * (want - dg1);
+      dg2 += (abs(want) > abs(dg2) ? datt2 : drel2) * (want - dg2);
+      dg = abs(dg1) > abs(dg2) ? dg1 : dg2;
+    ) : (
+      dg += (abs(want) > abs(dg) ? datt : drel) * (want - dg);
+      dg1 = dg2 = dg;
+    );
+    Band_Dyn_Gain[b] = dg;
+
+    // Static settings glide towards their targets (frequency and Q on a log scale), and land when close
+    mv = abs(dg - dgap) > 0.01;
+    dlive && (dsf != dtf || dsq != dtq || dsg != dtg || dss != dts) ? (
+      dsf *= (dtf / dsf) ^ dsmooth;
+      dsq *= (dtq / dsq) ^ dsmooth;
+      dsg += (dtg - dsg) * dsmooth;
+      dss += (dts - dss) * dsmooth;
+      abs(dtf / dsf - 1) < 0.0005 && abs(dtq / dsq - 1) < 0.0005 && abs(dtg - dsg) < 0.005 && abs(dts - dss) < 0.0005 ? (
+        dsf = dtf; dsq = dtq; dsg = dtg; dss = dts;
+      );
+      mv = 1;
+    );
+
+    // Into the filter when it has moved. While the section is still gliding in (just made dynamic) a
+    // move waits, and goes in when the glide ends.
+    dstatic_glide && filter.ivf_is_resting() ? dstatic_glide = 0;
+    dstatic_glide ? (mv ? dpend = 1; mv = 0) : dpend ? (mv = 1; dpend = 0);
+    dlive && mv ? (
+      dgap = dg;
+      this.band_dyn_section(Band_Type[b], dsf, dsq, (dsg + dgap) * dss);
+      filter.s1.ivf_sec_prep(1, 1, filter.n_run);
+      filter.n_run = 1; filter.n_target = 1;
+      filter.iter_t = 0;
+      filter.iter_step = 1 / DYN_STEP;
+    );
+  );
 );
 
 /*
@@ -509,6 +878,65 @@ function q_to_per(q, range) (
 
 
 /*
+ * Dynamics defaults for a band: off, -24dB threshold, 4:1, -6dB range, Auto timing, detecting its own
+ * input, linked to the band
+ */
+function band_dyn_defaults(b) (
+  Band_Dyn_On[b] = 0;
+  Band_Dyn_Thresh[b] = -24;
+  Band_Dyn_Ratio[b] = 4;
+  Band_Dynamic_Range[b] = -6;
+  Band_Dyn_Attack[b] = 5;
+  Band_Dyn_Release[b] = 80;
+  Band_Dyn_Auto[b] = 1;
+  Band_Dyn_Source[b] = 0;
+  Band_Dyn_Link[b] = 1;
+  Band_Dyn_DetFreq[b] = 1000;
+  // 0: the detector hasn't been placed (unlinking places it at the band)
+  Band_Dyn_DetWidth[b] = 0;
+  Band_Dyn_Gain[b] = 0;
+  Band_Dyn_Level[b] = -150;
+);
+
+/*
+ * Copy a band's dynamics settings (duplicate and split)
+ */
+function band_dyn_copy(b, other) (
+  Band_Dyn_On[b] = Band_Dyn_On[other];
+  Band_Dyn_Thresh[b] = Band_Dyn_Thresh[other];
+  Band_Dyn_Ratio[b] = Band_Dyn_Ratio[other];
+  Band_Dynamic_Range[b] = Band_Dynamic_Range[other];
+  Band_Dyn_Attack[b] = Band_Dyn_Attack[other];
+  Band_Dyn_Release[b] = Band_Dyn_Release[other];
+  Band_Dyn_Auto[b] = Band_Dyn_Auto[other];
+  Band_Dyn_Source[b] = Band_Dyn_Source[other];
+  Band_Dyn_Link[b] = Band_Dyn_Link[other];
+  Band_Dyn_DetFreq[b] = Band_Dyn_DetFreq[other];
+  Band_Dyn_DetWidth[b] = Band_Dyn_DetWidth[other];
+);
+
+/*
+ * Unlink a band's detection: the first time, its detector node starts at the band, as wide as a bell's
+ * bandwidth (two octaves for a shelf); after that it returns to where it was
+ */
+function dyn_unlink(b) local (q) (
+  Band_Dyn_Link[b] = 0;
+  // A detector that was placed before (width set) goes back where it was
+  Band_Dyn_DetWidth[b] <= 0 ? (
+    Band_Dyn_DetFreq[b] = min(max(Band_Frequency[b], 20), min(20000, 0.45 * srate));
+    q = max(Band_Q[b], 0.1);
+    Band_Dyn_DetWidth[b] = Band_Type[b] == FILTER_PEAK ? min(max(2 / log(2) * log(1 / (2 * q) + sqrt(1 / (4 * q * q) + 1)), 0.25), 8) : 2;
+  );
+);
+
+/*
+ * Dynamics are for bells and shelves only
+ */
+function band_dyn_capable(t) (
+  t == FILTER_PEAK || t == FILTER_LOW_SHELF || t == FILTER_HIGH_SHELF;
+);
+
+/*
  * Update sliders with filter data
  */
 function filters_to_sliders() ( 
@@ -519,6 +947,12 @@ function filters_to_sliders() (
   Node1_Gain = Band_Gain[0];
   Node1_Q = q_to_per(Band_Q[0], 100);
   Node1_Slope = Band_Slope[0];
+  Node1_DynOn = Band_Dyn_On[0];
+  Node1_DynThresh = Band_Dyn_Thresh[0];
+  Node1_DynRatio = Band_Dyn_Ratio[0];
+  Node1_DynRange = Band_Dynamic_Range[0];
+  Node1_DynAttack = Band_Dyn_Attack[0];
+  Node1_DynRelease = Band_Dyn_Release[0];
 
   Node2_Enabled = Band_Enabled[1];
   Node2_Group = Band_Group[1];
@@ -527,6 +961,12 @@ function filters_to_sliders() (
   Node2_Gain = Band_Gain[1];
   Node2_Q = q_to_per(Band_Q[1], 100);
   Node2_Slope = Band_Slope[1];
+  Node2_DynOn = Band_Dyn_On[1];
+  Node2_DynThresh = Band_Dyn_Thresh[1];
+  Node2_DynRatio = Band_Dyn_Ratio[1];
+  Node2_DynRange = Band_Dynamic_Range[1];
+  Node2_DynAttack = Band_Dyn_Attack[1];
+  Node2_DynRelease = Band_Dyn_Release[1];
 
   Node3_Enabled = Band_Enabled[2];
   Node3_Group = Band_Group[2];
@@ -535,6 +975,12 @@ function filters_to_sliders() (
   Node3_Gain = Band_Gain[2];
   Node3_Q = q_to_per(Band_Q[2], 100);
   Node3_Slope = Band_Slope[2];
+  Node3_DynOn = Band_Dyn_On[2];
+  Node3_DynThresh = Band_Dyn_Thresh[2];
+  Node3_DynRatio = Band_Dyn_Ratio[2];
+  Node3_DynRange = Band_Dynamic_Range[2];
+  Node3_DynAttack = Band_Dyn_Attack[2];
+  Node3_DynRelease = Band_Dyn_Release[2];
 
   Node4_Enabled = Band_Enabled[3];
   Node4_Group = Band_Group[3];
@@ -543,6 +989,12 @@ function filters_to_sliders() (
   Node4_Gain = Band_Gain[3];
   Node4_Q = q_to_per(Band_Q[3], 100);
   Node4_Slope = Band_Slope[3];
+  Node4_DynOn = Band_Dyn_On[3];
+  Node4_DynThresh = Band_Dyn_Thresh[3];
+  Node4_DynRatio = Band_Dyn_Ratio[3];
+  Node4_DynRange = Band_Dynamic_Range[3];
+  Node4_DynAttack = Band_Dyn_Attack[3];
+  Node4_DynRelease = Band_Dyn_Release[3];
 
   Node5_Enabled = Band_Enabled[4];
   Node5_Group = Band_Group[4];
@@ -551,6 +1003,12 @@ function filters_to_sliders() (
   Node5_Gain = Band_Gain[4];
   Node5_Q = q_to_per(Band_Q[4], 100);
   Node5_Slope = Band_Slope[4];
+  Node5_DynOn = Band_Dyn_On[4];
+  Node5_DynThresh = Band_Dyn_Thresh[4];
+  Node5_DynRatio = Band_Dyn_Ratio[4];
+  Node5_DynRange = Band_Dynamic_Range[4];
+  Node5_DynAttack = Band_Dyn_Attack[4];
+  Node5_DynRelease = Band_Dyn_Release[4];
 
   Node6_Enabled = Band_Enabled[5];
   Node6_Group = Band_Group[5];
@@ -559,6 +1017,12 @@ function filters_to_sliders() (
   Node6_Gain = Band_Gain[5];
   Node6_Q = q_to_per(Band_Q[5], 100);
   Node6_Slope = Band_Slope[5];
+  Node6_DynOn = Band_Dyn_On[5];
+  Node6_DynThresh = Band_Dyn_Thresh[5];
+  Node6_DynRatio = Band_Dyn_Ratio[5];
+  Node6_DynRange = Band_Dynamic_Range[5];
+  Node6_DynAttack = Band_Dyn_Attack[5];
+  Node6_DynRelease = Band_Dyn_Release[5];
 
   Node7_Enabled = Band_Enabled[6];
   Node7_Group = Band_Group[6];
@@ -567,6 +1031,12 @@ function filters_to_sliders() (
   Node7_Gain = Band_Gain[6];
   Node7_Q = q_to_per(Band_Q[6], 100);
   Node7_Slope = Band_Slope[6];
+  Node7_DynOn = Band_Dyn_On[6];
+  Node7_DynThresh = Band_Dyn_Thresh[6];
+  Node7_DynRatio = Band_Dyn_Ratio[6];
+  Node7_DynRange = Band_Dynamic_Range[6];
+  Node7_DynAttack = Band_Dyn_Attack[6];
+  Node7_DynRelease = Band_Dyn_Release[6];
 
   Node8_Enabled = Band_Enabled[7];
   Node8_Group = Band_Group[7];
@@ -575,6 +1045,12 @@ function filters_to_sliders() (
   Node8_Gain = Band_Gain[7];
   Node8_Q = q_to_per(Band_Q[7], 100);
   Node8_Slope = Band_Slope[7];
+  Node8_DynOn = Band_Dyn_On[7];
+  Node8_DynThresh = Band_Dyn_Thresh[7];
+  Node8_DynRatio = Band_Dyn_Ratio[7];
+  Node8_DynRange = Band_Dynamic_Range[7];
+  Node8_DynAttack = Band_Dyn_Attack[7];
+  Node8_DynRelease = Band_Dyn_Release[7];
 
   Node9_Enabled = Band_Enabled[8];
   Node9_Group = Band_Group[8];
@@ -583,6 +1059,12 @@ function filters_to_sliders() (
   Node9_Gain = Band_Gain[8];
   Node9_Q = q_to_per(Band_Q[8], 100);
   Node9_Slope = Band_Slope[8];
+  Node9_DynOn = Band_Dyn_On[8];
+  Node9_DynThresh = Band_Dyn_Thresh[8];
+  Node9_DynRatio = Band_Dyn_Ratio[8];
+  Node9_DynRange = Band_Dynamic_Range[8];
+  Node9_DynAttack = Band_Dyn_Attack[8];
+  Node9_DynRelease = Band_Dyn_Release[8];
 
   Node10_Enabled = Band_Enabled[9];
   Node10_Group = Band_Group[9];
@@ -591,6 +1073,12 @@ function filters_to_sliders() (
   Node10_Gain = Band_Gain[9];
   Node10_Q = q_to_per(Band_Q[9], 100);
   Node10_Slope = Band_Slope[9];
+  Node10_DynOn = Band_Dyn_On[9];
+  Node10_DynThresh = Band_Dyn_Thresh[9];
+  Node10_DynRatio = Band_Dyn_Ratio[9];
+  Node10_DynRange = Band_Dynamic_Range[9];
+  Node10_DynAttack = Band_Dyn_Attack[9];
+  Node10_DynRelease = Band_Dyn_Release[9];
 
   Node11_Enabled = Band_Enabled[10];
   Node11_Group = Band_Group[10];
@@ -599,6 +1087,12 @@ function filters_to_sliders() (
   Node11_Gain = Band_Gain[10];
   Node11_Q = q_to_per(Band_Q[10], 100);
   Node11_Slope = Band_Slope[10];
+  Node11_DynOn = Band_Dyn_On[10];
+  Node11_DynThresh = Band_Dyn_Thresh[10];
+  Node11_DynRatio = Band_Dyn_Ratio[10];
+  Node11_DynRange = Band_Dynamic_Range[10];
+  Node11_DynAttack = Band_Dyn_Attack[10];
+  Node11_DynRelease = Band_Dyn_Release[10];
 
   Node12_Enabled = Band_Enabled[11];
   Node12_Group = Band_Group[11];
@@ -607,6 +1101,12 @@ function filters_to_sliders() (
   Node12_Gain = Band_Gain[11];
   Node12_Q = q_to_per(Band_Q[11], 100);
   Node12_Slope = Band_Slope[11];
+  Node12_DynOn = Band_Dyn_On[11];
+  Node12_DynThresh = Band_Dyn_Thresh[11];
+  Node12_DynRatio = Band_Dyn_Ratio[11];
+  Node12_DynRange = Band_Dynamic_Range[11];
+  Node12_DynAttack = Band_Dyn_Attack[11];
+  Node12_DynRelease = Band_Dyn_Release[11];
 
   Node13_Enabled = Band_Enabled[12];
   Node13_Group = Band_Group[12];
@@ -615,6 +1115,12 @@ function filters_to_sliders() (
   Node13_Gain = Band_Gain[12];
   Node13_Q = q_to_per(Band_Q[12], 100);
   Node13_Slope = Band_Slope[12];
+  Node13_DynOn = Band_Dyn_On[12];
+  Node13_DynThresh = Band_Dyn_Thresh[12];
+  Node13_DynRatio = Band_Dyn_Ratio[12];
+  Node13_DynRange = Band_Dynamic_Range[12];
+  Node13_DynAttack = Band_Dyn_Attack[12];
+  Node13_DynRelease = Band_Dyn_Release[12];
 
   Node14_Enabled = Band_Enabled[13];
   Node14_Group = Band_Group[13];
@@ -623,6 +1129,12 @@ function filters_to_sliders() (
   Node14_Gain = Band_Gain[13];
   Node14_Q = q_to_per(Band_Q[13], 100);
   Node14_Slope = Band_Slope[13];
+  Node14_DynOn = Band_Dyn_On[13];
+  Node14_DynThresh = Band_Dyn_Thresh[13];
+  Node14_DynRatio = Band_Dyn_Ratio[13];
+  Node14_DynRange = Band_Dynamic_Range[13];
+  Node14_DynAttack = Band_Dyn_Attack[13];
+  Node14_DynRelease = Band_Dyn_Release[13];
 
   Node15_Enabled = Band_Enabled[14];
   Node15_Group = Band_Group[14];
@@ -631,6 +1143,12 @@ function filters_to_sliders() (
   Node15_Gain = Band_Gain[14];
   Node15_Q = q_to_per(Band_Q[14], 100);
   Node15_Slope = Band_Slope[14];
+  Node15_DynOn = Band_Dyn_On[14];
+  Node15_DynThresh = Band_Dyn_Thresh[14];
+  Node15_DynRatio = Band_Dyn_Ratio[14];
+  Node15_DynRange = Band_Dynamic_Range[14];
+  Node15_DynAttack = Band_Dyn_Attack[14];
+  Node15_DynRelease = Band_Dyn_Release[14];
 
   Node16_Enabled = Band_Enabled[15];
   Node16_Group = Band_Group[15];
@@ -639,6 +1157,12 @@ function filters_to_sliders() (
   Node16_Gain = Band_Gain[15];
   Node16_Q = q_to_per(Band_Q[15], 100);
   Node16_Slope = Band_Slope[15];
+  Node16_DynOn = Band_Dyn_On[15];
+  Node16_DynThresh = Band_Dyn_Thresh[15];
+  Node16_DynRatio = Band_Dyn_Ratio[15];
+  Node16_DynRange = Band_Dynamic_Range[15];
+  Node16_DynAttack = Band_Dyn_Attack[15];
+  Node16_DynRelease = Band_Dyn_Release[15];
 );
 
 /*
@@ -652,6 +1176,12 @@ function sliders_to_filters() (
   Band_Gain[0] = Node1_Gain;
   Band_Q[0] = per_to_q(Node1_Q, 100);
   Band_Slope[0] = Node1_Slope;
+  Band_Dyn_On[0] = Node1_DynOn;
+  Band_Dyn_Thresh[0] = Node1_DynThresh;
+  Band_Dyn_Ratio[0] = Node1_DynRatio;
+  Band_Dynamic_Range[0] = Node1_DynRange;
+  Band_Dyn_Attack[0] = Node1_DynAttack;
+  Band_Dyn_Release[0] = Node1_DynRelease;
 
   Band_Enabled[1] = Node2_Enabled;
   Band_Group[1] = Node2_Group;
@@ -660,6 +1190,12 @@ function sliders_to_filters() (
   Band_Gain[1] = Node2_Gain;
   Band_Q[1] = per_to_q(Node2_Q, 100);
   Band_Slope[1] = Node2_Slope;
+  Band_Dyn_On[1] = Node2_DynOn;
+  Band_Dyn_Thresh[1] = Node2_DynThresh;
+  Band_Dyn_Ratio[1] = Node2_DynRatio;
+  Band_Dynamic_Range[1] = Node2_DynRange;
+  Band_Dyn_Attack[1] = Node2_DynAttack;
+  Band_Dyn_Release[1] = Node2_DynRelease;
 
   Band_Enabled[2] = Node3_Enabled;
   Band_Group[2] = Node3_Group;
@@ -668,6 +1204,12 @@ function sliders_to_filters() (
   Band_Gain[2] = Node3_Gain;
   Band_Q[2] = per_to_q(Node3_Q, 100);
   Band_Slope[2] = Node3_Slope;
+  Band_Dyn_On[2] = Node3_DynOn;
+  Band_Dyn_Thresh[2] = Node3_DynThresh;
+  Band_Dyn_Ratio[2] = Node3_DynRatio;
+  Band_Dynamic_Range[2] = Node3_DynRange;
+  Band_Dyn_Attack[2] = Node3_DynAttack;
+  Band_Dyn_Release[2] = Node3_DynRelease;
 
   Band_Enabled[3] = Node4_Enabled;
   Band_Group[3] = Node4_Group;
@@ -676,6 +1218,12 @@ function sliders_to_filters() (
   Band_Gain[3] = Node4_Gain;
   Band_Q[3] = per_to_q(Node4_Q, 100);
   Band_Slope[3] = Node4_Slope;
+  Band_Dyn_On[3] = Node4_DynOn;
+  Band_Dyn_Thresh[3] = Node4_DynThresh;
+  Band_Dyn_Ratio[3] = Node4_DynRatio;
+  Band_Dynamic_Range[3] = Node4_DynRange;
+  Band_Dyn_Attack[3] = Node4_DynAttack;
+  Band_Dyn_Release[3] = Node4_DynRelease;
 
   Band_Enabled[4] = Node5_Enabled;
   Band_Group[4] = Node5_Group;
@@ -684,6 +1232,12 @@ function sliders_to_filters() (
   Band_Gain[4] = Node5_Gain;
   Band_Q[4] = per_to_q(Node5_Q, 100);
   Band_Slope[4] = Node5_Slope;
+  Band_Dyn_On[4] = Node5_DynOn;
+  Band_Dyn_Thresh[4] = Node5_DynThresh;
+  Band_Dyn_Ratio[4] = Node5_DynRatio;
+  Band_Dynamic_Range[4] = Node5_DynRange;
+  Band_Dyn_Attack[4] = Node5_DynAttack;
+  Band_Dyn_Release[4] = Node5_DynRelease;
 
   Band_Enabled[5] = Node6_Enabled;
   Band_Group[5] = Node6_Group;
@@ -692,6 +1246,12 @@ function sliders_to_filters() (
   Band_Gain[5] = Node6_Gain;
   Band_Q[5] = per_to_q(Node6_Q, 100);
   Band_Slope[5] = Node6_Slope;
+  Band_Dyn_On[5] = Node6_DynOn;
+  Band_Dyn_Thresh[5] = Node6_DynThresh;
+  Band_Dyn_Ratio[5] = Node6_DynRatio;
+  Band_Dynamic_Range[5] = Node6_DynRange;
+  Band_Dyn_Attack[5] = Node6_DynAttack;
+  Band_Dyn_Release[5] = Node6_DynRelease;
 
   Band_Enabled[6] = Node7_Enabled;
   Band_Group[6] = Node7_Group;
@@ -700,6 +1260,12 @@ function sliders_to_filters() (
   Band_Gain[6] = Node7_Gain;
   Band_Q[6] = per_to_q(Node7_Q, 100);
   Band_Slope[6] = Node7_Slope;
+  Band_Dyn_On[6] = Node7_DynOn;
+  Band_Dyn_Thresh[6] = Node7_DynThresh;
+  Band_Dyn_Ratio[6] = Node7_DynRatio;
+  Band_Dynamic_Range[6] = Node7_DynRange;
+  Band_Dyn_Attack[6] = Node7_DynAttack;
+  Band_Dyn_Release[6] = Node7_DynRelease;
 
   Band_Enabled[7] = Node8_Enabled;
   Band_Group[7] = Node8_Group;
@@ -708,6 +1274,12 @@ function sliders_to_filters() (
   Band_Gain[7] = Node8_Gain;
   Band_Q[7] = per_to_q(Node8_Q, 100);
   Band_Slope[7] = Node8_Slope;
+  Band_Dyn_On[7] = Node8_DynOn;
+  Band_Dyn_Thresh[7] = Node8_DynThresh;
+  Band_Dyn_Ratio[7] = Node8_DynRatio;
+  Band_Dynamic_Range[7] = Node8_DynRange;
+  Band_Dyn_Attack[7] = Node8_DynAttack;
+  Band_Dyn_Release[7] = Node8_DynRelease;
 
   Band_Enabled[8] = Node9_Enabled;
   Band_Group[8] = Node9_Group;
@@ -716,6 +1288,12 @@ function sliders_to_filters() (
   Band_Gain[8] = Node9_Gain;
   Band_Q[8] = per_to_q(Node9_Q, 100);
   Band_Slope[8] = Node9_Slope;
+  Band_Dyn_On[8] = Node9_DynOn;
+  Band_Dyn_Thresh[8] = Node9_DynThresh;
+  Band_Dyn_Ratio[8] = Node9_DynRatio;
+  Band_Dynamic_Range[8] = Node9_DynRange;
+  Band_Dyn_Attack[8] = Node9_DynAttack;
+  Band_Dyn_Release[8] = Node9_DynRelease;
 
   Band_Enabled[9] = Node10_Enabled;
   Band_Group[9] = Node10_Group;
@@ -724,6 +1302,12 @@ function sliders_to_filters() (
   Band_Gain[9] = Node10_Gain;
   Band_Q[9] = per_to_q(Node10_Q, 100);
   Band_Slope[9] = Node10_Slope;
+  Band_Dyn_On[9] = Node10_DynOn;
+  Band_Dyn_Thresh[9] = Node10_DynThresh;
+  Band_Dyn_Ratio[9] = Node10_DynRatio;
+  Band_Dynamic_Range[9] = Node10_DynRange;
+  Band_Dyn_Attack[9] = Node10_DynAttack;
+  Band_Dyn_Release[9] = Node10_DynRelease;
 
   Band_Enabled[10] = Node11_Enabled;
   Band_Group[10] = Node11_Group;
@@ -732,6 +1316,12 @@ function sliders_to_filters() (
   Band_Gain[10] = Node11_Gain;
   Band_Q[10] = per_to_q(Node11_Q, 100);
   Band_Slope[10] = Node11_Slope;
+  Band_Dyn_On[10] = Node11_DynOn;
+  Band_Dyn_Thresh[10] = Node11_DynThresh;
+  Band_Dyn_Ratio[10] = Node11_DynRatio;
+  Band_Dynamic_Range[10] = Node11_DynRange;
+  Band_Dyn_Attack[10] = Node11_DynAttack;
+  Band_Dyn_Release[10] = Node11_DynRelease;
 
   Band_Enabled[11] = Node12_Enabled;
   Band_Group[11] = Node12_Group;
@@ -740,6 +1330,12 @@ function sliders_to_filters() (
   Band_Gain[11] = Node12_Gain;
   Band_Q[11] = per_to_q(Node12_Q, 100);
   Band_Slope[11] = Node12_Slope;
+  Band_Dyn_On[11] = Node12_DynOn;
+  Band_Dyn_Thresh[11] = Node12_DynThresh;
+  Band_Dyn_Ratio[11] = Node12_DynRatio;
+  Band_Dynamic_Range[11] = Node12_DynRange;
+  Band_Dyn_Attack[11] = Node12_DynAttack;
+  Band_Dyn_Release[11] = Node12_DynRelease;
 
   Band_Enabled[12] = Node13_Enabled;
   Band_Group[12] = Node13_Group;
@@ -748,6 +1344,12 @@ function sliders_to_filters() (
   Band_Gain[12] = Node13_Gain;
   Band_Q[12] = per_to_q(Node13_Q, 100);
   Band_Slope[12] = Node13_Slope;
+  Band_Dyn_On[12] = Node13_DynOn;
+  Band_Dyn_Thresh[12] = Node13_DynThresh;
+  Band_Dyn_Ratio[12] = Node13_DynRatio;
+  Band_Dynamic_Range[12] = Node13_DynRange;
+  Band_Dyn_Attack[12] = Node13_DynAttack;
+  Band_Dyn_Release[12] = Node13_DynRelease;
 
   Band_Enabled[13] = Node14_Enabled;
   Band_Group[13] = Node14_Group;
@@ -756,6 +1358,12 @@ function sliders_to_filters() (
   Band_Gain[13] = Node14_Gain;
   Band_Q[13] = per_to_q(Node14_Q, 100);
   Band_Slope[13] = Node14_Slope;
+  Band_Dyn_On[13] = Node14_DynOn;
+  Band_Dyn_Thresh[13] = Node14_DynThresh;
+  Band_Dyn_Ratio[13] = Node14_DynRatio;
+  Band_Dynamic_Range[13] = Node14_DynRange;
+  Band_Dyn_Attack[13] = Node14_DynAttack;
+  Band_Dyn_Release[13] = Node14_DynRelease;
 
   Band_Enabled[14] = Node15_Enabled;
   Band_Group[14] = Node15_Group;
@@ -764,6 +1372,12 @@ function sliders_to_filters() (
   Band_Gain[14] = Node15_Gain;
   Band_Q[14] = per_to_q(Node15_Q, 100);
   Band_Slope[14] = Node15_Slope;
+  Band_Dyn_On[14] = Node15_DynOn;
+  Band_Dyn_Thresh[14] = Node15_DynThresh;
+  Band_Dyn_Ratio[14] = Node15_DynRatio;
+  Band_Dynamic_Range[14] = Node15_DynRange;
+  Band_Dyn_Attack[14] = Node15_DynAttack;
+  Band_Dyn_Release[14] = Node15_DynRelease;
 
   Band_Enabled[15] = Node16_Enabled;
   Band_Group[15] = Node16_Group;
@@ -772,6 +1386,12 @@ function sliders_to_filters() (
   Band_Gain[15] = Node16_Gain;
   Band_Q[15] = per_to_q(Node16_Q, 100);
   Band_Slope[15] = Node16_Slope;
+  Band_Dyn_On[15] = Node16_DynOn;
+  Band_Dyn_Thresh[15] = Node16_DynThresh;
+  Band_Dyn_Ratio[15] = Node16_DynRatio;
+  Band_Dynamic_Range[15] = Node16_DynRange;
+  Band_Dyn_Attack[15] = Node16_DynAttack;
+  Band_Dyn_Release[15] = Node16_DynRelease;
 );
 
 /*
@@ -806,46 +1426,95 @@ function flag_filter_update_all() (
 /*
  * Update the filter parameters
  */
+/*
+ * The gain a band is drawn at: a dynamic band's static gain plus its live change
+ */
+function band_gfx_gain(b) (
+  Band_Gain[b] + (Band_Dyn_On[b] && band_dyn_capable(Band_Type[b]) && Band_Enabled[b] == BAND_STATE_ENABLED ? Band_Dyn_Gain[b] : 0);
+);
+
+/*
+ * Whether a band's drawing filter needs setting: flagged, or its drawn gain has moved
+ */
+function band_gfx_due(b) local(g) (
+  g = band_gfx_gain(b);
+  abs(g - Band_GfxGain[b]) > 0.02 ? Band_GfxUpdate[b] = 1;
+  Band_GfxUpdate[b] ? Band_GfxGain[b] = g;
+  Band_GfxUpdate[b];
+);
+
 function update_visual_filters() local (band_scalar) (
   band_scalar = Scale / 100.0;
 
-  Band_GfxUpdate[0] ? (Band_GfxUpdate[0] = 0; gfx_band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); gfx_band1.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[1] ? (Band_GfxUpdate[1] = 0; gfx_band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); gfx_band2.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[2] ? (Band_GfxUpdate[2] = 0; gfx_band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); gfx_band3.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[3] ? (Band_GfxUpdate[3] = 0; gfx_band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); gfx_band4.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[4] ? (Band_GfxUpdate[4] = 0; gfx_band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); gfx_band5.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[5] ? (Band_GfxUpdate[5] = 0; gfx_band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); gfx_band6.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[6] ? (Band_GfxUpdate[6] = 0; gfx_band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); gfx_band7.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[7] ? (Band_GfxUpdate[7] = 0; gfx_band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); gfx_band8.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[8] ? (Band_GfxUpdate[8] = 0; gfx_band9.band_set_filter(Band_Type[8], Band_Frequency[8], Band_Gain[8] * band_scalar, Band_Q[8], Band_Slope[8]); gfx_band9.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[9] ? (Band_GfxUpdate[9] = 0; gfx_band10.band_set_filter(Band_Type[9], Band_Frequency[9], Band_Gain[9] * band_scalar, Band_Q[9], Band_Slope[9]); gfx_band10.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[10] ? (Band_GfxUpdate[10] = 0; gfx_band11.band_set_filter(Band_Type[10], Band_Frequency[10], Band_Gain[10] * band_scalar, Band_Q[10], Band_Slope[10]); gfx_band11.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[11] ? (Band_GfxUpdate[11] = 0; gfx_band12.band_set_filter(Band_Type[11], Band_Frequency[11], Band_Gain[11] * band_scalar, Band_Q[11], Band_Slope[11]); gfx_band12.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[12] ? (Band_GfxUpdate[12] = 0; gfx_band13.band_set_filter(Band_Type[12], Band_Frequency[12], Band_Gain[12] * band_scalar, Band_Q[12], Band_Slope[12]); gfx_band13.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[13] ? (Band_GfxUpdate[13] = 0; gfx_band14.band_set_filter(Band_Type[13], Band_Frequency[13], Band_Gain[13] * band_scalar, Band_Q[13], Band_Slope[13]); gfx_band14.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[14] ? (Band_GfxUpdate[14] = 0; gfx_band15.band_set_filter(Band_Type[14], Band_Frequency[14], Band_Gain[14] * band_scalar, Band_Q[14], Band_Slope[14]); gfx_band15.filter.ivf_set_to_target(); );
-  Band_GfxUpdate[15] ? (Band_GfxUpdate[15] = 0; gfx_band16.band_set_filter(Band_Type[15], Band_Frequency[15], Band_Gain[15] * band_scalar, Band_Q[15], Band_Slope[15]); gfx_band16.filter.ivf_set_to_target(); );
+  band_gfx_due(0) ? (Band_GfxUpdate[0] = 0; gfx_band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_GfxGain[0] * band_scalar, Band_Q[0], Band_Slope[0]); gfx_band1.filter.ivf_set_to_target(); );
+  band_gfx_due(1) ? (Band_GfxUpdate[1] = 0; gfx_band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_GfxGain[1] * band_scalar, Band_Q[1], Band_Slope[1]); gfx_band2.filter.ivf_set_to_target(); );
+  band_gfx_due(2) ? (Band_GfxUpdate[2] = 0; gfx_band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_GfxGain[2] * band_scalar, Band_Q[2], Band_Slope[2]); gfx_band3.filter.ivf_set_to_target(); );
+  band_gfx_due(3) ? (Band_GfxUpdate[3] = 0; gfx_band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_GfxGain[3] * band_scalar, Band_Q[3], Band_Slope[3]); gfx_band4.filter.ivf_set_to_target(); );
+  band_gfx_due(4) ? (Band_GfxUpdate[4] = 0; gfx_band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_GfxGain[4] * band_scalar, Band_Q[4], Band_Slope[4]); gfx_band5.filter.ivf_set_to_target(); );
+  band_gfx_due(5) ? (Band_GfxUpdate[5] = 0; gfx_band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_GfxGain[5] * band_scalar, Band_Q[5], Band_Slope[5]); gfx_band6.filter.ivf_set_to_target(); );
+  band_gfx_due(6) ? (Band_GfxUpdate[6] = 0; gfx_band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_GfxGain[6] * band_scalar, Band_Q[6], Band_Slope[6]); gfx_band7.filter.ivf_set_to_target(); );
+  band_gfx_due(7) ? (Band_GfxUpdate[7] = 0; gfx_band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_GfxGain[7] * band_scalar, Band_Q[7], Band_Slope[7]); gfx_band8.filter.ivf_set_to_target(); );
+  band_gfx_due(8) ? (Band_GfxUpdate[8] = 0; gfx_band9.band_set_filter(Band_Type[8], Band_Frequency[8], Band_GfxGain[8] * band_scalar, Band_Q[8], Band_Slope[8]); gfx_band9.filter.ivf_set_to_target(); );
+  band_gfx_due(9) ? (Band_GfxUpdate[9] = 0; gfx_band10.band_set_filter(Band_Type[9], Band_Frequency[9], Band_GfxGain[9] * band_scalar, Band_Q[9], Band_Slope[9]); gfx_band10.filter.ivf_set_to_target(); );
+  band_gfx_due(10) ? (Band_GfxUpdate[10] = 0; gfx_band11.band_set_filter(Band_Type[10], Band_Frequency[10], Band_GfxGain[10] * band_scalar, Band_Q[10], Band_Slope[10]); gfx_band11.filter.ivf_set_to_target(); );
+  band_gfx_due(11) ? (Band_GfxUpdate[11] = 0; gfx_band12.band_set_filter(Band_Type[11], Band_Frequency[11], Band_GfxGain[11] * band_scalar, Band_Q[11], Band_Slope[11]); gfx_band12.filter.ivf_set_to_target(); );
+  band_gfx_due(12) ? (Band_GfxUpdate[12] = 0; gfx_band13.band_set_filter(Band_Type[12], Band_Frequency[12], Band_GfxGain[12] * band_scalar, Band_Q[12], Band_Slope[12]); gfx_band13.filter.ivf_set_to_target(); );
+  band_gfx_due(13) ? (Band_GfxUpdate[13] = 0; gfx_band14.band_set_filter(Band_Type[13], Band_Frequency[13], Band_GfxGain[13] * band_scalar, Band_Q[13], Band_Slope[13]); gfx_band14.filter.ivf_set_to_target(); );
+  band_gfx_due(14) ? (Band_GfxUpdate[14] = 0; gfx_band15.band_set_filter(Band_Type[14], Band_Frequency[14], Band_GfxGain[14] * band_scalar, Band_Q[14], Band_Slope[14]); gfx_band15.filter.ivf_set_to_target(); );
+  band_gfx_due(15) ? (Band_GfxUpdate[15] = 0; gfx_band16.band_set_filter(Band_Type[15], Band_Frequency[15], Band_GfxGain[15] * band_scalar, Band_Q[15], Band_Slope[15]); gfx_band16.filter.ivf_set_to_target(); );
 );
 
 function update_audio_filters() local (band_scalar) (
   band_scalar = Scale / 100.0;
 
-  Band_Update[0] ? (Band_Update[0] = 0; Band_Enabled[0] != BAND_STATE_ENABLED ? band1.filter.ivf_bypass() : band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0]); );
-  Band_Update[1] ? (Band_Update[1] = 0; Band_Enabled[1] != BAND_STATE_ENABLED ? band2.filter.ivf_bypass() : band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1]); );
-  Band_Update[2] ? (Band_Update[2] = 0; Band_Enabled[2] != BAND_STATE_ENABLED ? band3.filter.ivf_bypass() : band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2]); );
-  Band_Update[3] ? (Band_Update[3] = 0; Band_Enabled[3] != BAND_STATE_ENABLED ? band4.filter.ivf_bypass() : band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3]); );
-  Band_Update[4] ? (Band_Update[4] = 0; Band_Enabled[4] != BAND_STATE_ENABLED ? band5.filter.ivf_bypass() : band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4]); );
-  Band_Update[5] ? (Band_Update[5] = 0; Band_Enabled[5] != BAND_STATE_ENABLED ? band6.filter.ivf_bypass() : band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5]); );
-  Band_Update[6] ? (Band_Update[6] = 0; Band_Enabled[6] != BAND_STATE_ENABLED ? band7.filter.ivf_bypass() : band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6]); );
-  Band_Update[7] ? (Band_Update[7] = 0; Band_Enabled[7] != BAND_STATE_ENABLED ? band8.filter.ivf_bypass() : band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7]); );
-  Band_Update[8] ? (Band_Update[8] = 0; Band_Enabled[8] != BAND_STATE_ENABLED ? band9.filter.ivf_bypass() : band9.band_set_filter(Band_Type[8], Band_Frequency[8], Band_Gain[8] * band_scalar, Band_Q[8], Band_Slope[8]); );
-  Band_Update[9] ? (Band_Update[9] = 0; Band_Enabled[9] != BAND_STATE_ENABLED ? band10.filter.ivf_bypass() : band10.band_set_filter(Band_Type[9], Band_Frequency[9], Band_Gain[9] * band_scalar, Band_Q[9], Band_Slope[9]); );
-  Band_Update[10] ? (Band_Update[10] = 0; Band_Enabled[10] != BAND_STATE_ENABLED ? band11.filter.ivf_bypass() : band11.band_set_filter(Band_Type[10], Band_Frequency[10], Band_Gain[10] * band_scalar, Band_Q[10], Band_Slope[10]); );
-  Band_Update[11] ? (Band_Update[11] = 0; Band_Enabled[11] != BAND_STATE_ENABLED ? band12.filter.ivf_bypass() : band12.band_set_filter(Band_Type[11], Band_Frequency[11], Band_Gain[11] * band_scalar, Band_Q[11], Band_Slope[11]); );
-  Band_Update[12] ? (Band_Update[12] = 0; Band_Enabled[12] != BAND_STATE_ENABLED ? band13.filter.ivf_bypass() : band13.band_set_filter(Band_Type[12], Band_Frequency[12], Band_Gain[12] * band_scalar, Band_Q[12], Band_Slope[12]); );
-  Band_Update[13] ? (Band_Update[13] = 0; Band_Enabled[13] != BAND_STATE_ENABLED ? band14.filter.ivf_bypass() : band14.band_set_filter(Band_Type[13], Band_Frequency[13], Band_Gain[13] * band_scalar, Band_Q[13], Band_Slope[13]); );
-  Band_Update[14] ? (Band_Update[14] = 0; Band_Enabled[14] != BAND_STATE_ENABLED ? band15.filter.ivf_bypass() : band15.band_set_filter(Band_Type[14], Band_Frequency[14], Band_Gain[14] * band_scalar, Band_Q[14], Band_Slope[14]); );
-  Band_Update[15] ? (Band_Update[15] = 0; Band_Enabled[15] != BAND_STATE_ENABLED ? band16.filter.ivf_bypass() : band16.band_set_filter(Band_Type[15], Band_Frequency[15], Band_Gain[15] * band_scalar, Band_Q[15], Band_Slope[15]); );
+  Band_Update[0] ? (Band_Update[0] = 0; Band_Enabled[0] != BAND_STATE_ENABLED ? band1.band_off() :
+    Band_Dyn_On[0] && band_dyn_capable(Band_Type[0]) ? band1.band_dyn_set_filter(0, band_scalar) :
+    (band1.band_dyn_reset(); band1.band_set_filter(Band_Type[0], Band_Frequency[0], Band_Gain[0] * band_scalar, Band_Q[0], Band_Slope[0])); );
+  Band_Update[1] ? (Band_Update[1] = 0; Band_Enabled[1] != BAND_STATE_ENABLED ? band2.band_off() :
+    Band_Dyn_On[1] && band_dyn_capable(Band_Type[1]) ? band2.band_dyn_set_filter(1, band_scalar) :
+    (band2.band_dyn_reset(); band2.band_set_filter(Band_Type[1], Band_Frequency[1], Band_Gain[1] * band_scalar, Band_Q[1], Band_Slope[1])); );
+  Band_Update[2] ? (Band_Update[2] = 0; Band_Enabled[2] != BAND_STATE_ENABLED ? band3.band_off() :
+    Band_Dyn_On[2] && band_dyn_capable(Band_Type[2]) ? band3.band_dyn_set_filter(2, band_scalar) :
+    (band3.band_dyn_reset(); band3.band_set_filter(Band_Type[2], Band_Frequency[2], Band_Gain[2] * band_scalar, Band_Q[2], Band_Slope[2])); );
+  Band_Update[3] ? (Band_Update[3] = 0; Band_Enabled[3] != BAND_STATE_ENABLED ? band4.band_off() :
+    Band_Dyn_On[3] && band_dyn_capable(Band_Type[3]) ? band4.band_dyn_set_filter(3, band_scalar) :
+    (band4.band_dyn_reset(); band4.band_set_filter(Band_Type[3], Band_Frequency[3], Band_Gain[3] * band_scalar, Band_Q[3], Band_Slope[3])); );
+  Band_Update[4] ? (Band_Update[4] = 0; Band_Enabled[4] != BAND_STATE_ENABLED ? band5.band_off() :
+    Band_Dyn_On[4] && band_dyn_capable(Band_Type[4]) ? band5.band_dyn_set_filter(4, band_scalar) :
+    (band5.band_dyn_reset(); band5.band_set_filter(Band_Type[4], Band_Frequency[4], Band_Gain[4] * band_scalar, Band_Q[4], Band_Slope[4])); );
+  Band_Update[5] ? (Band_Update[5] = 0; Band_Enabled[5] != BAND_STATE_ENABLED ? band6.band_off() :
+    Band_Dyn_On[5] && band_dyn_capable(Band_Type[5]) ? band6.band_dyn_set_filter(5, band_scalar) :
+    (band6.band_dyn_reset(); band6.band_set_filter(Band_Type[5], Band_Frequency[5], Band_Gain[5] * band_scalar, Band_Q[5], Band_Slope[5])); );
+  Band_Update[6] ? (Band_Update[6] = 0; Band_Enabled[6] != BAND_STATE_ENABLED ? band7.band_off() :
+    Band_Dyn_On[6] && band_dyn_capable(Band_Type[6]) ? band7.band_dyn_set_filter(6, band_scalar) :
+    (band7.band_dyn_reset(); band7.band_set_filter(Band_Type[6], Band_Frequency[6], Band_Gain[6] * band_scalar, Band_Q[6], Band_Slope[6])); );
+  Band_Update[7] ? (Band_Update[7] = 0; Band_Enabled[7] != BAND_STATE_ENABLED ? band8.band_off() :
+    Band_Dyn_On[7] && band_dyn_capable(Band_Type[7]) ? band8.band_dyn_set_filter(7, band_scalar) :
+    (band8.band_dyn_reset(); band8.band_set_filter(Band_Type[7], Band_Frequency[7], Band_Gain[7] * band_scalar, Band_Q[7], Band_Slope[7])); );
+  Band_Update[8] ? (Band_Update[8] = 0; Band_Enabled[8] != BAND_STATE_ENABLED ? band9.band_off() :
+    Band_Dyn_On[8] && band_dyn_capable(Band_Type[8]) ? band9.band_dyn_set_filter(8, band_scalar) :
+    (band9.band_dyn_reset(); band9.band_set_filter(Band_Type[8], Band_Frequency[8], Band_Gain[8] * band_scalar, Band_Q[8], Band_Slope[8])); );
+  Band_Update[9] ? (Band_Update[9] = 0; Band_Enabled[9] != BAND_STATE_ENABLED ? band10.band_off() :
+    Band_Dyn_On[9] && band_dyn_capable(Band_Type[9]) ? band10.band_dyn_set_filter(9, band_scalar) :
+    (band10.band_dyn_reset(); band10.band_set_filter(Band_Type[9], Band_Frequency[9], Band_Gain[9] * band_scalar, Band_Q[9], Band_Slope[9])); );
+  Band_Update[10] ? (Band_Update[10] = 0; Band_Enabled[10] != BAND_STATE_ENABLED ? band11.band_off() :
+    Band_Dyn_On[10] && band_dyn_capable(Band_Type[10]) ? band11.band_dyn_set_filter(10, band_scalar) :
+    (band11.band_dyn_reset(); band11.band_set_filter(Band_Type[10], Band_Frequency[10], Band_Gain[10] * band_scalar, Band_Q[10], Band_Slope[10])); );
+  Band_Update[11] ? (Band_Update[11] = 0; Band_Enabled[11] != BAND_STATE_ENABLED ? band12.band_off() :
+    Band_Dyn_On[11] && band_dyn_capable(Band_Type[11]) ? band12.band_dyn_set_filter(11, band_scalar) :
+    (band12.band_dyn_reset(); band12.band_set_filter(Band_Type[11], Band_Frequency[11], Band_Gain[11] * band_scalar, Band_Q[11], Band_Slope[11])); );
+  Band_Update[12] ? (Band_Update[12] = 0; Band_Enabled[12] != BAND_STATE_ENABLED ? band13.band_off() :
+    Band_Dyn_On[12] && band_dyn_capable(Band_Type[12]) ? band13.band_dyn_set_filter(12, band_scalar) :
+    (band13.band_dyn_reset(); band13.band_set_filter(Band_Type[12], Band_Frequency[12], Band_Gain[12] * band_scalar, Band_Q[12], Band_Slope[12])); );
+  Band_Update[13] ? (Band_Update[13] = 0; Band_Enabled[13] != BAND_STATE_ENABLED ? band14.band_off() :
+    Band_Dyn_On[13] && band_dyn_capable(Band_Type[13]) ? band14.band_dyn_set_filter(13, band_scalar) :
+    (band14.band_dyn_reset(); band14.band_set_filter(Band_Type[13], Band_Frequency[13], Band_Gain[13] * band_scalar, Band_Q[13], Band_Slope[13])); );
+  Band_Update[14] ? (Band_Update[14] = 0; Band_Enabled[14] != BAND_STATE_ENABLED ? band15.band_off() :
+    Band_Dyn_On[14] && band_dyn_capable(Band_Type[14]) ? band15.band_dyn_set_filter(14, band_scalar) :
+    (band15.band_dyn_reset(); band15.band_set_filter(Band_Type[14], Band_Frequency[14], Band_Gain[14] * band_scalar, Band_Q[14], Band_Slope[14])); );
+  Band_Update[15] ? (Band_Update[15] = 0; Band_Enabled[15] != BAND_STATE_ENABLED ? band16.band_off() :
+    Band_Dyn_On[15] && band_dyn_capable(Band_Type[15]) ? band16.band_dyn_set_filter(15, band_scalar) :
+    (band16.band_dyn_reset(); band16.band_set_filter(Band_Type[15], Band_Frequency[15], Band_Gain[15] * band_scalar, Band_Q[15], Band_Slope[15])); );
 );
 
 /*
@@ -980,6 +1649,9 @@ init_rate != srate ? (
 
   MEMORY.init_memory();
 
+  // From the start of memory every time, so a sample rate change re-allocates everything where it was
+  // and the band settings that have no sliders keep their values
+  spectrum.init_memory(0);
   spectrum.init();
 
   MEMORY.index = spectrum.get_memory_index();
@@ -992,8 +1664,22 @@ init_rate != srate ? (
   // Allocate and init filter bands
   NUM_BANDS = 16;
 
+  // Dynamics: the gain is worked out every DYN_STEP samples, with a soft knee DYN_KNEE dB wide
+  DYN_STEP = 16;
+  DYN_KNEE = 6;
+  Dyn_Listen = -1;
+  // The panel's small knobs: the one being dragged, the last one pressed (for double clicks); how far
+  // across a panel dial reaches for the mouse; the band the dynamics meter last showed
+  ui_kd = ui_kd_last = -1;
+  ui_dyn_mb = -1;
+  // The band the ghost spectrum follows (none yet)
+  Ghost_Band = -1;
+  ui_dial_hx = 1000000;
+
   Band_Update = MEMORY.alloc_memory(NUM_BANDS);
   Band_GfxUpdate = MEMORY.alloc_memory(NUM_BANDS);
+  // The gain each drawing filter was last set to (a dynamic band's moves with its live gain)
+  Band_GfxGain = MEMORY.alloc_memory(NUM_BANDS);
   Band_Enabled = MEMORY.alloc_memory(NUM_BANDS);
   Band_Group = MEMORY.alloc_memory(NUM_BANDS);
   Band_Type = MEMORY.alloc_memory(NUM_BANDS);
@@ -1005,6 +1691,30 @@ init_rate != srate ? (
   Band_Red = MEMORY.alloc_memory(NUM_BANDS);
   Band_Green = MEMORY.alloc_memory(NUM_BANDS);
   Band_Blue = MEMORY.alloc_memory(NUM_BANDS);
+
+  // Dynamics, per band. Band_Dynamic_Range (above) is the range. Saved: on, threshold, ratio, range,
+  // attack, release, timing (auto), source (0 band, 1-3 SC 1-3), link, detector frequency and width.
+  // Not saved: the live gain change and detector level, for the display.
+  Band_Dyn_On = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_Thresh = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_Ratio = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_Attack = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_Release = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_Auto = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_Source = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_Link = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_DetFreq = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_DetWidth = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_Gain = MEMORY.alloc_memory(NUM_BANDS);
+  Band_Dyn_Level = MEMORY.alloc_memory(NUM_BANDS);
+
+  // Defaults once only: a sample rate change runs this block again, and the saved-only settings
+  // (timing, source, detector) would otherwise be lost
+  !dyn_defaults_done ? (
+    band = 0;
+    loop(NUM_BANDS, band_dyn_defaults(band); band += 1);
+    dyn_defaults_done = 1;
+  );
 
   Band_Selected = MEMORY.alloc_memory(NUM_BANDS);
   Band_Drag_OffsetX = MEMORY.alloc_memory(NUM_BANDS);
@@ -1024,6 +1734,12 @@ init_rate != srate ? (
   AG_Group = MEMORY.alloc_memory(NUM_BANDS);
   AG_Enabled = MEMORY.alloc_memory(NUM_BANDS);
   Band_AgUpdate = MEMORY.alloc_memory(NUM_BANDS);
+
+  // Lookahead: a delay line for the main path and the detector Listen signal (4 channels), up to 10ms at
+  // 768kHz. la_len -1 has @block set it up (again, after a sample rate change).
+  LA_MAX = 8192;
+  Dyn_LaBuf = MEMORY.alloc_memory(4 * LA_MAX);
+  la_len = -1;
   memset(AG_Group, -1, NUM_BANDS);
   memset(Band_AgUpdate, 1, NUM_BANDS);
   ag_init_weights();
@@ -1078,6 +1794,10 @@ init_rate != srate ? (
   gfx_band14.band_init();
   gfx_band15.band_init();
   gfx_band16.band_init();
+  // For drawing a dynamic band's static and range-limit lines
+  dyn_curve.band_init();
+  // For weighting the ghost spectrum by the selected band's detector response
+  ghost_det.ivf_init(srate);
 
   // Filters for measuring the auto gain
   ag_band1.band_init();
@@ -1283,22 +2003,22 @@ gainML = 2 ^ (MLGain/6);
 gainSR = 2 ^ (SRGain/6);
 
 // Mark filters for update if sliders have changed
-Band_Enabled[0] != Node1_Enabled || Band_Group[0] != Node1_Group || Band_Type[0] != Node1_Type || Band_Gain[0] != Node1_Gain || Band_Frequency[0] != slider_to_freq(Node1_Frequency) || Band_Q[0] != per_to_q(Node1_Q,100) || Band_Slope[0] != Node1_Slope ? flag_filter_update(0);
-Band_Enabled[1] != Node2_Enabled || Band_Group[1] != Node2_Group || Band_Type[1] != Node2_Type || Band_Gain[1] != Node2_Gain || Band_Frequency[1] != slider_to_freq(Node2_Frequency) || Band_Q[1] != per_to_q(Node2_Q,100) || Band_Slope[1] != Node2_Slope ? flag_filter_update(1);
-Band_Enabled[2] != Node3_Enabled || Band_Group[2] != Node3_Group || Band_Type[2] != Node3_Type || Band_Gain[2] != Node3_Gain || Band_Frequency[2] != slider_to_freq(Node3_Frequency) || Band_Q[2] != per_to_q(Node3_Q,100) || Band_Slope[2] != Node3_Slope ? flag_filter_update(2);
-Band_Enabled[3] != Node4_Enabled || Band_Group[3] != Node4_Group || Band_Type[3] != Node4_Type || Band_Gain[3] != Node4_Gain || Band_Frequency[3] != slider_to_freq(Node4_Frequency) || Band_Q[3] != per_to_q(Node4_Q,100) || Band_Slope[3] != Node4_Slope ? flag_filter_update(3);
-Band_Enabled[4] != Node5_Enabled || Band_Group[4] != Node5_Group || Band_Type[4] != Node5_Type || Band_Gain[4] != Node5_Gain || Band_Frequency[4] != slider_to_freq(Node5_Frequency) || Band_Q[4] != per_to_q(Node5_Q,100) || Band_Slope[4] != Node5_Slope ? flag_filter_update(4);
-Band_Enabled[5] != Node6_Enabled || Band_Group[5] != Node6_Group || Band_Type[5] != Node6_Type || Band_Gain[5] != Node6_Gain || Band_Frequency[5] != slider_to_freq(Node6_Frequency) || Band_Q[5] != per_to_q(Node6_Q,100) || Band_Slope[5] != Node6_Slope ? flag_filter_update(5);
-Band_Enabled[6] != Node7_Enabled || Band_Group[6] != Node7_Group || Band_Type[6] != Node7_Type || Band_Gain[6] != Node7_Gain || Band_Frequency[6] != slider_to_freq(Node7_Frequency) || Band_Q[6] != per_to_q(Node7_Q,100) || Band_Slope[6] != Node7_Slope ? flag_filter_update(6);
-Band_Enabled[7] != Node8_Enabled || Band_Group[7] != Node8_Group || Band_Type[7] != Node8_Type || Band_Gain[7] != Node8_Gain || Band_Frequency[7] != slider_to_freq(Node8_Frequency) || Band_Q[7] != per_to_q(Node8_Q,100) || Band_Slope[7] != Node8_Slope ? flag_filter_update(7);
-Band_Enabled[8] != Node9_Enabled || Band_Group[8] != Node9_Group || Band_Type[8] != Node9_Type || Band_Gain[8] != Node9_Gain || Band_Frequency[8] != slider_to_freq(Node9_Frequency) || Band_Q[8] != per_to_q(Node9_Q,100) || Band_Slope[8] != Node9_Slope ? flag_filter_update(8);
-Band_Enabled[9] != Node10_Enabled || Band_Group[9] != Node10_Group || Band_Type[9] != Node10_Type || Band_Gain[9] != Node10_Gain || Band_Frequency[9] != slider_to_freq(Node10_Frequency) || Band_Q[9] != per_to_q(Node10_Q,100) || Band_Slope[9] != Node10_Slope ? flag_filter_update(9);
-Band_Enabled[10] != Node11_Enabled || Band_Group[10] != Node11_Group || Band_Type[10] != Node11_Type || Band_Gain[10] != Node11_Gain || Band_Frequency[10] != slider_to_freq(Node11_Frequency) || Band_Q[10] != per_to_q(Node11_Q,100) || Band_Slope[10] != Node11_Slope ? flag_filter_update(10);
-Band_Enabled[11] != Node12_Enabled || Band_Group[11] != Node12_Group || Band_Type[11] != Node12_Type || Band_Gain[11] != Node12_Gain || Band_Frequency[11] != slider_to_freq(Node12_Frequency) || Band_Q[11] != per_to_q(Node12_Q,100) || Band_Slope[11] != Node12_Slope ? flag_filter_update(11);
-Band_Enabled[12] != Node13_Enabled || Band_Group[12] != Node13_Group || Band_Type[12] != Node13_Type || Band_Gain[12] != Node13_Gain || Band_Frequency[12] != slider_to_freq(Node13_Frequency) || Band_Q[12] != per_to_q(Node13_Q,100) || Band_Slope[12] != Node13_Slope ? flag_filter_update(12);
-Band_Enabled[13] != Node14_Enabled || Band_Group[13] != Node14_Group || Band_Type[13] != Node14_Type || Band_Gain[13] != Node14_Gain || Band_Frequency[13] != slider_to_freq(Node14_Frequency) || Band_Q[13] != per_to_q(Node14_Q,100) || Band_Slope[13] != Node14_Slope ? flag_filter_update(13);
-Band_Enabled[14] != Node15_Enabled || Band_Group[14] != Node15_Group || Band_Type[14] != Node15_Type || Band_Gain[14] != Node15_Gain || Band_Frequency[14] != slider_to_freq(Node15_Frequency) || Band_Q[14] != per_to_q(Node15_Q,100) || Band_Slope[14] != Node15_Slope ? flag_filter_update(14);
-Band_Enabled[15] != Node16_Enabled || Band_Group[15] != Node16_Group || Band_Type[15] != Node16_Type || Band_Gain[15] != Node16_Gain || Band_Frequency[15] != slider_to_freq(Node16_Frequency) || Band_Q[15] != per_to_q(Node16_Q,100) || Band_Slope[15] != Node16_Slope ? flag_filter_update(15);
+Band_Enabled[0] != Node1_Enabled || Band_Group[0] != Node1_Group || Band_Type[0] != Node1_Type || Band_Gain[0] != Node1_Gain || Band_Frequency[0] != slider_to_freq(Node1_Frequency) || Band_Q[0] != per_to_q(Node1_Q,100) || Band_Slope[0] != Node1_Slope || Band_Dyn_On[0] != Node1_DynOn ? flag_filter_update(0);
+Band_Enabled[1] != Node2_Enabled || Band_Group[1] != Node2_Group || Band_Type[1] != Node2_Type || Band_Gain[1] != Node2_Gain || Band_Frequency[1] != slider_to_freq(Node2_Frequency) || Band_Q[1] != per_to_q(Node2_Q,100) || Band_Slope[1] != Node2_Slope || Band_Dyn_On[1] != Node2_DynOn ? flag_filter_update(1);
+Band_Enabled[2] != Node3_Enabled || Band_Group[2] != Node3_Group || Band_Type[2] != Node3_Type || Band_Gain[2] != Node3_Gain || Band_Frequency[2] != slider_to_freq(Node3_Frequency) || Band_Q[2] != per_to_q(Node3_Q,100) || Band_Slope[2] != Node3_Slope || Band_Dyn_On[2] != Node3_DynOn ? flag_filter_update(2);
+Band_Enabled[3] != Node4_Enabled || Band_Group[3] != Node4_Group || Band_Type[3] != Node4_Type || Band_Gain[3] != Node4_Gain || Band_Frequency[3] != slider_to_freq(Node4_Frequency) || Band_Q[3] != per_to_q(Node4_Q,100) || Band_Slope[3] != Node4_Slope || Band_Dyn_On[3] != Node4_DynOn ? flag_filter_update(3);
+Band_Enabled[4] != Node5_Enabled || Band_Group[4] != Node5_Group || Band_Type[4] != Node5_Type || Band_Gain[4] != Node5_Gain || Band_Frequency[4] != slider_to_freq(Node5_Frequency) || Band_Q[4] != per_to_q(Node5_Q,100) || Band_Slope[4] != Node5_Slope || Band_Dyn_On[4] != Node5_DynOn ? flag_filter_update(4);
+Band_Enabled[5] != Node6_Enabled || Band_Group[5] != Node6_Group || Band_Type[5] != Node6_Type || Band_Gain[5] != Node6_Gain || Band_Frequency[5] != slider_to_freq(Node6_Frequency) || Band_Q[5] != per_to_q(Node6_Q,100) || Band_Slope[5] != Node6_Slope || Band_Dyn_On[5] != Node6_DynOn ? flag_filter_update(5);
+Band_Enabled[6] != Node7_Enabled || Band_Group[6] != Node7_Group || Band_Type[6] != Node7_Type || Band_Gain[6] != Node7_Gain || Band_Frequency[6] != slider_to_freq(Node7_Frequency) || Band_Q[6] != per_to_q(Node7_Q,100) || Band_Slope[6] != Node7_Slope || Band_Dyn_On[6] != Node7_DynOn ? flag_filter_update(6);
+Band_Enabled[7] != Node8_Enabled || Band_Group[7] != Node8_Group || Band_Type[7] != Node8_Type || Band_Gain[7] != Node8_Gain || Band_Frequency[7] != slider_to_freq(Node8_Frequency) || Band_Q[7] != per_to_q(Node8_Q,100) || Band_Slope[7] != Node8_Slope || Band_Dyn_On[7] != Node8_DynOn ? flag_filter_update(7);
+Band_Enabled[8] != Node9_Enabled || Band_Group[8] != Node9_Group || Band_Type[8] != Node9_Type || Band_Gain[8] != Node9_Gain || Band_Frequency[8] != slider_to_freq(Node9_Frequency) || Band_Q[8] != per_to_q(Node9_Q,100) || Band_Slope[8] != Node9_Slope || Band_Dyn_On[8] != Node9_DynOn ? flag_filter_update(8);
+Band_Enabled[9] != Node10_Enabled || Band_Group[9] != Node10_Group || Band_Type[9] != Node10_Type || Band_Gain[9] != Node10_Gain || Band_Frequency[9] != slider_to_freq(Node10_Frequency) || Band_Q[9] != per_to_q(Node10_Q,100) || Band_Slope[9] != Node10_Slope || Band_Dyn_On[9] != Node10_DynOn ? flag_filter_update(9);
+Band_Enabled[10] != Node11_Enabled || Band_Group[10] != Node11_Group || Band_Type[10] != Node11_Type || Band_Gain[10] != Node11_Gain || Band_Frequency[10] != slider_to_freq(Node11_Frequency) || Band_Q[10] != per_to_q(Node11_Q,100) || Band_Slope[10] != Node11_Slope || Band_Dyn_On[10] != Node11_DynOn ? flag_filter_update(10);
+Band_Enabled[11] != Node12_Enabled || Band_Group[11] != Node12_Group || Band_Type[11] != Node12_Type || Band_Gain[11] != Node12_Gain || Band_Frequency[11] != slider_to_freq(Node12_Frequency) || Band_Q[11] != per_to_q(Node12_Q,100) || Band_Slope[11] != Node12_Slope || Band_Dyn_On[11] != Node12_DynOn ? flag_filter_update(11);
+Band_Enabled[12] != Node13_Enabled || Band_Group[12] != Node13_Group || Band_Type[12] != Node13_Type || Band_Gain[12] != Node13_Gain || Band_Frequency[12] != slider_to_freq(Node13_Frequency) || Band_Q[12] != per_to_q(Node13_Q,100) || Band_Slope[12] != Node13_Slope || Band_Dyn_On[12] != Node13_DynOn ? flag_filter_update(12);
+Band_Enabled[13] != Node14_Enabled || Band_Group[13] != Node14_Group || Band_Type[13] != Node14_Type || Band_Gain[13] != Node14_Gain || Band_Frequency[13] != slider_to_freq(Node14_Frequency) || Band_Q[13] != per_to_q(Node14_Q,100) || Band_Slope[13] != Node14_Slope || Band_Dyn_On[13] != Node14_DynOn ? flag_filter_update(13);
+Band_Enabled[14] != Node15_Enabled || Band_Group[14] != Node15_Group || Band_Type[14] != Node15_Type || Band_Gain[14] != Node15_Gain || Band_Frequency[14] != slider_to_freq(Node15_Frequency) || Band_Q[14] != per_to_q(Node15_Q,100) || Band_Slope[14] != Node15_Slope || Band_Dyn_On[14] != Node15_DynOn ? flag_filter_update(14);
+Band_Enabled[15] != Node16_Enabled || Band_Group[15] != Node16_Group || Band_Type[15] != Node16_Type || Band_Gain[15] != Node16_Gain || Band_Frequency[15] != slider_to_freq(Node16_Frequency) || Band_Q[15] != per_to_q(Node16_Q,100) || Band_Slope[15] != Node16_Slope || Band_Dyn_On[15] != Node16_DynOn ? flag_filter_update(15);
 
 // Scale applies to every band's gain, so automating it must update them all
 Scale != slider_last_scale ? (
@@ -1333,6 +2053,29 @@ file_avail(handle) >= 0 ? (
     file_mem(0, Band_Green, numBands);
     file_mem(0, Band_Blue, numBands);
 
+    // Dynamics, from 110. Older files had no dynamics: their unused range values go back to the default.
+    version >= 110 ? (
+      file_mem(0, Band_Dyn_On, numBands);
+      file_mem(0, Band_Dyn_Thresh, numBands);
+      file_mem(0, Band_Dyn_Ratio, numBands);
+      file_mem(0, Band_Dyn_Attack, numBands);
+      file_mem(0, Band_Dyn_Release, numBands);
+      file_mem(0, Band_Dyn_Auto, numBands);
+      file_mem(0, Band_Dyn_Source, numBands);
+      file_mem(0, Band_Dyn_Link, numBands);
+      file_mem(0, Band_Dyn_DetFreq, numBands);
+      file_mem(0, Band_Dyn_DetWidth, numBands);
+      // Before 111 a linked band's detector had never been placed (its width was 1 by default, not 0), so
+      // unlinking it starts at the band
+      version < 111 ? (
+        band = 0;
+        loop(NUM_BANDS, Band_Dyn_Link[band] ? Band_Dyn_DetWidth[band] = 0; band += 1);
+      );
+    ) : (
+      band = 0;
+      loop(NUM_BANDS, band_dyn_defaults(band); band += 1);
+    );
+
   ) : (
     // Old version that has no version number
     // We've already read the first value and it wasn't a version
@@ -1349,13 +2092,16 @@ file_avail(handle) >= 0 ? (
     file_mem(0, Band_Red, 8);
     file_mem(0, Band_Green, 8);
     file_mem(0, Band_Blue, 8);
+
+    band = 0;
+    loop(NUM_BANDS, band_dyn_defaults(band); band += 1);
   );
 
 ) : (
   // Write mode
   // The version number should reflect the ReEQ version when the file
   // format changed.
-  version = 109;
+  version = 111;
 
   file_var(0, version);
   file_var(0, NUM_BANDS);
@@ -1370,6 +2116,16 @@ file_avail(handle) >= 0 ? (
   file_mem(0, Band_Red, NUM_BANDS);
   file_mem(0, Band_Green, NUM_BANDS);
   file_mem(0, Band_Blue, NUM_BANDS);
+  file_mem(0, Band_Dyn_On, NUM_BANDS);
+  file_mem(0, Band_Dyn_Thresh, NUM_BANDS);
+  file_mem(0, Band_Dyn_Ratio, NUM_BANDS);
+  file_mem(0, Band_Dyn_Attack, NUM_BANDS);
+  file_mem(0, Band_Dyn_Release, NUM_BANDS);
+  file_mem(0, Band_Dyn_Auto, NUM_BANDS);
+  file_mem(0, Band_Dyn_Source, NUM_BANDS);
+  file_mem(0, Band_Dyn_Link, NUM_BANDS);
+  file_mem(0, Band_Dyn_DetFreq, NUM_BANDS);
+  file_mem(0, Band_Dyn_DetWidth, NUM_BANDS);
 );
 
 flag_filter_update_all();
@@ -1383,6 +2139,40 @@ filters_to_sliders();
 
 update_audio_filters();
 update_auto_gain();
+
+// Dynamic bands: enabled, a bell or shelf, with dynamics on
+Dyn_Active0 = Band_Dyn_On[0] && Band_Enabled[0] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[0]); Dyn_Active0 ? band1.band_dyn_block(0) : (Band_Dyn_Gain[0] = 0; Band_Dyn_Level[0] = -150);
+Dyn_Active1 = Band_Dyn_On[1] && Band_Enabled[1] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[1]); Dyn_Active1 ? band2.band_dyn_block(1) : (Band_Dyn_Gain[1] = 0; Band_Dyn_Level[1] = -150);
+Dyn_Active2 = Band_Dyn_On[2] && Band_Enabled[2] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[2]); Dyn_Active2 ? band3.band_dyn_block(2) : (Band_Dyn_Gain[2] = 0; Band_Dyn_Level[2] = -150);
+Dyn_Active3 = Band_Dyn_On[3] && Band_Enabled[3] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[3]); Dyn_Active3 ? band4.band_dyn_block(3) : (Band_Dyn_Gain[3] = 0; Band_Dyn_Level[3] = -150);
+Dyn_Active4 = Band_Dyn_On[4] && Band_Enabled[4] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[4]); Dyn_Active4 ? band5.band_dyn_block(4) : (Band_Dyn_Gain[4] = 0; Band_Dyn_Level[4] = -150);
+Dyn_Active5 = Band_Dyn_On[5] && Band_Enabled[5] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[5]); Dyn_Active5 ? band6.band_dyn_block(5) : (Band_Dyn_Gain[5] = 0; Band_Dyn_Level[5] = -150);
+Dyn_Active6 = Band_Dyn_On[6] && Band_Enabled[6] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[6]); Dyn_Active6 ? band7.band_dyn_block(6) : (Band_Dyn_Gain[6] = 0; Band_Dyn_Level[6] = -150);
+Dyn_Active7 = Band_Dyn_On[7] && Band_Enabled[7] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[7]); Dyn_Active7 ? band8.band_dyn_block(7) : (Band_Dyn_Gain[7] = 0; Band_Dyn_Level[7] = -150);
+Dyn_Active8 = Band_Dyn_On[8] && Band_Enabled[8] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[8]); Dyn_Active8 ? band9.band_dyn_block(8) : (Band_Dyn_Gain[8] = 0; Band_Dyn_Level[8] = -150);
+Dyn_Active9 = Band_Dyn_On[9] && Band_Enabled[9] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[9]); Dyn_Active9 ? band10.band_dyn_block(9) : (Band_Dyn_Gain[9] = 0; Band_Dyn_Level[9] = -150);
+Dyn_Active10 = Band_Dyn_On[10] && Band_Enabled[10] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[10]); Dyn_Active10 ? band11.band_dyn_block(10) : (Band_Dyn_Gain[10] = 0; Band_Dyn_Level[10] = -150);
+Dyn_Active11 = Band_Dyn_On[11] && Band_Enabled[11] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[11]); Dyn_Active11 ? band12.band_dyn_block(11) : (Band_Dyn_Gain[11] = 0; Band_Dyn_Level[11] = -150);
+Dyn_Active12 = Band_Dyn_On[12] && Band_Enabled[12] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[12]); Dyn_Active12 ? band13.band_dyn_block(12) : (Band_Dyn_Gain[12] = 0; Band_Dyn_Level[12] = -150);
+Dyn_Active13 = Band_Dyn_On[13] && Band_Enabled[13] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[13]); Dyn_Active13 ? band14.band_dyn_block(13) : (Band_Dyn_Gain[13] = 0; Band_Dyn_Level[13] = -150);
+Dyn_Active14 = Band_Dyn_On[14] && Band_Enabled[14] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[14]); Dyn_Active14 ? band15.band_dyn_block(14) : (Band_Dyn_Gain[14] = 0; Band_Dyn_Level[14] = -150);
+Dyn_Active15 = Band_Dyn_On[15] && Band_Enabled[15] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[15]); Dyn_Active15 ? band16.band_dyn_block(15) : (Band_Dyn_Gain[15] = 0; Band_Dyn_Level[15] = -150);
+// Lookahead: the bands hear the input la_len samples late, so the detectors (undelayed) hear ahead of
+// them. REAPER is told the delay; Off adds none.
+la_want = Lookahead_Value == 0 ? 0 : min(floor(srate * (Lookahead_Value == 1 ? 0.001 : Lookahead_Value == 2 ? 0.005 : 0.01) + 0.5), LA_MAX);
+la_want != la_len ? (
+  la_len = la_want; la_pos = 0;
+  memset(Dyn_LaBuf, 0, 4 * LA_MAX);
+  pdc_delay = la_len; pdc_bot_ch = 0; pdc_top_ch = 2;
+);
+// A start or stop mustn't replay what was in the line from before
+play_state != la_play ? (
+  la_play = play_state;
+  la_len > 0 ? memset(Dyn_LaBuf, 0, 4 * LA_MAX);
+);
+
+Dyn_Any = Dyn_Active0 || Dyn_Active1 || Dyn_Active2 || Dyn_Active3 || Dyn_Active4 || Dyn_Active5 || Dyn_Active6 || Dyn_Active7 || Dyn_Active8 || Dyn_Active9 || Dyn_Active10 || Dyn_Active11 || Dyn_Active12 || Dyn_Active13 || Dyn_Active14 || Dyn_Active15;
+Dyn_Active_Listen = Dyn_Listen >= 0 && Band_Dyn_On[Dyn_Listen] && Band_Enabled[Dyn_Listen] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[Dyn_Listen]);
 
 Band_Process0 = (Band_Enabled[0] == BAND_STATE_ENABLED) || !band1.filter.ivf_is_resting();
 Band_Process1 = (Band_Enabled[1] == BAND_STATE_ENABLED) || !band2.filter.ivf_is_resting();
@@ -1442,6 +2232,46 @@ spl0 *= gainIn;
 spl1 *= gainIn;
 in_pk0 = max(in_pk0, abs(spl0));
 in_pk1 = max(in_pk1, abs(spl1));
+
+// Dynamic bands: their detectors hear the trimmed input (or a sidechain), before any band
+Dyn_Any ? (
+  Dyn_Active0 ? band1.band_dyn_tick(0, Band_Group0, Band_Dyn_Source[0]);
+  Dyn_Active1 ? band2.band_dyn_tick(1, Band_Group1, Band_Dyn_Source[1]);
+  Dyn_Active2 ? band3.band_dyn_tick(2, Band_Group2, Band_Dyn_Source[2]);
+  Dyn_Active3 ? band4.band_dyn_tick(3, Band_Group3, Band_Dyn_Source[3]);
+  Dyn_Active4 ? band5.band_dyn_tick(4, Band_Group4, Band_Dyn_Source[4]);
+  Dyn_Active5 ? band6.band_dyn_tick(5, Band_Group5, Band_Dyn_Source[5]);
+  Dyn_Active6 ? band7.band_dyn_tick(6, Band_Group6, Band_Dyn_Source[6]);
+  Dyn_Active7 ? band8.band_dyn_tick(7, Band_Group7, Band_Dyn_Source[7]);
+  Dyn_Active8 ? band9.band_dyn_tick(8, Band_Group8, Band_Dyn_Source[8]);
+  Dyn_Active9 ? band10.band_dyn_tick(9, Band_Group9, Band_Dyn_Source[9]);
+  Dyn_Active10 ? band11.band_dyn_tick(10, Band_Group10, Band_Dyn_Source[10]);
+  Dyn_Active11 ? band12.band_dyn_tick(11, Band_Group11, Band_Dyn_Source[11]);
+  Dyn_Active12 ? band13.band_dyn_tick(12, Band_Group12, Band_Dyn_Source[12]);
+  Dyn_Active13 ? band14.band_dyn_tick(13, Band_Group13, Band_Dyn_Source[13]);
+  Dyn_Active14 ? band15.band_dyn_tick(14, Band_Group14, Band_Dyn_Source[14]);
+  Dyn_Active15 ? band16.band_dyn_tick(15, Band_Group15, Band_Dyn_Source[15]);
+);
+
+// The ghost spectrum: the followed band's detector input, before its filter, in its placement
+Ghost_Band >= 0 ? (
+  gs_src = Band_Dyn_Source[Ghost_Band]; gs_grp = Band_Group[Ghost_Band];
+  gs_src > 0 ? (gs_l = spl(2 * gs_src); gs_r = spl(2 * gs_src + 1)) : (gs_l = spl0; gs_r = spl1);
+  spectrum.sample6(gs_grp <= 1 ? (gs_l + gs_r) * 0.5 : gs_grp == 2 ? (gs_l - gs_r) * 0.5 : gs_grp == 3 ? gs_l : gs_r);
+);
+
+// Lookahead: the main path waits la_len samples (read the oldest, then write over it), and so does
+// the detector Listen signal, so what you hear stays where REAPER's delay compensation expects it
+la_len > 0 ? (
+  la_i = Dyn_LaBuf + 4 * la_pos;
+  la_t = la_i[0]; la_i[0] = spl0; spl0 = la_t;
+  la_t = la_i[1]; la_i[1] = spl1; spl1 = la_t;
+  Dyn_Listen >= 0 ? (
+    la_t = la_i[2]; la_i[2] = Dyn_ListenL; Dyn_ListenL = la_t;
+    la_t = la_i[3]; la_i[3] = Dyn_ListenR; Dyn_ListenR = la_t;
+  );
+  (la_pos += 1) >= la_len ? la_pos = 0;
+);
 
 // Feed the correct buffers depending on spectrum modes
 Show_PreEQ ? (
@@ -1745,6 +2575,9 @@ LimitOutput ? (
   spl1 = min(max(spl1,-1.0),1.0);
 );
 
+// Listening to a dynamic band's detector: that's all that plays
+Dyn_Listen >= 0 && Dyn_Active_Listen ? (spl0 = Dyn_ListenL; spl1 = Dyn_ListenR);
+
 // Output peak for the meter, read and reset by @gfx
 out_pk0 = max(out_pk0, abs(spl0));
 out_pk1 = max(out_pk1, abs(spl1));
@@ -1972,9 +2805,10 @@ function ui_dial(cx, cy, v, bipolar, nd, dim) local(s, a0, a1, t0, t1, i, n, t, 
 
 /*
  * Icons in a 14pt box centred on cx, cy, in the current colour.
- * 1 solo, 2 bypass, 3 duplicate, 4 delete, 5 settings
+ * 1 solo, 2 bypass, 3 duplicate, 4 delete, 5 settings, 6 ear (the dynamics detector's Listen),
+ * 7 linked and 8 unlinked (the detector's link to its band)
  */
-function ui_icon(kind, cx, cy) local(s, w, k, a) (
+function ui_icon(kind, cx, cy) local(s, w, k, a, ex, ey, x1, y1) (
   s = ui_pt(1); w = 1.4 * s;
   kind == 1 ? (
     ui_thick_arc(cx, cy + 1 * s, 5 * s, -0.5 * $pi, 0.5 * $pi, w);
@@ -2007,6 +2841,24 @@ function ui_icon(kind, cx, cy) local(s, w, k, a) (
       ui_thick_line(cx + 3.7 * s * sin(a), cy - 3.7 * s * cos(a), cx + 5.5 * s * sin(a), cy - 5.5 * s * cos(a), w);
       k += 1;
     );
+  ) : kind == 6 ? (
+    // The outer ear from its front edge over the top, then down to the lobe; the inner fold
+    ex = cx + 0.5 * s; ey = cy - 1.5 * s;
+    a = 2.62 * $pi;
+    ui_thick_arc(ex, ey, 4.5 * s, 1.5 * $pi, a, w);
+    x1 = ex + 4.5 * s * sin(a); y1 = ey - 4.5 * s * cos(a);
+    ui_thick_line(x1, y1, cx + 1.8 * s, cy + 3.2 * s, w);
+    ui_thick_line(cx + 1.8 * s, cy + 3.2 * s, cx - 0.6 * s, cy + 5.4 * s, w);
+    ui_thick_line(cx - 0.6 * s, cy + 5.4 * s, cx - 2.8 * s, cy + 4.6 * s, w);
+    ui_thick_arc(ex, ey, 2 * s, 1.5 * $pi, 2.4 * $pi, w);
+  ) : kind == 7 || kind == 8 ? (
+    // Two chain links, joined, or pulled apart
+    k = kind == 7 ? 0 : 1.5 * s;
+    a = floor(2.5 * s);
+    gfx_roundrect(floor(cx - 6.5 * s - k), floor(cy - 2.5 * s), floor(8 * s), floor(5 * s), a, 1);
+    gfx_roundrect(floor(cx - 6.5 * s - k) + 1, floor(cy - 2.5 * s) + 1, floor(8 * s) - 2, floor(5 * s) - 2, a - 1, 1);
+    gfx_roundrect(floor(cx - 1.5 * s + k), floor(cy - 2.5 * s), floor(8 * s), floor(5 * s), a, 1);
+    gfx_roundrect(floor(cx - 1.5 * s + k) + 1, floor(cy - 2.5 * s) + 1, floor(8 * s) - 2, floor(5 * s) - 2, a - 1, 1);
   );
 );
 
@@ -2165,7 +3017,7 @@ ui_rpress = (mouse_cap & 2) && !(ui_prev_cap & 2);
 
 // Number buttons and dials own the mouse by their x position until release. Release it here too,
 // so a handler that was skipped on the release frame (hidden, or moved) can never keep it.
-!(mouse_cap & 1) ? button_focus = -1;
+!(mouse_cap & 1) ? (ui_ddrag && ui_ddrag_moved ? notify_dyn_state(ui_ddrag_b); button_focus = -1; ui_kd = -1; ui_rdrag = 0; ui_ddrag = 0);
 
 // Calculage compact view flags
 // These are used to disable certain elements for graceful visual shrinking
@@ -2189,8 +3041,12 @@ RAISED_BOTTOM = 176 * max(gfx_ext_retina, 1);
 
 compact_width || compact_height ? BOTTOM_MARGIN = 0;
 
-// Node panel: 560 x 146pt, centred above the toolbar
-panel_w = floor(ui_pt(560)); panel_h = floor(ui_pt(146));
+// Node panel: 560 x 146pt, centred above the toolbar. A dynamic band's panel is wider, 700pt, for its
+// dynamics block and header; in a narrow window it fits the window (its dials closer together, and
+// below about 620pt its header drops the band navigation).
+ui_dyn_panel = selected_node >= 0 && Band_Dyn_On[selected_node] && band_dyn_capable(Band_Type[selected_node]);
+panel_w = floor(ui_dyn_panel ? max(ui_pt(560), min(ui_pt(700), gfx_w - ui_pt(8))) : ui_pt(560));
+panel_h = floor(ui_pt(146));
 panel_x = floor(gfx_w / 2 - panel_w / 2);
 panel_y = floor(gfx_h - BOTTOM_MARGIN - ui_pt(44) - panel_h);
 
@@ -2499,6 +3355,217 @@ function draw_thick_line(x1, y1, x2, y2)
   gfx_a = 0.25;
   gfx_line(x1-1, y1-1, x2+1, y2-1, 1);
   gfx_line(x1-1, y1+1, x2+1, y2+1, 1);
+);
+
+/*
+ * A band's response at gain g, drawn in the current colour as dashes dash points long with gaps gap
+ * points long, measured across the graph
+ */
+function draw_dyn_curve(t, f, g, qv, dash, gap) local(s, xf, step, freq, m, scy, xo, yo, bottom, period) (
+  s = ui_pt(1);
+  dyn_curve.band_set_filter(t, f, g, qv, 0);
+  dyn_curve.filter.ivf_set_to_target();
+  bottom = gfx_h - BOTTOM_MARGIN - gfx_texth;
+  step = max(2, floor(2 * s));
+  period = (dash + gap) * s;
+  xf = 0;
+  loop(ceil(gfx_w / step) + 1,
+    freq = scx_to_freq(xf);
+    m = max(dyn_curve.filter.ivf_analog_magnitude(freq), 0.001);
+    scy = db_to_y(20 * log10(m));
+    xf > 0 && yo < bottom && scy < bottom && xf - floor(xf / period) * period < dash * s ? gfx_line(xo, yo, xf, scy, 1);
+    xo = xf; yo = scy;
+    xf += step;
+  );
+);
+
+/*
+ * Dynamic bands whose gain has moved: a dotted line at their static setting
+ */
+function draw_dyn_static() local(b, t) (
+  b = 0;
+  loop(NUM_BANDS,
+    t = Band_Type[b];
+    Band_Dyn_On[b] && band_dyn_capable(t) && Band_Enabled[b] == BAND_STATE_ENABLED && abs(Band_Dyn_Gain[b]) > 0.1 ? (
+      gfx_r = Band_Red[b]; gfx_g = Band_Green[b]; gfx_b = Band_Blue[b]; gfx_a = 0.55;
+      draw_dyn_curve(t, Band_Frequency[b], Band_Gain[b] * Scale / 100, Band_Q[b], 1.5, 2.5);
+    );
+    b += 1;
+  );
+);
+
+/*
+ * Whether band b (or -1) can show a ghost spectrum: dynamic, enabled, and hearing a sidechain or unlinked
+ */
+function dyn_ghost_ok(b) (
+  b >= 0 && Band_Dyn_On[b] && band_dyn_capable(Band_Type[b]) && Band_Enabled[b] == BAND_STATE_ENABLED &&
+    (Band_Dyn_Source[b] > 0 || !Band_Dyn_Link[b]);
+);
+
+/*
+ * Unlinked detectors: whether a band has one, and where its node sits (at its frequency, low in the graph)
+ */
+function dyn_det_on(b) (
+  Band_Dyn_On[b] && band_dyn_capable(Band_Type[b]) && Band_Enabled[b] != BAND_STATE_OFF && !Band_Dyn_Link[b];
+);
+
+function dyn_det_nx(b) (
+  floor(freq_to_scx(dyn_det_freq_u(b))) + 0.5;
+);
+
+function dyn_det_ny() (
+  floor(db_to_y(-0.75 * DB_EQ_RANGE)) + 0.5;
+);
+
+/*
+ * The band whose detector node is under the mouse, or -1. Callers check for a band node first.
+ */
+function dyn_det_hit() local(b, r, hit) (
+  hit = -1; r = sqr(ui_pt(9));
+  !UI_EMBED ? (
+    b = 0;
+    loop(NUM_BANDS,
+      dyn_det_on(b) && sqr(mouse_x - dyn_det_nx(b)) + sqr(mouse_y - dyn_det_ny()) < r ? hit = b;
+      b += 1;
+    );
+  );
+  hit;
+);
+
+/*
+ * Detector nodes: a hollow ring in the band colour with a centre dot, a faint dashed link to the band's
+ * node, and "SC n" under it when it hears a sidechain. No other text.
+ */
+function draw_dyn_detectors() local(s, b, x, y, nx, ny, dx, dy, l, k, n, t0, t1, hov, dim) (
+  s = ui_pt(1);
+  b = 0;
+  loop(NUM_BANDS,
+    dyn_det_on(b) && !UI_EMBED ? (
+      x = dyn_det_nx(b); y = dyn_det_ny();
+      dim = Band_Enabled[b] != BAND_STATE_ENABLED;
+
+      // Dashes from the node's edge to the ring's edge
+      nx = get_filter_x(b); ny = get_filter_y(b);
+      dx = x - nx; dy = y - ny; l = sqrt(dx * dx + dy * dy);
+      l > 20 * s ? (
+        gfx_r = Band_Red[b]; gfx_g = Band_Green[b]; gfx_b = Band_Blue[b]; gfx_a = dim ? 0.15 : 0.35;
+        n = floor((l - 18 * s) / (6 * s));
+        k = 0;
+        loop(n,
+          t0 = (9 * s + k * 6 * s) / l; t1 = min((12 * s + k * 6 * s) / l, 1 - 9 * s / l);
+          gfx_line(nx + dx * t0, ny + dy * t0, nx + dx * t1, ny + dy * t1, 1);
+          k += 1;
+        );
+      );
+
+      hov = (ui_ddrag && ui_ddrag_b == b) || (ui_free() && sqr(mouse_x - x) + sqr(mouse_y - y) < sqr(9 * s));
+      ui_rgb(15, 18, 20); gfx_a = 1;
+      gfx_circle(x, y, 7 * s, 1, 1);
+      gfx_r = Band_Red[b]; gfx_g = Band_Green[b]; gfx_b = Band_Blue[b]; gfx_a = dim ? 0.4 : 1;
+      ui_thick_arc(x, y, (hov ? 7.5 : 6.5) * s, 0, 2 * $pi, 2 * s);
+      gfx_circle(x, y, 2.2 * s, 1, 1);
+      Band_Dyn_Source[b] > 0 ? (
+        gfx_setfont(15);
+        ui_text_at(x, y + 15 * s, sprintf(#, "SC %d", Band_Dyn_Source[b]));
+        gfx_setfont(1);
+      );
+    );
+    b += 1;
+  );
+);
+
+/*
+ * The ghost spectrum: band gb's detector input (its sidechain, or its own input) in light grey. The
+ * analyser dims under it; the detector's range (where its response is within 3dB of its centre) is
+ * tinted in the band colour between two edge lines; inside it the spectrum is filled and its line
+ * bright, fading just past the edges to a faint line that fades away. a is its opacity.
+ */
+function draw_dyn_ghost(gb, a) local(s, norm, c, n, m, cl, cr, d, w, top, bottom, ew) (
+  s = ui_pt(1);
+  norm = ghost_det.dyn_det_put(gb);
+  n = min(floor(gfx_w), 16384);
+  cl = cr = -1;
+  c = 0;
+  loop(n,
+    m = norm * ghost_det.ivf_analog_magnitude(spectrum.x_to_freq(c));
+    m >= 0.7071 ? (cl < 0 ? cl = c; cr = c);
+    c += 1;
+  );
+  cl >= 0 ? (
+    // Opacity per column for the spectrum's ghost mode: 1 inside, down to 0.25 over 10pt past an edge
+    // (the fill follows this part), then from 0.25 to nothing over 60pt
+    c = 0;
+    loop(n,
+      d = c < cl ? cl - c : c > cr ? c - cr : 0;
+      w = d <= 0 ? 1 : d < 10 * s ? 1 - 0.75 * d / (10 * s) : 0.25 * max(0, 1 - (d - 10 * s) / (60 * s));
+      spectrum.ghost_w[c] = w;
+      c += 1;
+    );
+    top = TOP_MARGIN; bottom = gfx_h - BOTTOM_MARGIN - gfx_texth;
+
+    // The analyser dims to about 40% (the background colour over it)
+    Display_Mode != 2 ? (
+      gfx_r = 16 / 255; gfx_g = 19 / 255; gfx_b = 22 / 255; gfx_a = 0.6 * a;
+      gfx_rect(0, top, gfx_w, bottom - top);
+    );
+
+    gfx_r = Band_Red[gb]; gfx_g = Band_Green[gb]; gfx_b = Band_Blue[gb]; gfx_a = 0.06 * a;
+    gfx_rect(cl, top, cr - cl + 1, bottom - top);
+
+    // In the main display's style: Line, Heat, or Fill (also when the analyser is off)
+    spectrum.ghost_style = Display_Mode == 1 ? 1 : Display_Mode == 3 ? 2 : 0;
+    spectrum.alpha[6] = a;
+    spectrum.draw(6);
+
+    // The edges (a shelf's detector has only one inside the graph)
+    ew = max(1, floor(1.3 * s + 0.5));
+    gfx_r = Band_Red[gb]; gfx_g = Band_Green[gb]; gfx_b = Band_Blue[gb]; gfx_a = 0.75 * a;
+    cl > 0 ? gfx_rect(cl, top, ew, bottom - top);
+    cr < n - 1 ? gfx_rect(cr - ew + 1, top, ew, bottom - top);
+  );
+);
+
+/*
+ * The selected dynamic band's range: a dashed line at the range limit, and the range handle on a stem
+ * from the node, with a tick at the live gain. Records the handle for the mouse code.
+ */
+function draw_dyn_range() local(s, b, t, x, y, hy, ly, nr, bottom, hov) (
+  s = ui_pt(1);
+  ui_rh_on = 0;
+  b = selected_node;
+  b >= 0 && !UI_EMBED ? (
+    t = Band_Type[b];
+    Band_Dyn_On[b] && band_dyn_capable(t) && Band_Enabled[b] == BAND_STATE_ENABLED ? (
+      gfx_r = Band_Red[b]; gfx_g = Band_Green[b]; gfx_b = Band_Blue[b]; gfx_a = 0.7;
+      draw_dyn_curve(t, Band_Frequency[b], (Band_Gain[b] + Band_Dynamic_Range[b]) * Scale / 100, Band_Q[b], 6, 4);
+
+      bottom = gfx_h - BOTTOM_MARGIN - gfx_texth;
+      x = floor(get_filter_x(b)) + 0.5; y = get_filter_y(b);
+      hy = min(max(db_to_y(Band_Gain[b] + Band_Dynamic_Range[b]), TOP_MARGIN), bottom - 6 * s);
+      nr = ui_pt(8);
+      abs(hy - y) > nr + 3 * s ? (
+        // Stem from the node's edge to the handle
+        gfx_a = 0.5;
+        hy > y ? gfx_line(x, y + nr, x, hy - 4.5 * s, 0) : gfx_line(x, hy + 4.5 * s, x, y - nr, 0);
+
+        // The live gain
+        ly = db_to_y(Band_Gain[b] + Band_Dyn_Gain[b]);
+        abs(Band_Dyn_Gain[b]) > 0.05 && ly < bottom ? (
+          gfx_r = gfx_g = gfx_b = 1; gfx_a = 0.9;
+          gfx_rect(floor(x - 5 * s), floor(ly - 0.75 * s), floor(10 * s), max(1, floor(1.5 * s)));
+        );
+
+        // The handle: a ring in the band colour, brighter while hovered or dragged
+        hov = ui_rdrag || (ui_free() && sqr(mouse_x - x) + sqr(mouse_y - hy) < sqr(7 * s));
+        ui_rgb(16, 19, 21); gfx_a = 1;
+        gfx_circle(x, hy, (hov ? 5.5 : 4.5) * s, 1, 1);
+        hov ? (gfx_r = gfx_g = gfx_b = 1) : (gfx_r = Band_Red[b]; gfx_g = Band_Green[b]; gfx_b = Band_Blue[b]);
+        ui_thick_arc(x, hy, (hov ? 5.5 : 4.5) * s, 0, 2 * $pi, 1.5 * s);
+
+        ui_rh_on = 1; ui_rh_x = x; ui_rh_y = hy; ui_rh_b = b;
+      );
+    );
+  );
 );
 
 /*
@@ -2995,6 +4062,9 @@ function draw_info_panel(note_select)
           strlen(line2) > 0 ? strcat(line2, " · ");
           strcat(line2, sprintf(#, "Q %.2f", Band_Q[band]));
         );
+        // A dynamic band's live change
+        Band_Dyn_On[band] && band_dyn_capable(t) && Band_Enabled[band] == BAND_STATE_ENABLED ?
+          strcat(line2, sprintf(#, " · %s dB dyn", ui_fmt_db(#, Band_Dyn_Gain[band])));
       );
 
       // Measure and place the card next to the point, kept inside the graph
@@ -3234,6 +4304,7 @@ function create_band(band, x, y) local (m, g, f, i, enabledBands) (
   Band_Gain[band] = g;
   Band_Q[band] = 0.7071;
   Band_Slope[band] = 1; //12db
+  band_dyn_defaults(band);
 
   // Select band type based on frequency
   f < 20 ? ( 
@@ -3270,6 +4341,7 @@ function split_band(band, other) (
   Band_Gain[band] = Band_Gain[other];
   Band_Q[band] = Band_Q[other];
   Band_Slope[band] = Band_Slope[other];
+  band_dyn_copy(band, other);
 
   Band_Group[other] = 2;
 
@@ -3295,6 +4367,7 @@ function duplicate_band(band, other) (
   Band_Gain[band] = Band_Gain[other];
   Band_Q[band] = Band_Q[other];
   Band_Slope[band] = Band_Slope[other];
+  band_dyn_copy(band, other);
 
   Band_Update[band] = 1;
   Band_GfxUpdate[band] = 1;
@@ -3530,6 +4603,22 @@ function toggle_nodes_enabled(band) local(i, toggle) (
   filters_to_sliders();
 );
 
+/*
+ * Dynamics on or off for the selected bands that can be dynamic (the node card's DYN)
+ */
+function dyn_selected_nodes(on) local(i) (
+  i = 0;
+  while (i < NUM_BANDS) (
+    Band_Selected[i] && band_dyn_capable(Band_Type[i]) ? (
+      Band_Dyn_On[i] = on;
+      flag_filter_update(i);
+      notify_touched_dyn(i, 0);
+    );
+    i += 1;
+  );
+  filters_to_sliders();
+);
+
 function invert_nodes_gain() local(i) (
   i = 0;
   while (i < NUM_BANDS) (
@@ -3751,7 +4840,8 @@ function handle_number_button() instance (x, y, width, menutext, label, drag, he
 function is_mouse_number_dial() instance (x, y, r, v) local (rad)
 (
   rad = r + gfx_texth*2;
-  mouse_x >= x - rad && mouse_x <= x + rad && mouse_y >= y - rad && mouse_y <= y + rad;
+  // Across, no further than halfway to the next dial (they sit closer in a dynamic band's panel)
+  mouse_x >= x - min(rad, ui_dial_hx) && mouse_x <= x + min(rad, ui_dial_hx) && mouse_y >= y - rad && mouse_y <= y + rad;
 );
 
 /*
@@ -4422,6 +5512,14 @@ function ui_draw_node_card()
   hov = ui_in(tx, y, bw, bh);
   ui_icon_button_draw(tx, y, bw, bh, 2, Band_Enabled[b] == BAND_STATE_DISABLED ? 1 : 0, hov);
   pr && hov ? toggle_nodes_enabled(b);
+  // DYN, for bells and shelves
+  band_dyn_capable(Band_Type[b]) ? (
+    gfx_setfont(4); k = ui_text_w("DYN") + 18 * s;
+    tx -= k + 8 * s;
+    hov = ui_in(tx, y, k, bh);
+    ui_button_draw(tx, y, k, bh, "DYN", Band_Dyn_On[b] ? 1 : 0, hov);
+    pr && hov ? dyn_selected_nodes(!Band_Dyn_On[b]);
+  );
 
   y += 22 * s + 8 * s;
   ui_rgb(35, 42, 46); gfx_line(x, y, x0 + W - pad, y, 0);
@@ -4721,12 +5819,24 @@ function ui_draw_settings_pop() local(s, pad, pw, ph, px, py, x, y, w, r, pr, sk
   skip = ui_pop_skip; ui_pop_skip = 0;
   pr = ui_press && !skip;
   pad = 11 * s; pw = 304 * s;
-  ph = 30 * s + 10 * s + (10 * s + 8 * s + 22 * s + 8 * s + 22 * s) * 3 + (8 * s + 1 + 8 * s) * 2 + 8 * s + 16 * s + 14 * s + 11 * s;
+  ph = 30 * s + 10 * s + (10 * s + 8 * s + 22 * s + 4 * s + 14 * s) + (10 * s + 8 * s + 22 * s + 8 * s + 22 * s) * 3 + (8 * s + 1 + 8 * s) * 3
+       + 8 * s + 16 * s + 14 * s + 11 * s;
   px = floor(max(4 * s, gfx_w - 8 * s - pw));
   py = ui_pop_frame(px, pw, ph);
-  ui_pop_head(px, py, pw, "Analyzer Settings", sprintf(#, "ReEQ %s", #VERSION));
+  ui_pop_head(px, py, pw, "Settings", sprintf(#, "ReEQ %s", #VERSION));
 
   x = px + pad; w = pw - 2 * pad; y = py + 30 * s + 10 * s;
+
+  gfx_setfont(5); ui_rgb(109, 119, 124); ui_text_l(x, y, 10 * s, "DYNAMICS");
+  y += 18 * s;
+  r = ui_setrow(x, y, w, "Lookahead", "ms", 4, Lookahead_Value, pr, "Off", "1", "5", "10", "");
+  r >= 0 ? (Lookahead_Value = r; sliderchange(Lookahead_Value));
+  y += 22 * s + 4 * s;
+  gfx_setfont(7); ui_rgb(109, 119, 124);
+  ui_text_l(x, y, 14 * s, "Adds latency when on");
+  y += 14 * s + 8 * s;
+  ui_rgb(31, 38, 41); gfx_line(x, y, x + w, y, 0);
+  y += 1 + 8 * s;
 
   gfx_setfont(5); ui_rgb(109, 119, 124); ui_text_l(x, y, 10 * s, "RANGE");
   y += 18 * s;
@@ -4812,8 +5922,212 @@ function ui_select_only(b) (
   b >= 0 ? (select_node(b); selected_node_group = Band_Group[b]);
 );
 
+/*
+ * Small knob for the dynamics block, 26pt across. v is 0..1; bipolar fills from the centre; the value
+ * arc is the band's colour, or grey; dim draws it inactive.
+ */
+function ui_knob_small(cx, cy, v, bipolar, grey, dim) local(s, t0, t1, th) (
+  s = ui_pt(1);
+  cx = floor(cx) + 0.5; cy = floor(cy) + 0.5;
+  ui_mix = dim ? 0.65 : 0;
+  gfx_a = 1;
+  ui_rgb(34, 41, 45);
+  ui_thick_arc(cx, cy, 12 * s, 1.25 * $pi, 2.75 * $pi, 2 * s);
+  bipolar ? (t0 = min(0.5, v); t1 = max(0.5, v)) : (t0 = 0; t1 = v);
+  t1 - t0 > 0.004 ? (
+    grey ? ui_rgb(109, 119, 124) : ui_band_rgb(selected_node);
+    ui_thick_arc(cx, cy, 12 * s, 1.25 * $pi + 1.5 * $pi * t0, 1.25 * $pi + 1.5 * $pi * t1, 2 * s);
+  );
+  ui_rgb(10, 12, 13); gfx_circle(cx, cy, 9 * s, 1, 1);
+  ui_rgb(27, 31, 34); gfx_circle(cx, cy, 8 * s, 1, 1);
+  ui_rgb(48, 55, 59); gfx_circle(cx, cy, 8 * s, 0, 1);
+  th = 0.75 * $pi + 1.5 * $pi * v;
+  ui_rgb(238, 242, 244);
+  ui_thick_line(cx + 2.5 * s * cos(th), cy + 2.5 * s * sin(th), cx + 7 * s * cos(th), cy + 7 * s * sin(th), 1.6 * s);
+  ui_mix = 0;
+);
+
+/*
+ * Vertical drag over a small knob's cell (id is the cell's number). Shift or Alt drags finely; a double
+ * click gives dv. Returns the new 0..1 value.
+ */
+function ui_knob_drag(id, x, y, w, h, v, dv) local(tm) (
+  ui_press && ui_hover(x, y, w, h) ? (
+    tm = time_precise();
+    ui_kd_last == id && tm - ui_kd_time < 0.4 ? (v = dv; ui_kd_time = 0) : (
+      ui_kd = id; ui_kd_y = mouse_y; button_focus = -2 - id; ui_kd_time = tm;
+    );
+    ui_kd_last = id;
+  ) : ui_kd == id && (mouse_cap & 1) ? (
+    v = min(max(v + (ui_kd_y - mouse_y) * (mouse_cap & 24 ? 0.0004 : 0.005), 0), 1);
+    ui_kd_y = mouse_y;
+  );
+  v;
+);
+
+/*
+ * One cell of the dynamics grid: a small knob with its label and value beside it. Returns the knob's
+ * new 0..1 value; an inert cell only draws.
+ */
+function ui_dyn_cell(id, x, cy, w, label, v, dv, bipolar, grey, dim, val, unit) local(s, tx, w1) (
+  s = ui_pt(1);
+  !dim ? v = ui_knob_drag(id, x, cy - 16 * s, w, 32 * s, v, dv);
+  ui_knob_small(x + 13 * s, cy, v, bipolar, grey, dim);
+  gfx_a = 1; ui_mix = dim ? 0.65 : 0;
+  tx = x + 31 * s;
+  gfx_setfont(15); ui_rgb(109, 119, 124);
+  ui_text_l(tx, cy - 13 * s, 10 * s, label);
+  gfx_setfont(4); ui_rgb(223, 230, 233);
+  ui_text_l(tx, cy - 2 * s, 14 * s, val);
+  w1 = ui_text_w(val);
+  strlen(unit) > 0 ? (gfx_setfont(5); ui_rgb(109, 119, 124); ui_text_l(tx + w1 + 2 * s, cy - 2 * s, 14 * s, unit));
+  ui_mix = 0;
+  v;
+);
+
+function ui_fmt_ms(s, v) (
+  sprintf(s, v < 10 ? "%.1f" : "%.0f", v);
+);
+
+/*
+ * The Timing cell: a switch, Auto or Manual. Going to Manual starts from the automatic times.
+ */
+function ui_dyn_timing(x, cy, w, b) local(s, sx, on, hov, tx) (
+  s = ui_pt(1);
+  on = Band_Dyn_Auto[b];
+  hov = ui_hover(x, cy - 16 * s, w, 32 * s);
+  sx = x + 1 * s;
+  on ? ui_box(sx, cy - 8 * s, 28 * s, 16 * s, 8 * s, 15, 42, 51, 1, 29, 90, 109)
+     : ui_box(sx, cy - 8 * s, 28 * s, 16 * s, 8 * s, 13, 16, 18, 1, hov ? 58 : 42, hov ? 68 : 49, hov ? 73 : 53);
+  on ? ui_rgb(92, 200, 234) : ui_rgb(109, 119, 124);
+  gfx_a = 1;
+  gfx_circle(on ? sx + 20 * s : sx + 8 * s, cy, 5 * s, 1, 1);
+  tx = x + 35 * s;
+  gfx_setfont(15); ui_rgb(109, 119, 124);
+  ui_text_l(tx, cy - 13 * s, 10 * s, "TIMING");
+  gfx_setfont(4); on ? ui_rgb(92, 200, 234) : hov ? ui_rgb(223, 230, 233) : ui_rgb(154, 165, 170);
+  ui_text_l(tx, cy - 2 * s, 14 * s, on ? "Auto" : "Manual");
+  ui_clicked(x, cy - 16 * s, w, 32 * s) ? (
+    on ? (
+      Band_Dyn_Attack[b] = band_dyn_auto_attack(b);
+      Band_Dyn_Release[b] = band_dyn_auto_release(b);
+      filters_to_sliders();
+      notify_touched_dyn(b, 4); notify_touched_dyn(b, 5);
+    );
+    Band_Dyn_Auto[b] = !on;
+    notify_dyn_state(b);
+  );
+);
+
+/*
+ * The gain change meter: the detector level (-60..0dB) beside its threshold, and the gain change as a
+ * share of the range (a cut fills down from the top, a boost up from the bottom), with its value
+ */
+function ui_dyn_meter(mx, y, b) local(s, top, mh, f, t, g) (
+  s = ui_pt(1);
+  top = y + 56 * s; mh = 62 * s;
+  gfx_a = 1;
+  gfx_setfont(15); ui_rgb(109, 119, 124);
+  ui_text_c(mx - 16 * s, y + 42 * s, 32 * s, 10 * s, "GR");
+
+  // The level falls back at 30dB/s, so it reads steadily
+  ui_dyn_mb != b ? (ui_dyn_lv = -150; ui_dyn_mb = b);
+  ui_dyn_lv = max(Band_Dyn_Level[b], ui_dyn_lv - 30 * ui_dt);
+  ui_rgb(27, 33, 36);
+  gfx_rect(mx - 6 * s, top, 4 * s, mh);
+  gfx_rect(mx + 1 * s, top, 5 * s, mh);
+  f = min(max((ui_dyn_lv + 60) / 60, 0), 1);
+  ui_rgb(109, 119, 124);
+  f > 0 ? gfx_rect(mx - 6 * s, top + mh * (1 - f), 4 * s, mh * f);
+  t = min(max((Band_Dyn_Thresh[b] + 60) / 60, 0), 1);
+  ui_band_rgb(b);
+  gfx_rect(mx - 8 * s, floor(top + mh * (1 - t)), 8 * s, max(1, floor(1.5 * s)));
+
+  g = Band_Dyn_Gain[b];
+  f = min(abs(g) / max(abs(Band_Dynamic_Range[b]), 0.1), 1);
+  f > 0.005 ? (Band_Dynamic_Range[b] < 0 ? gfx_rect(mx + 1 * s, top, 5 * s, mh * f) : gfx_rect(mx + 1 * s, top + mh * (1 - f), 5 * s, mh * f));
+  gfx_setfont(7); ui_rgb(223, 230, 233);
+  ui_text_c(mx - 16 * s, top + mh + 4 * s, 32 * s, 14 * s, ui_fmt_db(#, g));
+);
+
+/*
+ * A dynamic band's block, to the right of its dials from the hairline at hl to the panel's right edge
+ * xr: Threshold, Ratio and Range over Attack, Release and Timing, then the meter
+ */
+function ui_draw_dyn_block(b, hl, y, xr) local(s, gx, cw, r1, r2, v, nv, a, auto) (
+  s = ui_pt(1);
+  ui_rgb(29, 35, 38); gfx_a = 1;
+  gfx_line(hl, y + 46 * s, hl, y + 136 * s, 0);
+  gx = hl + 12 * s; cw = 89 * s; r1 = y + 68 * s; r2 = y + 116 * s;
+  auto = Band_Dyn_Auto[b];
+
+  // Threshold, -60..0dB
+  v = (Band_Dyn_Thresh[b] + 60) / 60;
+  nv = ui_dyn_cell(0, gx, r1, cw, "THRESHOLD", v, 36 / 60, 0, 0, 0, ui_fmt_db(#, Band_Dyn_Thresh[b]), "dB");
+  nv != v ? (Band_Dyn_Thresh[b] = -60 + 60 * nv; filters_to_sliders(); notify_touched_dyn(b, 1));
+
+  // Ratio, 1..20, on a log scale
+  v = log(max(Band_Dyn_Ratio[b], 1)) / log(20);
+  nv = ui_dyn_cell(1, gx + cw, r1, cw, "RATIO", v, log(4) / log(20), 0, 0, 0,
+    sprintf(#, Band_Dyn_Ratio[b] < 10 ? "%.1f" : "%.0f", Band_Dyn_Ratio[b]), ":1");
+  nv != v ? (Band_Dyn_Ratio[b] = exp(nv * log(20)); filters_to_sliders(); notify_touched_dyn(b, 2));
+
+  // Range, -24..+24dB: its sign is the direction
+  v = (Band_Dynamic_Range[b] + 24) / 48;
+  nv = ui_dyn_cell(2, gx + 2 * cw, r1, cw, "RANGE", v, 18 / 48, 1, 0, 0, ui_fmt_db(#, Band_Dynamic_Range[b]), "dB");
+  nv != v ? (Band_Dynamic_Range[b] = -24 + 48 * nv; filters_to_sliders(); notify_touched_dyn(b, 3));
+
+  // Attack, 0.1..200ms, and release, 5..2000ms, on log scales; with Auto on they show the automatic
+  // times, greyed and inert
+  a = auto ? band_dyn_auto_attack(b) : Band_Dyn_Attack[b];
+  v = log(a / 0.1) / log(2000);
+  nv = ui_dyn_cell(3, gx, r2, cw, "ATTACK", v, log(50) / log(2000), 0, auto, auto, ui_fmt_ms(#, a), "ms");
+  !auto && nv != v ? (Band_Dyn_Attack[b] = 0.1 * exp(nv * log(2000)); filters_to_sliders(); notify_touched_dyn(b, 4));
+
+  a = auto ? band_dyn_auto_release(b) : Band_Dyn_Release[b];
+  v = log(a / 5) / log(400);
+  nv = ui_dyn_cell(4, gx + cw, r2, cw, "RELEASE", v, log(16) / log(400), 0, auto, auto, ui_fmt_ms(#, a), "ms");
+  !auto && nv != v ? (Band_Dyn_Release[b] = 5 * exp(nv * log(400)); filters_to_sliders(); notify_touched_dyn(b, 5));
+
+  ui_dyn_timing(gx + 2 * cw, r2, cw, b);
+  ui_dyn_meter(xr - 24 * s, y, b);
+);
+
+/*
+ * The detection source picker: the band's own input, or a sidechain pair
+ */
+function ui_draw_dyn_source_pop(b) local(s, pw, ph, px, py, i, tx, ty, tw, th, on, hov, inpop, pr) (
+  s = ui_pt(1);
+  pr = ui_press && !ui_pop_skip; ui_pop_skip = 0;
+  pw = 168 * s; th = 24 * s; tw = pw - 10 * s;
+  ph = 5 * s + 4 * th + 6 * s + 5 * s;
+  px = max(4 * s, min(ui_pop_x + ui_pop_w * 0.5 - pw * 0.5, gfx_w - pw - 4 * s));
+  py = ui_pop_frame(px, pw, ph);
+  inpop = ui_in(px, py, pw, ph);
+  i = 0;
+  loop(4,
+    tx = floor(px + 5 * s); ty = floor(py + 5 * s + i * (th + 2 * s));
+    on = i == Band_Dyn_Source[b];
+    hov = ui_in(tx, ty, tw, th);
+    on ? ui_box(tx, ty, tw, th, 4 * s, 15, 42, 51, 1, 29, 90, 109) : hov ? ui_box(tx, ty, tw, th, 4 * s, 26, 31, 34, 1, 44, 52, 56);
+    gfx_a = 1;
+    gfx_setfont(on ? 4 : 3);
+    on ? ui_rgb(92, 200, 234) : ui_rgb(223, 230, 233);
+    ui_text_l(tx + 8 * s, ty, th, i == 0 ? "Band" : sprintf(#, "SC %d", i));
+    i > 0 ? (
+      gfx_setfont(3); ui_rgb(109, 119, 124);
+      ui_text_r(tx, ty, tw - 8 * s, th, sprintf(#, "Ch. %d/%d", 2 * i + 1, 2 * i + 2));
+    );
+    pr && hov ? (Band_Dyn_Source[b] = i; notify_dyn_state(b); ui_popup = 0);
+    i += 1;
+  );
+  pr ? (!inpop ? ui_popup = 0; ui_block = 1);
+  gfx_setfont(1);
+);
+
 function ui_draw_panel()
-  local(s, b, t, x, y, w, h, hy, hh, lab, sw, sx, gw2, gx2, rx, ib, k, n, i, cx, cy, sp, v, rv, cut, dimg, dimq, val, unit, done, orig, f)
+  local(s, b, t, x, y, w, h, hy, hh, lab, sw, sx, gw2, gx2, rx, ib, k, n, i, cx, cy, sp, v, rv, cut, dimg, dimq, val, unit, done, orig, f,
+        dx, dw, hl, dyn, le, hnarrow)
 (
   s = ui_pt(1);
   b = selected_node; t = Band_Type[b];
@@ -4842,14 +6156,55 @@ function ui_draw_panel()
   gw2 = ui_text_w(ui_group_name(Band_Group[b])) + 33 * s; gx2 = sx + sw + 8 * s;
   ui_dropdown(gx2, hy, gw2, hh, ui_group_name(Band_Group[b]), ui_popup == 2) ? (ui_popup = 2; ui_pop_skip = 1; ui_block = 1; ui_pop_x = gx2; ui_pop_y = hy; ui_pop_w = gw2);
 
-  // Header right: band navigation
+  // Header: dynamics, for bells and shelves. DYN, then on a dynamic band its detection source and Listen
+  // (the detector's signal, an ear, so it isn't mistaken for the band solo's headphones). le is where
+  // the left-hand controls end.
+  le = gx2 + gw2;
+  band_dyn_capable(t) ? (
+    dx = gx2 + gw2 + 8 * s;
+    ui_rgb(38, 45, 49); gfx_a = 1;
+    gfx_line(dx, hy + 3 * s, dx, hy + hh - 3 * s, 0);
+    dx += 8 * s;
+    gfx_setfont(4); dw = ui_text_w("DYN") + 18 * s;
+    ui_button(dx, hy, dw, hh, "DYN", Band_Dyn_On[b] ? 1 : 0) ? (
+      Band_Dyn_On[b] = !Band_Dyn_On[b];
+      flag_filter_update(b);
+      filters_to_sliders();
+      notify_touched_dyn(b, 0);
+    );
+    le = dx + dw;
+    Band_Dyn_On[b] && ui_dyn_panel ? (
+      dx += dw + 6 * s;
+      gfx_setfont(3); dw = ui_text_w("Band") + 33 * s;
+      ui_dropdown(dx, hy, dw, hh, Band_Dyn_Source[b] == 0 ? "Band" : sprintf(#, "SC %d", Band_Dyn_Source[b]), ui_popup == 7) ? (
+        ui_popup = 7; ui_pop_skip = 1; ui_block = 1; ui_pop_x = dx; ui_pop_y = hy; ui_pop_w = dw;
+      );
+      dx += dw + 6 * s;
+      // Link: detection follows the band; unlinked, it has its own node on the graph
+      ui_icon_button(dx, hy, 26 * s, hh, Band_Dyn_Link[b] ? 7 : 8, Band_Dyn_Link[b] ? 1 : 0) ? (
+        Band_Dyn_Link[b] ? dyn_unlink(b) : (Band_Dyn_Link[b] = 1);
+        flag_filter_update(b);
+        notify_dyn_state(b);
+      );
+      dx += 26 * s + 6 * s;
+      ui_icon_button(dx, hy, 26 * s, hh, 6, Dyn_Listen == b ? 1 : 0) ? (
+        Dyn_Listen = Dyn_Listen == b ? -1 : b;
+        Dyn_Listen >= 0 && listen_node != -1 ? (listen_node = -1; flag_filter_update(b));
+      );
+      le = dx + 26 * s;
+    );
+  );
+
+  // Header right: band navigation, left out when the left-hand controls would reach the icons
   rx = x + w - 10 * s;
+  hnarrow = le + 8 * s > rx - 220 * s;
+  !hnarrow ? (
   ui_text_button(rx - 22 * s, hy, 22 * s, hh, "›") ? (
     done = 0;
     while (
       selected_node += 1;
       selected_node >= NUM_BANDS ? selected_node = 0;
-      Band_Enabled[selected_node] != BAND_STATE_OFF ? (listen_node != -1 ? listen_node = selected_node; done = 1);
+      Band_Enabled[selected_node] != BAND_STATE_OFF ? (listen_node != -1 ? listen_node = selected_node; Dyn_Listen >= 0 ? Dyn_Listen = selected_node; done = 1);
       !done;
     );
     ui_select_only(selected_node);
@@ -4872,7 +6227,7 @@ function ui_draw_panel()
     while (
       selected_node -= 1;
       selected_node < 0 ? selected_node = NUM_BANDS - 1;
-      Band_Enabled[selected_node] != BAND_STATE_OFF ? (listen_node != -1 ? listen_node = selected_node; done = 1);
+      Band_Enabled[selected_node] != BAND_STATE_OFF ? (listen_node != -1 ? listen_node = selected_node; Dyn_Listen >= 0 ? Dyn_Listen = selected_node; done = 1);
       !done;
     );
     ui_select_only(selected_node);
@@ -4882,9 +6237,10 @@ function ui_draw_panel()
 
   ui_rgb(38, 45, 49);
   gfx_line(rx - 86 * s, hy + 3 * s, rx - 86 * s, hy + hh - 3 * s, 0);
+  );
 
   // Header right: solo (listen), bypass, duplicate, delete
-  ib = rx - 92 * s;
+  ib = hnarrow ? rx : rx - 92 * s;
   ui_icon_button(ib - 26 * s, hy, 26 * s, hh, 4, 2) ? (
     Band_Enabled[b] = BAND_STATE_OFF;
     listen_node = -1;
@@ -4913,6 +6269,7 @@ function ui_draw_panel()
     );
     ui_icon_button(ib - 128 * s, hy, 26 * s, hh, 1, listen_node == b ? 1 : 0) ? (
       listen_node = listen_node == b ? -1 : b;
+      listen_node != -1 ? Dyn_Listen = -1;
       flag_filter_update(b);
       filters_to_sliders();
     );
@@ -4925,7 +6282,18 @@ function ui_draw_panel()
   b = selected_node;
   b >= 0 ? (
     t = Band_Type[b]; cut = ui_is_cut(t);
-    cx = x + w * 0.5; cy = y + 91 * s; sp = 116 * s;
+    // A dynamic band's dials move left for its dynamics block (the block is 327pt from the hairline to
+    // the right edge), closer together in a narrow panel
+    dyn = ui_dyn_panel && Band_Dyn_On[b] && band_dyn_capable(t);
+    dyn ? (
+      hl = x + w - 327 * s;
+      sp = min(max((hl - x - 131 * s) * 0.5, 76 * s), 116 * s);
+      cx = hl - 60 * s - sp;
+    ) : (
+      cx = x + w * 0.5; sp = 116 * s;
+    );
+    cy = y + 91 * s;
+    ui_dial_hx = sp * 0.5;
 
     // Frequency
     dial_freq.x = cx - sp; dial_freq.y = cy; dial_freq.r = 29 * s;
@@ -4974,8 +6342,10 @@ function ui_draw_panel()
     );
     ui_dial_face(cx + sp, cy, cut ? "RESONANCE" : "Q", q_to_per(Band_Q[b], 1.0), 0, 0, dimq, sprintf(#, "%.2f", Band_Q[b]), "");
 
+    dyn ? ui_draw_dyn_block(b, hl, y, x + w);
+
     // Pickers draw last so they sit on top
-    ui_popup == 1 ? ui_draw_shape_pop(b) : ui_popup == 2 ? ui_draw_stereo_pop(b);
+    ui_popup == 1 ? ui_draw_shape_pop(b) : ui_popup == 2 ? ui_draw_stereo_pop(b) : ui_popup == 7 && dyn ? ui_draw_dyn_source_pop(b);
   ) : ui_popup = 0;
 
   gfx_setfont(1);
@@ -4993,7 +6363,8 @@ function ui_draw_panel()
   ui_th1 = gfx_texth;
   gfx_setfont(2,"Arial",floor(rscale(11, 18) + 0.5),'b');
 
-  // UI fonts: 3 label, 4 label bold, 5 small caps, 6 dial value, 7 axis, 8 card title, 9 badge, 10 node number, 11 tile label, 12 segment on, 13-14 wordmark
+  // UI fonts: 3 label, 4 label bold, 5 small caps, 6 dial value, 7 axis, 8 card title, 9 badge, 10 node number, 11 tile label, 12 segment on, 13-14 wordmark,
+  // 15 dynamics knob label
   gfx_setfont(3,"Arial",floor(ui_pt(11) + 0.5));
   gfx_setfont(4,"Arial",floor(ui_pt(11) + 0.5),'b');
   gfx_setfont(5,"Arial",floor(ui_pt(9) + 0.5));
@@ -5006,6 +6377,7 @@ function ui_draw_panel()
   gfx_setfont(12,"Arial",floor(ui_pt(10) + 0.5),'b');
   gfx_setfont(13,"Arial",floor(ui_pt(15) + 0.5));
   gfx_setfont(14,"Arial",floor(ui_pt(15) + 0.5),'b');
+  gfx_setfont(15,"Arial",floor(ui_pt(8) + 0.5));
   gfx_setfont(1);
 );
 
@@ -5032,6 +6404,25 @@ Display_Mode != 2 ? (
     spectrum.draw(4);
     SPEC_MODE == 3 || SPEC_MODE == 6 ? spectrum.draw(5);
   );
+);
+
+// The ghost spectrum follows the band whose detector node is dragged, else the selected band, else the
+// band being listened to, while that band's detector hears a sidechain or is unlinked. @sample feeds it.
+// The embedded view leaves it to the window (both run this when both are open).
+!UI_EMBED ? (
+  ui_gb = ui_ddrag && dyn_ghost_ok(ui_ddrag_b) ? ui_ddrag_b : dyn_ghost_ok(selected_node) ? selected_node : dyn_ghost_ok(Dyn_Listen) ? Dyn_Listen : -1;
+  ui_gb != Ghost_Band ? (
+    // Another band's (or no) ghost: start from silence
+    memset(spectrum.samples6, 0, spectrum.histsize);
+    memset(spectrum.bin_y6, 0, spectrum.max_buffer);
+    Ghost_Band = ui_gb;
+  );
+);
+
+// The ghost spectrum shows with the rest of the controls, or while its band's detector is heard
+Ghost_Band >= 0 ? (
+  ui_ghost_a = Dyn_Listen == Ghost_Band ? 1 : ui_fade;
+  ui_ghost_a > 0.01 ? draw_dyn_ghost(Ghost_Band, ui_ghost_a);
 );
 
 
@@ -5090,6 +6481,9 @@ drawRight ? draw_filter_response(4, 213/255, 65/255, 66/255);
 // Stereo
 draw_filter_response(0, 1.0, 1.0, 1.0);
 
+// Dynamic bands: their static settings while they move
+draw_dyn_static();
+
 // The header goes over anything that reaches above the graph
 ui_draw_header();
 
@@ -5120,8 +6514,11 @@ ui_fade > 0 ? (
     draw_info_panel();
   );
 
+  draw_dyn_range();
+  draw_dyn_detectors();
   draw_nodes();
 ) : ( 
+  ui_rh_on = 0;
   listen_node != -1 ? draw_listen_helper();
   node_drag_mode != 0 || is_box_dragging() ? (
     draw_info_panel();
@@ -5147,7 +6544,29 @@ glow_node_selection_halo();
 ui_rpress && BOTTOM_MARGIN > 0 && mouse_y >= gfx_h - BOTTOM_MARGIN ? ui_chrome_press = 1;
 !(mouse_cap & 3) ? ui_chrome_press = 0;
 
-do_general_mouse = 1 && !showTextInput && ui_popup == 0 && !ui_block && !ui_chrome_press;
+// A detector node: a press on it selects its band and drags the detector's frequency
+// (a band node over the ring comes first)
+ui_press && ui_fade > 0 && !showTextInput && ui_free() && !mouse_within_panel() && get_nearest_node() == -1 && (ui_dh = dyn_det_hit()) >= 0 ? (
+  ui_ddrag = 1; ui_ddrag_b = ui_dh; ui_ddrag_off = dyn_det_nx(ui_dh) - mouse_x; button_focus = -51; ui_ddrag_moved = 0;
+  selected_node = ui_dh; ui_select_only(ui_dh);
+);
+ui_ddrag && (mouse_cap & 1) ? (
+  ui_df = min(max(scx_to_freq(mouse_x + ui_ddrag_off), 20), min(20000, 0.45 * srate));
+  ui_df != Band_Dyn_DetFreq[ui_ddrag_b] ? (Band_Dyn_DetFreq[ui_ddrag_b] = ui_df; flag_filter_update(ui_ddrag_b); ui_ddrag_moved = 1);
+);
+
+// The range handle: a press on it drags the band's range (snapped to 0.1dB), the knob following
+ui_press && ui_rh_on && ui_free() && !mouse_within_panel() && sqr(mouse_x - ui_rh_x) + sqr(mouse_y - ui_rh_y) < sqr(ui_pt(7)) ? (
+  ui_rdrag = 1; ui_rdrag_b = ui_rh_b; button_focus = -50;
+  ui_rdrag_y = mouse_y; ui_rdrag_r = Band_Dynamic_Range[ui_rh_b];
+);
+ui_rdrag && (mouse_cap & 1) ? (
+  // Relative to the press, so a press alone (or on a handle held at the graph's edge) changes nothing
+  ui_rv = min(max(floor((ui_rdrag_r + y_to_db(mouse_y) - y_to_db(ui_rdrag_y)) * 10 + 0.5) / 10, -24), 24);
+  ui_rv != Band_Dynamic_Range[ui_rdrag_b] ? (Band_Dynamic_Range[ui_rdrag_b] = ui_rv; filters_to_sliders(); notify_touched_dyn(ui_rdrag_b, 3));
+);
+
+do_general_mouse = 1 && !showTextInput && ui_popup == 0 && !ui_block && !ui_chrome_press && !ui_rdrag && !ui_ddrag;
 
 // While it sits out, keep its state current: a release must not act on a press it never saw,
 // wheel movement must not pile up, and listen ends with the modifier
@@ -5560,6 +6979,14 @@ do_general_mouse ? (
   md = -(mw - last_wheel) / 120;
   last_wheel = mw;
 
+  // Over a detector node the wheel sets the detector's width, as it sets Q over a node
+  md != 0 && ui_fade > 0 && get_nearest_node() == -1 && (ui_dh = dyn_det_hit()) >= 0 ? (
+    Band_Dyn_DetWidth[ui_dh] = min(max(dyn_det_width(ui_dh) * 2 ^ (md * 0.15), 0.25), 8);
+    flag_filter_update(ui_dh);
+    notify_dyn_state(ui_dh);
+    md = 0;
+  );
+
   md != 0.0 ? ( 
     done_band = 0;
 
@@ -5625,7 +7052,10 @@ box_region_drag_mode ? (
 // Bottom toolbar, top-right controls and the node panel
 
 // Close a picker when its band or the panel goes away, or on Escape
-(ui_popup == 1 || ui_popup == 2) && (!ShowPanel || selected_node < 0 || Band_Enabled[selected_node] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
+(ui_popup == 1 || ui_popup == 2 || ui_popup == 7) && (!ShowPanel || selected_node < 0 || Band_Enabled[selected_node] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
+ui_popup == 7 && !ui_dyn_panel ? ui_popup = 0;
+// Listen to a detector only while its band is dynamic
+Dyn_Listen >= 0 && !(Band_Dyn_On[Dyn_Listen] && band_dyn_capable(Band_Type[Dyn_Listen]) && Band_Enabled[Dyn_Listen] != BAND_STATE_OFF) ? Dyn_Listen = -1;
 ui_popup == 3 && (compact_width || compact_height || Band_Enabled[ui_card_band] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
 (ui_popup == 4 || ui_popup == 5) && (compact_height || compact_width || ui_key == 27) ? ui_popup = 0;
 ui_popup == 6 && (compact_width || compact_height || ui_key == 27) ? ui_popup = 0;
