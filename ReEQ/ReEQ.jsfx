@@ -5200,6 +5200,9 @@ do_general_mouse ? (
     band = 0;
     while( 
       Band_Enabled[band]!=BAND_STATE_OFF && is_node_selected(band) ? (
+        // A node outside the selection becomes the selection (Cmd adds it instead);
+        // a node inside it keeps the selection, so the card acts on all of them
+        !Band_Selected[band] && !(mouse_cap & 4) ? select_node_clear();
         select_node(band);
 
         selected_node = band;
