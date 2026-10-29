@@ -2398,7 +2398,9 @@ compact_height = actual_height < 320;
 very_compact_width = actual_width < 300;
 very_compact_height = actual_height < 160;
 
-TOP_MARGIN = floor(ui_pt(15));
+// A header strip holds the logo and the top buttons; the graph starts below it
+HEADER_H = compact_height ? 0 : floor(ui_pt(34));
+TOP_MARGIN = compact_height ? floor(ui_pt(10)) : HEADER_H + floor(ui_pt(16));
 // The bottom toolbar is 40pt, and the node panel sits about 176pt above it
 BOTTOM_MARGIN = 40 * max(gfx_ext_retina, 1);
 RAISED_BOTTOM = 176 * max(gfx_ext_retina, 1);
@@ -2519,7 +2521,8 @@ function get_filter_y(band) local(y, s) (
         y = db_to_y(Band_Gain[band]);
       );
     );
-    y;
+    // Gains beyond the dB range stay in the graph, clear of the header
+    max(y, TOP_MARGIN);
 );
 
 /*
@@ -2998,15 +3001,16 @@ function draw_grid() local (db, y, x, f, gb, major, lab, k, s, lw) (
     x = floor(freq_to_scx(f)) + 0.5;
     major = f == 100 || f == 1000 || f == 10000;
     ui_rgba(255, 255, 255, major ? 0.10 : 0.05);
-    gfx_line(x, 0, x, gb, 0);
+    gfx_line(x, HEADER_H, x, gb, 0);
 
-    (f == 20 || f == 50 || f == 100 || f == 200 || f == 500 || f == 1000 || f == 2000 || f == 5000 || f == 10000)
+    (f == 20 || f == 50 || f == 100 || f == 200 || f == 500 || f == 1000 || f == 2000 || f == 5000 || f == 10000 || f == 20000)
       && (!compact_width || major) ? (
       lab = #;
       f >= 1000 ? sprintf(lab, "%dk", f / 1000) : sprintf(lab, "%d", f);
       lw = ui_text_w(lab);
       ui_rgba(91, 100, 104, 1);
-      ui_text_l(x - lw * 0.5, gb + ui_pt(2), ui_pt(14), lab);
+      // Kept inside the window: 20k sits close to the right edge
+      ui_text_l(min(x - lw * 0.5, gfx_w - lw - ui_pt(4)), gb + ui_pt(2), ui_pt(14), lab);
     );
     f += (f < 100 ? 10 : f < 1000 ? 100 : f < 10000 ? 1000 : 10000);
     f < MAX_FREQ;
@@ -3022,17 +3026,8 @@ function draw_grid() local (db, y, x, f, gb, major, lab, k, s, lw) (
     !compact_height || (k % 2) == 0 ? (
       lab = #;
       db > 0 ? sprintf(lab, "+%d", db) : db < 0 ? sprintf(lab, "−%d", -db) : strcpy(lab, "0");
-      k == 0 && !compact_width && !compact_height ? (
-        // The top label is the dB range button, in line with the Analyzer and settings buttons
-        ui_dbb_w = ui_pt(40); ui_dbb_h = ui_pt(22); ui_dbb_x = gfx_w - ui_pt(4) - ui_dbb_w; ui_dbb_y = ui_pt(4);
-        ui_hover(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h) ?
-          ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, ui_pt(5), 22, 27, 30, 1, 58, 68, 73) :
-          ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, ui_pt(5), 13, 16, 18, 1, 42, 49, 53);
-        ui_rgba(191, 191, 0, 1); // the original ReEQ yellow
-        ui_text_l(ui_dbb_x + ui_pt(8), ui_dbb_y, ui_dbb_h, lab);
-        ui_rgba(191, 191, 0, 0.7);
-        ui_chevron(ui_dbb_x + ui_dbb_w - ui_pt(10), ui_dbb_y + ui_dbb_h * 0.5, ui_pt(3), 1);
-      ) : (
+      // The top label doubles as the dB range button (ui_draw_header draws it, over the curves)
+      k == 0 && !compact_width && !compact_height ? (strcpy(#ui_dbb_lab, lab); ui_dbb_cy = y) : (
         ui_rgba(191, 191, 0, 1); // the original ReEQ yellow
         ui_text_r(gfx_w - ui_pt(42), y - ui_pt(8), ui_pt(32), ui_pt(16), lab);
       );
@@ -3232,7 +3227,7 @@ function draw_info_panel(note_select)
       xbase + width > gfx_w - ui_pt(48) ? xbase = x - ui_pt(16) - width;
       xbase = max(ui_pt(8), xbase);
       ybase = y - rect_height - ui_pt(12);
-      ybase < ui_pt(32) ? ybase = max(y + ui_pt(14), ui_top_h > 0 ? ui_top_y + ui_top_h + ui_pt(4) : 0);
+      ybase < HEADER_H + ui_pt(6) ? ybase = y + ui_pt(14);
 
       ui_box(xbase, ybase, width, rect_height, ui_pt(5), 18, 21, 24, 0.95, 38, 45, 49);
 
@@ -4016,188 +4011,6 @@ function handle_number_dial(val) instance (x, y, r, v, width, menutext, label, d
 );
 
 
-/*
- * Initialise the menu style button
- */
-function init_menu_button(xpos, ypos, buttonwidth, buttonlabel, menutext) instance (x, y, width, menutext, label) (
-  x = xpos;
-  y = ypos;
-  width = buttonwidth;
-  this.menutext = menutext;
-  label = buttonlabel;
-);
-
-/*
- * Handle the menu style button
- */
-function handle_menu_button() instance (x, y, width, menutext, label, pressed, height, label)
-  local (last_clicked_item, menu)
-(
-  last_clicked_item = 0;
-  mouse_cap & 1 && node_drag_mode == 0 && !is_box_dragging() && !pressed ? (
-    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
-      pressed = 1;
-
-      #menu = "#Version: ";
-      #menu += #VERSION;
-      #menu += " ||";
-
-      // sprintf(#menu, "#Version: %s ||", VERSION);
-
-      #menu += ">Spectrum|";
-      Spectrum_Mode == 0 ? #menu += "!"; #menu += "Full|";
-      Spectrum_Mode == 1 ? #menu += "!"; #menu += "Mid|";
-      Spectrum_Mode == 2 ? #menu += "!"; #menu += "Side|";
-      Spectrum_Mode == 3 ? #menu += "!"; #menu += "Mid + Side|";
-      Spectrum_Mode == 4 ? #menu += "!"; #menu += "Left|";
-      Spectrum_Mode == 5 ? #menu += "!"; #menu += "Right|";
-      Spectrum_Mode == 6 ? #menu += "!"; #menu += "<Left + Right|";
-
-      #menu += ">Display|";
-      Display_Mode == 0 ? #menu += "!"; #menu += "Fill|";
-      Display_Mode == 1 ? #menu += "!"; #menu += "Line|";
-      Display_Mode == 2 ? #menu += "!"; #menu += "<None|";
-
-      #menu += ">Range|";
-      Ceiling_Value == 0 ? #menu += "!"; #menu += "Ceiling 0dB|";
-      Ceiling_Value == 1 ? #menu += "!"; #menu += "Ceiling 20dB|";
-      Ceiling_Value == 2 ? #menu += "!"; #menu += "Ceiling 40dB||";
-      Floor_Value == 0 ? #menu += "!"; #menu += "Floor -90dB|";
-      Floor_Value == 1 ? #menu += "!"; #menu += "Floor -140dB|";
-      Floor_Value == 2 ? #menu += "!"; #menu += "<Floor -200dB|";
-
-      #menu += ">Tilt|";
-      Tilt_Value == 0 ? #menu += "!"; #menu += "0dB/oct|";
-      Tilt_Value == 1 ? #menu += "!"; #menu += "1.5dB/oct|";
-      Tilt_Value == 2 ? #menu += "!"; #menu += "3dB/oct|";
-      Tilt_Value == 3 ? #menu += "!"; #menu += "4.5dB/oct|";
-      Tilt_Value == 4 ? #menu += "!"; #menu += "<6dB/oct|";
-
-      #menu += ">Window Type|";
-      Type_Value == 0 ? #menu += "!"; #menu += "Hamming|";
-      Type_Value == 1 ? #menu += "!"; #menu += "Blackman-Harris|";
-      Type_Value == 2 ? #menu += "!"; #menu += "Blackman|";
-      Type_Value == 3 ? #menu += "!"; #menu += "<Rectangular|";
-
-      #menu += ">FFT Size|";
-      Block_Value == 0 ? #menu += "!"; #menu += "2048|";
-      Block_Value == 1 ? #menu += "!"; #menu += "4096|";
-      Block_Value == 2 ? #menu += "!"; #menu += "8192|";
-      Block_Value == 3 ? #menu += "!"; #menu += "<16384|";
-
-      #menu += ">Display Pre-EQ|";
-      Show_PreEQ == 0 ? #menu += "!"; #menu += "Off|";
-      Show_PreEQ == 1 ? #menu += "!"; #menu += "<On|";
-
-      #menu += ">Smoothing|";
-      Smoothing_Value == 0 ? #menu += "!"; #menu += "Off|";
-      Smoothing_Value == 1 ? #menu += "!"; #menu += "1/48 Octave|";
-      Smoothing_Value == 2 ? #menu += "!"; #menu += "1/24 Octave|";
-      Smoothing_Value == 3 ? #menu += "!"; #menu += "1/12 Octave|";
-      Smoothing_Value == 4 ? #menu += "!"; #menu += "<1/6 Octave|";
-
-      gfx_x = mouse_x;
-      gfx_y = mouse_y;
-
-      last_clicked_item = gfx_showmenu(#menu) - 1;
-
-      pressed = 0;
-
-      last_clicked_item >= 1 && last_clicked_item <= 7 ? (
-        // Force reset of peak buffers
-        spectrum.set_show_peaks(Show_Peaks);
-
-        Spectrum_Mode = last_clicked_item - 1;
-      );
-
-      last_clicked_item >= 8 && last_clicked_item <= 10 ? ( 
-        Display_Mode = last_clicked_item - 8;
-      );
-
-      last_clicked_item >= 11 && last_clicked_item <= 13 ? ( 
-        Ceiling_Value = last_clicked_item - 11;
-      );
-
-      last_clicked_item >= 14 && last_clicked_item <= 16 ? ( 
-        Floor_Value = last_clicked_item - 14;
-      );
-
-      last_clicked_item >= 17 && last_clicked_item <= 21 ? ( 
-        Tilt_Value = last_clicked_item - 17;
-      );
-
-      last_clicked_item >= 22 && last_clicked_item <= 25 ? ( 
-        Type_Value = last_clicked_item - 22;
-      );
-
-      last_clicked_item >= 26 && last_clicked_item <= 29 ? ( 
-        Block_Value = last_clicked_item - 26;
-      );
-
-      last_clicked_item >= 30 && last_clicked_item <= 31 ? ( 
-        Show_PreEQ = last_clicked_item - 30;
-      );
-
-      last_clicked_item >= 32 && last_clicked_item <= 36 ? ( 
-        Smoothing_Value = last_clicked_item - 32;
-      );
-
-      last_clicked_item >= 1 ? update_state();
-    ) : pressed = 0;
-  ) : ( 
-    !(mouse_cap & 1) ? pressed = 0;
-  );
-
-  last_clicked_item;
-);
-
-/*
- * Initialise the db scale button
- */
-function init_dbscale_button(xpos, ypos, buttonwidth, buttonheight) instance (x, y, width, height) (
-  x = xpos;
-  y = ypos;
-  width = buttonwidth;
-  height = buttonheight;
-);
-
-/*
- * Handle the db scale button
- */
-function handle_dbscale_button() instance (x, y, width, pressed, height)
-  local (last_clicked_item)
-(
-  last_clicked_item = 0;
-  mouse_cap & 1 && node_drag_mode == 0 && !is_box_dragging() && !pressed ? (
-    mouse_x >= x && mouse_x <= x+width && mouse_y >= y && mouse_y <= y + height ? ( 
-      pressed = 1;
-
-      #menu = "";
-      Db_Range == 0 ? #menu += "!"; #menu += "6dB|";
-      Db_Range == 1 ? #menu += "!"; #menu += "12dB|";
-      Db_Range == 2 ? #menu += "!"; #menu += "18dB|";
-      Db_Range == 3 ? #menu += "!"; #menu += "24dB|";
-      Db_Range == 4 ? #menu += "!"; #menu += "30dB|";
-
-      gfx_x = mouse_x;
-      gfx_y = mouse_y;
-
-      last_clicked_item = gfx_showmenu(#menu);
-
-      pressed = 0;
-
-      last_clicked_item > 0 ? (
-        Db_Range = last_clicked_item - 1;
-        update_state();
-      );
-    ) : pressed = 0;
-  ) : ( 
-    !(mouse_cap & 1) ? pressed = 0;
-  );
-
-  last_clicked_item;
-);
-
 ////////////////////////////////////////////////////////////////////////////////////////////
 // UI: bottom toolbar, top-right controls, node panel and pickers
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -4493,68 +4306,114 @@ function ui_draw_bar()
     k += 1;
   );
 
-  // dB range: the top dB label is drawn as its button (draw_grid)
-  dbscale.x = ui_dbb_x; dbscale.y = ui_dbb_y; dbscale.width = ui_dbb_w; dbscale.height = ui_dbb_h;
-  ui_db_vis = 1;
-  ui_press && ui_free() ? dbscale.handle_dbscale_button();
+  // dB range: the top scale label is its button (ui_draw_header); it opens the Range popover
+  ui_clicked(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h) ? (
+    ui_popup = 6; ui_pop_skip = 1; ui_block = 1; ui_pop_x = ui_dbb_x; ui_pop_y = ui_dbb_y; ui_pop_w = ui_dbb_w;
+  );
+  gfx_setfont(1);
+);
+
+/*
+ * Header strip with the wordmark (the Analyzer and settings buttons are drawn into it by ui_draw_top),
+ * always shown apart from compact heights; then the top scale label as the dB range button.
+ */
+function ui_draw_header() local(s, x, i) (
+  s = ui_pt(1);
+  HEADER_H > 0 ? (
+    ui_rgba(13, 16, 18, 1); gfx_rect(0, 0, gfx_w, HEADER_H);
+    ui_rgba(29, 35, 38, 1); gfx_line(0, HEADER_H, gfx_w, HEADER_H, 0);
+
+    // Wordmark: Re in white, EQ in bold amber; then a hairline and a spaced descriptor when there's room
+    x = 12 * s;
+    gfx_setfont(13); ui_rgb(232, 238, 240);
+    ui_text_l(x, 2 * s, 30 * s, "Re");
+    x += ui_text_w("Re");
+    gfx_setfont(14); ui_rgb(227, 168, 75);
+    ui_text_l(x, 2 * s, 30 * s, "EQ");
+    x += ui_text_w("EQ");
+    actual_width >= 700 ? (
+      x += 10 * s;
+      ui_rgb(42, 49, 53); gfx_rect(floor(x), floor(10 * s), max(1, floor(s)), floor(14 * s));
+      x += 11 * s;
+      gfx_setfont(5); ui_rgb(109, 119, 124);
+      #ui_desc = "PARAMETRIC EQUALISER";
+      i = 0;
+      loop(strlen(#ui_desc),
+        strcpy_substr(#ui_ch, #ui_desc, i, 1);
+        ui_text_l(x, 2 * s, 30 * s, #ui_ch);
+        x += ui_text_w(#ui_ch) + 1.4 * s;
+        i += 1;
+      );
+    );
+  );
+
+  // The top scale label as the dB range button, on its own line (its menu is handled with the toolbar)
+  !compact_width && !compact_height ? (
+    ui_dbb_w = 40 * s; ui_dbb_h = 20 * s; ui_dbb_x = gfx_w - 4 * s - ui_dbb_w; ui_dbb_y = floor(ui_dbb_cy - ui_dbb_h * 0.5);
+    gfx_setfont(7);
+    ui_popup == 6 ? ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, 5 * s, 15, 42, 51, 1, 29, 90, 109) :
+      ui_hover(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h) ?
+        ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, 5 * s, 22, 27, 30, 1, 58, 68, 73) :
+        ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, 5 * s, 13, 16, 18, 1, 42, 49, 53);
+    ui_rgba(191, 191, 0, 1); // the original ReEQ yellow
+    ui_text_l(ui_dbb_x + 8 * s, ui_dbb_y, ui_dbb_h, #ui_dbb_lab);
+    ui_rgba(191, 191, 0, 0.7);
+    ui_chevron(ui_dbb_x + ui_dbb_w - 10 * s, ui_dbb_y + ui_dbb_h * 0.5, 3 * s, 1);
+  );
   gfx_setfont(1);
 );
 
 /*
  * Top right: analyzer menu and the settings menu
  */
-function ui_draw_top() local(s, h, y, gw, gx, aw, ax, lab, r) (
+function ui_draw_top() local(s, h, y, gw, gx, aw, ax, lab) (
   s = ui_pt(1);
-  h = ui_pt(22); y = ui_pt(4);
-  gw = ui_pt(24); gx = gfx_w - ui_pt(52) - gw;
+  h = ui_pt(22); y = ui_pt(6);
+  gw = ui_pt(24); gx = gfx_w - ui_pt(12) - gw;
   lab = Display_Mode == 2 ? "Analyzer · Off" : Show_PreEQ ? "Analyzer · Pre + Post" : "Analyzer · Post";
   gfx_setfont(3);
   aw = ui_text_w(lab) + ui_pt(16);
   ax = gx - ui_pt(8) - aw;
   ui_top_ax = ax; ui_top_aw = aw; ui_top_gx = gx; ui_top_gw = gw; ui_top_y = y; ui_top_h = h;
 
-  ui_button(ax, y, aw, h, lab, 0) ? (
-    #menu = "";
-    Display_Mode == 2 ? #menu += "!"; #menu += "Off|";
-    Display_Mode == 0 ? #menu += "!"; #menu += "Fill|";
-    Display_Mode == 1 ? #menu += "!"; #menu += "Line||";
-    Show_PreEQ ? #menu += "!"; #menu += "Show Pre-EQ||";
-    Spectrum_Mode == 0 ? #menu += "!"; #menu += "Full|";
-    Spectrum_Mode == 1 ? #menu += "!"; #menu += "Mid|";
-    Spectrum_Mode == 2 ? #menu += "!"; #menu += "Side|";
-    Spectrum_Mode == 3 ? #menu += "!"; #menu += "Mid + Side|";
-    Spectrum_Mode == 4 ? #menu += "!"; #menu += "Left|";
-    Spectrum_Mode == 5 ? #menu += "!"; #menu += "Right|";
-    Spectrum_Mode == 6 ? #menu += "!"; #menu += "Left + Right";
-    gfx_x = ax; gfx_y = y + h;
-    r = gfx_showmenu(#menu);
-    r >= 1 && r <= 3 ? Display_Mode = r == 1 ? 2 : r - 2;
-    r == 4 ? Show_PreEQ = !Show_PreEQ;
-    r >= 5 ? (Spectrum_Mode = r - 5; spectrum.set_show_peaks(Show_Peaks));
-    r > 0 ? update_state();
-  );
-
-  ui_icon_button(gx, y, gw, h, 5, 0);
-  menu.x = gx; menu.y = y; menu.width = gw; menu.height = h;
-  ui_press && ui_free() ? menu.handle_menu_button();
+  ui_button(ax, y, aw, h, lab, ui_popup == 4 ? 1 : 0) ? (ui_popup = 4; ui_pop_skip = 1; ui_block = 1; ui_pop_x = ax; ui_pop_y = y; ui_pop_w = aw);
+  ui_icon_button(gx, y, gw, h, 5, ui_popup == 5 ? 1 : 0) ? (ui_popup = 5; ui_pop_skip = 1; ui_block = 1; ui_pop_x = gx; ui_pop_y = y; ui_pop_w = gw);
   gfx_setfont(1);
 );
 
 /*
  * Place a picker above its button, or below it when there's no room, with the pointer on that side
  */
-function ui_pop_frame(px, pw, ph) local(s, ax, py, below, ty) (
+function ui_pop_frame(px, pw, ph) local(s, ax, py, below, x, y, w, h, r, p, e) (
   s = ui_pt(1);
   below = ui_pop_y - 8 * s - ph < 4 * s;
   py = below ? ui_pop_y + 24 * s + 8 * s : ui_pop_y - 8 * s - ph;
-  ui_box(px, py, pw, ph, 8 * s, 16, 19, 21, 0.88, 44, 52, 56);
-  ax = floor(ui_pop_x + ui_pop_w * 0.5);
-  ty = below ? py : py + ph;
+  x = floor(px); y = floor(py); w = floor(pw); h = floor(ph); r = floor(8 * s); p = 8 * s;
+  ax = floor(max(x + r + p, min(ui_pop_x + ui_pop_w * 0.5, x + w - 1 - r - p)));
+
+  // Body and pointer share one fill; the pointer starts just outside the body so nothing doubles
   ui_rgba(16, 19, 21, 0.88);
-  below ? gfx_triangle(ax - 8 * s, ty, ax + 8 * s, ty, ax, ty - 7 * s) : gfx_triangle(ax - 8 * s, ty, ax + 8 * s, ty, ax, ty + 7 * s);
+  ui_fill_rrect(x, y, w, h, r);
+  below ? gfx_triangle(ax - p, y - 1, ax + p, y - 1, ax, y - 7 * s) : gfx_triangle(ax - p, y + h, ax + p, y + h, ax, y + h + 7 * s);
+
+  // Outline drawn by hand so it opens where the pointer joins: the pointer reads as part of the frame
   ui_rgba(44, 52, 56, 1);
-  below ? (gfx_line(ax - 8 * s, ty, ax, ty - 7 * s, 1); gfx_line(ax, ty - 7 * s, ax + 8 * s, ty, 1))
-        : (gfx_line(ax - 8 * s, ty - 1, ax, ty + 7 * s, 1); gfx_line(ax, ty + 7 * s, ax + 8 * s, ty - 1, 1));
+  e = y + h - 1;
+  gfx_arc(x + r, y + r, r, 1.5 * $pi, 2 * $pi, 1);
+  gfx_arc(x + w - 1 - r, y + r, r, 0, 0.5 * $pi, 1);
+  gfx_arc(x + w - 1 - r, e - r, r, 0.5 * $pi, $pi, 1);
+  gfx_arc(x + r, e - r, r, $pi, 1.5 * $pi, 1);
+  gfx_line(x, y + r, x, e - r, 0);
+  gfx_line(x + w - 1, y + r, x + w - 1, e - r, 0);
+  below ? (
+    gfx_line(x + r, y, ax - p, y, 0); gfx_line(ax + p, y, x + w - 1 - r, y, 0);
+    gfx_line(x + r, e, x + w - 1 - r, e, 0);
+    gfx_line(ax - p, y, ax, y - 7 * s, 1); gfx_line(ax, y - 7 * s, ax + p, y, 1);
+  ) : (
+    gfx_line(x + r, y, x + w - 1 - r, y, 0);
+    gfx_line(x + r, e, ax - p, e, 0); gfx_line(ax + p, e, x + w - 1 - r, e, 0);
+    gfx_line(ax - p, e, ax, e + 7 * s, 1); gfx_line(ax, e + 7 * s, ax + p, e, 1);
+  );
   py;
 );
 
@@ -4638,6 +4497,9 @@ function ui_stereo_glyph(g, cx, cy, k) local(s, r) (
   g == 0 ? (ui_thick_arc(cx - 4 * s, cy, r, 0, 2 * $pi, 1.4 * s); ui_thick_arc(cx + 4 * s, cy, r, 0, 2 * $pi, 1.4 * s)) :
     g == 1 ? gfx_circle(cx, cy, r, 1, 1) :
       g == 2 ? (ui_thick_arc(cx - 8 * s, cy, r, 0, 2 * $pi, 1.4 * s); ui_thick_arc(cx + 8 * s, cy, r, 0, 2 * $pi, 1.4 * s)) :
+        // 5: mid and side together; 6: left and right together (the analyser's two-spectrum modes)
+        g == 5 ? (gfx_circle(cx, cy, r, 1, 1); ui_thick_arc(cx - 10 * s, cy, r, 0, 2 * $pi, 1.4 * s); ui_thick_arc(cx + 10 * s, cy, r, 0, 2 * $pi, 1.4 * s)) :
+        g == 6 ? (gfx_circle(cx - 7 * s, cy, r, 1, 1); gfx_circle(cx + 7 * s, cy, r, 1, 1)) :
         (gfx_circle(g == 3 ? cx - 6 * s : cx + 6 * s, cy, r, 1, 1);
          ui_rgb(53, 61, 65); ui_thick_arc(g == 3 ? cx + 6 * s : cx - 6 * s, cy, r, 0, 2 * $pi, 1.4 * s));
 );
@@ -4846,6 +4708,264 @@ function ui_draw_node_card()
 );
 
 /*
+ * Joined segmented control for the popovers: n segments (up to 5) labelled l0..l4, sel highlighted.
+ * Returns the segment pressed this frame, or -1. pr is the popover's fresh press.
+ */
+function ui_segn(x, y, w, h, n, sel, pr, l0, l1, l2, l3, l4) local(s, i, sx, sw, hov, hit, lab) (
+  s = ui_pt(1);
+  hit = -1;
+  x = floor(x); y = floor(y); w = floor(w); h = floor(h);
+  ui_box(x, y, w, h, 5 * s, 11, 14, 16, 1, 42, 49, 53);
+  sw = w / n;
+  i = 0;
+  loop(n,
+    sx = floor(x + i * sw);
+    lab = i == 0 ? l0 : i == 1 ? l1 : i == 2 ? l2 : i == 3 ? l3 : l4;
+    hov = ui_in(sx, y, floor(x + (i + 1) * sw) - sx, h);
+    i > 0 ? (ui_rgb(31, 38, 41); gfx_line(sx, y + 1, sx, y + h - 2, 0));
+    i == sel ? (
+      ui_box(sx + 1, y + 1, floor(x + (i + 1) * sw) - sx - 2, h - 2, 4 * s, 15, 42, 51, 1, 29, 90, 109);
+      gfx_setfont(12); ui_rgb(92, 200, 234);
+    ) : (
+      hov ? (ui_rgba(255, 255, 255, 0.04); ui_fill_rrect(sx + 1, y + 1, floor(x + (i + 1) * sw) - sx - 2, h - 2, 4 * s));
+      gfx_setfont(7); hov ? ui_rgb(223, 230, 233) : ui_rgb(154, 165, 170);
+    );
+    gfx_a = 1;
+    ui_text_c(sx, y, floor(x + (i + 1) * sw) - sx, h, lab);
+    pr && hov ? hit = i;
+    i += 1;
+  );
+  hit;
+);
+
+/*
+ * A label / control / unit row in the settings popover. Returns the segment pressed, or -1.
+ */
+function ui_setrow(x, y, w, label, unit, n, sel, pr, l0, l1, l2, l3, l4) local(s) (
+  s = ui_pt(1);
+  gfx_setfont(7); ui_rgb(154, 165, 170);
+  ui_text_l(x, y, 22 * s, label);
+  gfx_setfont(7); ui_rgb(91, 100, 104);
+  ui_text_l(x + w - 38 * s, y, 22 * s, unit);
+  ui_segn(x + 72 * s, y, w - 72 * s - 46 * s, 22 * s, n, sel, pr, l0, l1, l2, l3, l4);
+);
+
+/*
+ * Header strip for the top popovers
+ */
+function ui_pop_head(px, py, pw, title, sub) local(s) (
+  s = ui_pt(1);
+  ui_rgba(255, 255, 255, 0.015); gfx_rect(px + 1, py + 1, pw - 2, 29 * s);
+  ui_rgba(31, 38, 41, 1); gfx_line(px + 1, py + 30 * s, px + pw - 2, py + 30 * s, 0);
+  gfx_setfont(4); ui_rgb(223, 230, 233);
+  ui_text_l(px + 11 * s, py, 30 * s, title);
+  gfx_setfont(7); ui_rgb(109, 119, 124);
+  ui_text_r(px + pw - 11 * s - 120 * s, py, 120 * s, 30 * s, sub);
+);
+
+/*
+ * Shared close rules for the top popovers. An outside press closes; on the other top button it
+ * opens that one instead. Returns nothing; uses ui_popup.
+ */
+function ui_top_pop_close(px, py, pw, ph, pr, skip) (
+  (pr || (ui_rpress && !skip)) && !ui_in(px, py, pw, ph) ? (
+    ui_popup == 4 && ui_in(ui_top_gx, ui_top_y, ui_top_gw, ui_top_h) && pr ? (
+      ui_popup = 5; ui_pop_skip = 1; ui_pop_x = ui_top_gx; ui_pop_y = ui_top_y; ui_pop_w = ui_top_gw;
+    ) : ui_popup == 5 && ui_in(ui_top_ax, ui_top_y, ui_top_aw, ui_top_h) && pr ? (
+      ui_popup = 4; ui_pop_skip = 1; ui_pop_x = ui_top_ax; ui_pop_y = ui_top_y; ui_pop_w = ui_top_aw;
+    ) : ui_popup = 0;
+  );
+  pr ? ui_block = 1;
+);
+
+/*
+ * Analyzer popover: display style, pre-EQ, spectrum mode
+ */
+function ui_draw_analyzer_pop() local(s, pad, pw, ph, px, py, x, y, w, tw, th, i, m, tx, ty, on, hov, pr, skip, c, cx0, yy, k, t, g) (
+  s = ui_pt(1);
+  skip = ui_pop_skip; ui_pop_skip = 0;
+  pr = ui_press && !skip;
+  pad = 11 * s; pw = 276 * s;
+  ph = 30 * s + 10 * s + 10 * s + 6 * s + 46 * s + 8 * s + 34 * s + 8 * s + 10 * s + 6 * s + 44 * s * 2 + 4 * s + 11 * s;
+  px = floor(max(4 * s, gfx_w - 8 * s - pw));
+  py = ui_pop_frame(px, pw, ph);
+  ui_pop_head(px, py, pw, "Analyzer", Display_Mode == 2 ? "Off" : Show_PreEQ ? "Pre + Post" : "Post");
+
+  x = px + pad; w = pw - 2 * pad; y = py + 30 * s + 10 * s;
+
+  // Display: Off, Fill, Line, each with a tiny preview
+  gfx_setfont(5); ui_rgb(109, 119, 124);
+  ui_text_l(x, y, 10 * s, "DISPLAY");
+  y += 10 * s + 6 * s;
+  tw = (w - 8 * s) / 3; th = 46 * s;
+  i = 0;
+  loop(3,
+    m = i == 0 ? 2 : i - 1;
+    tx = floor(x + i * (tw + 4 * s)); ty = floor(y);
+    on = Display_Mode == m;
+    hov = ui_in(tx, ty, tw, th);
+    on ? ui_box(tx, ty, tw, th, 5 * s, 15, 42, 51, 1, 29, 90, 109)
+       : ui_box(tx, ty, tw, th, 5 * s, hov ? 26 : 16, hov ? 31 : 19, hov ? 34 : 21, 1, hov ? 52 : 32, hov ? 60 : 38, hov ? 64 : 42);
+    on ? ui_rgb(92, 200, 234) : ui_rgb(154, 165, 170);
+    cx0 = tx + tw * 0.5 - 20 * s;
+    i == 0 ? (
+      k = 0;
+      loop(9, gfx_line(cx0 + k * 4.5 * s, ty + 19 * s, cx0 + (k * 4.5 + 2.5) * s, ty + 19 * s, 1); k += 1);
+    ) : (
+      // A small spectrum: filled under the line for Fill
+      k = 0;
+      loop(floor(40 * s),
+        t = k / (40 * s);
+        yy = ty + (8 + 4 * cos(t * 7.2) * (1 - t * 0.4) + 3 * t) * s;
+        i == 1 ? (gfx_a = 0.28; gfx_line(cx0 + k, yy, cx0 + k, ty + 21 * s, 0));
+        gfx_a = 1;
+        k > 0 ? ui_thick_line(cx0 + k - 1, c, cx0 + k, yy, 1.3 * s);
+        c = yy;
+        k += 1;
+      );
+    );
+    gfx_a = 1;
+    gfx_setfont(7);
+    on ? ui_rgb(232, 246, 251) : hov ? ui_rgb(223, 230, 233) : ui_rgb(138, 148, 153);
+    ui_text_c(tx, ty + th - 17 * s, tw, 13 * s, i == 0 ? "Off" : i == 1 ? "Fill" : "Line");
+    pr && hov ? (Display_Mode = m; update_state());
+    i += 1;
+  );
+  y += th + 8 * s;
+
+  // Show Pre-EQ: a row with a switch
+  hov = ui_in(x, y, w, 34 * s);
+  ui_box(x, y, w, 34 * s, 5 * s, hov ? 22 : 16, hov ? 27 : 19, hov ? 30 : 21, 1, 32, 38, 42);
+  gfx_setfont(3); ui_rgb(223, 230, 233);
+  ui_text_l(x + 9 * s, y + 3 * s, 16 * s, "Show Pre-EQ");
+  gfx_setfont(11); ui_rgb(109, 119, 124);
+  ui_text_l(x + 9 * s, y + 17 * s, 13 * s, "Grey line behind the output");
+  tx = x + w - 9 * s - 30 * s; ty = y + 9 * s;
+  Show_PreEQ ? ui_box(tx, ty, 30 * s, 16 * s, 8 * s, 15, 42, 51, 1, 29, 90, 109) : ui_box(tx, ty, 30 * s, 16 * s, 8 * s, 13, 16, 18, 1, 42, 49, 53);
+  Show_PreEQ ? ui_rgb(92, 200, 234) : ui_rgb(109, 119, 124);
+  gfx_circle(Show_PreEQ ? tx + 22 * s : tx + 8 * s, ty + 8 * s, 5 * s, 1, 1);
+  pr && hov ? (Show_PreEQ = !Show_PreEQ; update_state());
+  y += 34 * s + 8 * s;
+
+  // Spectrum: the seven modes with the stereo glyphs
+  gfx_setfont(5); ui_rgb(109, 119, 124);
+  ui_text_l(x, y, 10 * s, "SPECTRUM");
+  y += 10 * s + 6 * s;
+  tw = (w - 12 * s) / 4; th = 44 * s;
+  i = 0;
+  loop(7,
+    tx = floor(x + (i % 4) * (tw + 4 * s)); ty = floor(y + floor(i / 4) * (th + 4 * s));
+    on = Spectrum_Mode == i;
+    hov = ui_in(tx, ty, tw, th);
+    on ? ui_box(tx, ty, tw, th, 5 * s, 15, 42, 51, 1, 29, 90, 109)
+       : ui_box(tx, ty, tw, th, 5 * s, hov ? 26 : 16, hov ? 31 : 19, hov ? 34 : 21, 1, hov ? 52 : 32, hov ? 60 : 38, hov ? 64 : 42);
+    on ? ui_rgb(92, 200, 234) : ui_rgb(154, 165, 170);
+    gfx_a = 1;
+    g = i == 0 ? 0 : i == 1 ? 1 : i == 2 ? 2 : i == 3 ? 5 : i == 4 ? 3 : i == 5 ? 4 : 6;
+    ui_stereo_glyph(g, tx + tw * 0.5, ty + 16 * s, 0.85);
+    gfx_setfont(11);
+    on ? ui_rgb(232, 246, 251) : hov ? ui_rgb(223, 230, 233) : ui_rgb(138, 148, 153);
+    ui_text_c(tx, ty + th - 15 * s, tw, 12 * s,
+      i == 0 ? "Full" : i == 1 ? "Mid" : i == 2 ? "Side" : i == 3 ? "Mid + Side" : i == 4 ? "Left" : i == 5 ? "Right" : "Left + Right");
+    pr && hov ? (Spectrum_Mode = i; spectrum.set_show_peaks(Show_Peaks); update_state());
+    i += 1;
+  );
+
+  ui_top_pop_close(px, py, pw, ph, pr, skip);
+  gfx_setfont(1);
+);
+
+/*
+ * Settings popover: the analyser's range, response and FFT
+ */
+function ui_draw_settings_pop() local(s, pad, pw, ph, px, py, x, y, w, r, pr, skip) (
+  s = ui_pt(1);
+  skip = ui_pop_skip; ui_pop_skip = 0;
+  pr = ui_press && !skip;
+  pad = 11 * s; pw = 304 * s;
+  ph = 30 * s + 10 * s + (10 * s + 8 * s + 22 * s + 8 * s + 22 * s) * 3 + (8 * s + 1 + 8 * s) * 2 + 8 * s + 16 * s + 14 * s + 11 * s;
+  px = floor(max(4 * s, gfx_w - 8 * s - pw));
+  py = ui_pop_frame(px, pw, ph);
+  ui_pop_head(px, py, pw, "Analyzer Settings", sprintf(#, "ReEQ %s", #VERSION));
+
+  x = px + pad; w = pw - 2 * pad; y = py + 30 * s + 10 * s;
+
+  gfx_setfont(5); ui_rgb(109, 119, 124); ui_text_l(x, y, 10 * s, "RANGE");
+  y += 18 * s;
+  r = ui_setrow(x, y, w, "Ceiling", "dB", 3, Ceiling_Value, pr, "0", "20", "40", "", "");
+  r >= 0 ? (Ceiling_Value = r; update_state());
+  y += 30 * s;
+  r = ui_setrow(x, y, w, "Floor", "dB", 3, Floor_Value, pr, "−90", "−140", "−200", "", "");
+  r >= 0 ? (Floor_Value = r; update_state());
+  y += 22 * s + 8 * s;
+  ui_rgb(31, 38, 41); gfx_line(x, y, x + w, y, 0);
+  y += 1 + 8 * s;
+
+  gfx_setfont(5); ui_rgb(109, 119, 124); ui_text_l(x, y, 10 * s, "RESPONSE");
+  y += 18 * s;
+  r = ui_setrow(x, y, w, "Tilt", "dB/oct", 5, Tilt_Value, pr, "0", "1.5", "3", "4.5", "6");
+  r >= 0 ? (Tilt_Value = r; update_state());
+  y += 30 * s;
+  r = ui_setrow(x, y, w, "Smoothing", "oct", 5, Smoothing_Value, pr, "Off", "1/48", "1/24", "1/12", "1/6");
+  r >= 0 ? (Smoothing_Value = r; update_state());
+  y += 22 * s + 8 * s;
+  ui_rgb(31, 38, 41); gfx_line(x, y, x + w, y, 0);
+  y += 1 + 8 * s;
+
+  gfx_setfont(5); ui_rgb(109, 119, 124); ui_text_l(x, y, 10 * s, "FFT");
+  y += 18 * s;
+  r = ui_setrow(x, y, w, "Size", "", 4, Block_Value, pr, "2048", "4096", "8192", "16k", "");
+  r >= 0 ? (Block_Value = r; update_state());
+  y += 30 * s;
+  r = ui_setrow(x, y, w, "Window", "", 4, Type_Value, pr, "Ham", "B-H", "Black", "Rect", "");
+  r >= 0 ? (Type_Value = r; update_state());
+  y += 22 * s + 8 * s;
+  // The window's full name, and what the FFT size does
+  gfx_setfont(3); ui_rgb(154, 165, 170);
+  ui_text_l(x, y, 16 * s, Type_Value == 0 ? "Hamming Window" : Type_Value == 1 ? "Blackman-Harris Window" : Type_Value == 2 ? "Blackman Window" : "Rectangular Window");
+  gfx_setfont(7); ui_rgb(109, 119, 124);
+  ui_text_l(x, y + 16 * s, 14 * s, "Larger FFT sizes show more low-end detail");
+
+  ui_top_pop_close(px, py, pw, ph, pr, skip);
+  gfx_setfont(1);
+);
+
+/*
+ * Range popover for the top scale button: the graph's dB range
+ */
+function ui_draw_range_pop() local(s, pw, ph, px, py, i, ry, on, hov, pr, skip, rx, rw) (
+  s = ui_pt(1);
+  skip = ui_pop_skip; ui_pop_skip = 0;
+  pr = ui_press && !skip;
+  pw = 150 * s; ph = 30 * s + 6 * s + 5 * 24 * s + 6 * s;
+  px = floor(max(4 * s, min(ui_dbb_x + ui_dbb_w - pw, gfx_w - pw - 4 * s)));
+  py = ui_pop_frame(px, pw, ph);
+  ui_pop_head(px, py, pw, "Range", "");
+  rx = px + 6 * s; rw = pw - 12 * s;
+  i = 0;
+  loop(5,
+    ry = floor(py + 36 * s + i * 24 * s);
+    on = Db_Range == i;
+    hov = ui_in(rx, ry, rw, 24 * s);
+    on ? ui_box(rx, ry + 1, rw, 22 * s, 4 * s, 15, 42, 51, 1, 29, 90, 109) :
+      hov ? (ui_rgba(255, 255, 255, 0.04); ui_fill_rrect(rx, ry + 1, rw, 22 * s, 4 * s));
+    gfx_setfont(on ? 12 : 7);
+    on ? ui_rgb(92, 200, 234) : hov ? ui_rgb(223, 230, 233) : ui_rgb(154, 165, 170);
+    gfx_a = 1;
+    ui_text_l(rx + 9 * s, ry, 24 * s, sprintf(#, "±%d dB", i == 0 ? 6 : i == 1 ? 12 : i == 2 ? 18 : i == 3 ? 24 : 30));
+    gfx_setfont(11); ui_rgb(91, 100, 104);
+    ui_text_r(rx, ry, rw - 9 * s, 24 * s, sprintf(#, "%d dB grid", i == 0 ? 1 : i == 1 ? 3 : i == 2 ? 6 : i == 3 ? 8 : 10));
+    pr && hov ? (Db_Range = i; update_state(); ui_popup = 0);
+    i += 1;
+  );
+
+  // Outside presses close it and are not passed on
+  (pr || (ui_rpress && !skip)) && !ui_in(px, py, pw, ph) ? ui_popup = 0;
+  pr ? ui_block = 1;
+  gfx_setfont(1);
+);
+
+/*
  * Node panel for the selected band
  */
 // The panel moved the selection: the node selection follows it
@@ -5035,7 +5155,7 @@ function ui_draw_panel()
   ui_th1 = gfx_texth;
   gfx_setfont(2,"Arial",floor(rscale(11, 18) + 0.5),'b');
 
-  // UI fonts: 3 label, 4 label bold, 5 small caps, 6 dial value, 7 axis, 8 card title, 9 badge, 10 node number, 11 tile label
+  // UI fonts: 3 label, 4 label bold, 5 small caps, 6 dial value, 7 axis, 8 card title, 9 badge, 10 node number, 11 tile label, 12 segment on, 13-14 wordmark
   gfx_setfont(3,"Arial",floor(ui_pt(11) + 0.5));
   gfx_setfont(4,"Arial",floor(ui_pt(11) + 0.5),'b');
   gfx_setfont(5,"Arial",floor(ui_pt(9) + 0.5));
@@ -5045,6 +5165,9 @@ function ui_draw_panel()
   gfx_setfont(9,"Arial",floor(ui_pt(12) + 0.5),'b');
   gfx_setfont(10,"Arial",floor(ui_pt(10.5) + 0.5),'b');
   gfx_setfont(11,"Arial",floor(ui_pt(9) + 0.5));
+  gfx_setfont(12,"Arial",floor(ui_pt(10) + 0.5),'b');
+  gfx_setfont(13,"Arial",floor(ui_pt(15) + 0.5));
+  gfx_setfont(14,"Arial",floor(ui_pt(15) + 0.5),'b');
   gfx_setfont(1);
 );
 
@@ -5129,6 +5252,9 @@ drawRight ? draw_filter_response(4, 213/255, 65/255, 66/255);
 // Stereo
 draw_filter_response(0, 1.0, 1.0, 1.0);
 
+// The header goes over anything that reaches above the graph
+ui_draw_header();
+
 // What shows while the mouse is over the window (nodes, hover card, toolbar, top buttons, panel)
 // fades in and out with a smoothstep instead of popping
 ui_vis = mouse_within_window() || button_focus != -1 || node_drag_mode != 0 || is_box_dragging() || ui_popup != 0;
@@ -5169,8 +5295,6 @@ ui_fade > 0 ? (
 initialise_gfx == 0 ? ( 
   initialise_gfx = 1;
 
-  menu.init_menu_button(gfx_w - rscale(140, 200), rscale(5, 10), rscale(60, 120), "Settings", "");
-  dbscale.init_dbscale_button(gfx_w - rscale(30, 60), 0, rscale(30, 60), gfx_texth*rscale(2.4, 1.2));
 
   spectrum.set_show_peaks(Show_Peaks);
 );
@@ -5178,10 +5302,10 @@ initialise_gfx == 0 ? (
 // Animate glowing halos for node selection
 glow_node_selection_halo();
 
-// A press on the top-right buttons, or a right press on the toolbar, belongs to them:
-// node selection, box select and the node menu sit it out until the button is released
-(ui_press || ui_rpress) && ui_top_h > 0 && (ui_in(ui_top_ax, ui_top_y, ui_top_aw, ui_top_h) || ui_in(ui_top_gx, ui_top_y, ui_top_gw, ui_top_h)) ? ui_chrome_press = 1;
-(ui_press || ui_rpress) && ui_db_vis && ui_in(dbscale.x, dbscale.y, dbscale.width, dbscale.height) ? ui_chrome_press = 1;
+// A press in the header, or a right press on the toolbar, belongs to them: node selection,
+// box select and the node menu sit it out until the button is released
+(ui_press || ui_rpress) && mouse_y < HEADER_H ? ui_chrome_press = 1;
+(ui_press || ui_rpress) && !compact_width && !compact_height && ui_in(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h) ? ui_chrome_press = 1;
 ui_rpress && BOTTOM_MARGIN > 0 && mouse_y >= gfx_h - BOTTOM_MARGIN ? ui_chrome_press = 1;
 !(mouse_cap & 3) ? ui_chrome_press = 0;
 
@@ -5664,6 +5788,8 @@ box_region_drag_mode ? (
 // Close a picker when its band or the panel goes away, or on Escape
 (ui_popup == 1 || ui_popup == 2) && (!ShowPanel || selected_node < 0 || Band_Enabled[selected_node] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
 ui_popup == 3 && (compact_width || compact_height || Band_Enabled[ui_card_band] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
+(ui_popup == 4 || ui_popup == 5) && (compact_height || ui_key == 27) ? ui_popup = 0;
+ui_popup == 6 && (compact_width || compact_height || ui_key == 27) ? ui_popup = 0;
 
 // Output peak meter: the audio side holds the peak since the last frame, this side decays it
 ui_t = time_precise();
@@ -5675,12 +5801,15 @@ ui_pk1 = max(out_pk1, ui_pk1 * 10 ^ (-1.2 * ui_dt));
 out_pk0 = out_pk1 = 0;
 
 // ui_draw_top and ui_draw_bar record the buttons they drew; the mouse code reads them next frame
-ui_top_h = 0; ui_db_vis = 0;
+ui_top_h = 0;
 ui_fade > 0 ? (
   !compact_height && !compact_width ? ui_draw_bar();
   !compact_height ? ui_draw_top();
   ShowPanel && selected_node != -1 ? ui_draw_panel();
   ui_popup == 3 ? ui_draw_node_card();
+  ui_popup == 4 ? ui_draw_analyzer_pop();
+  ui_popup == 5 ? ui_draw_settings_pop();
+  ui_popup == 6 ? ui_draw_range_pop();
 );
 
 // Mid-fade: blend the graph saved earlier back over the fading elements
