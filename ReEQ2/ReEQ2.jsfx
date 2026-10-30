@@ -2212,6 +2212,28 @@ Listen_Process = do_listen || listen_node != -1 || !listen_filter.ivf_is_resting
 
 ag_block_target = AutoGainEnabled ? AG_Target : 1;
 
+// The output Mid/Side gains need the Mid/Side round trip only when they do something
+Out_MS = gainML != 1 || gainSR != 1 || MidPolarity || SidePolarity;
+
+// A band at rest has nothing to glide: tick only the bands that are gliding (a glide starts here, in
+// update_audio_filters) or dynamic (their gain glides start in @sample)
+Band_Tick0 = Band_Process0 && (Dyn_Active0 || band1.filter.iter_t < 1);
+Band_Tick1 = Band_Process1 && (Dyn_Active1 || band2.filter.iter_t < 1);
+Band_Tick2 = Band_Process2 && (Dyn_Active2 || band3.filter.iter_t < 1);
+Band_Tick3 = Band_Process3 && (Dyn_Active3 || band4.filter.iter_t < 1);
+Band_Tick4 = Band_Process4 && (Dyn_Active4 || band5.filter.iter_t < 1);
+Band_Tick5 = Band_Process5 && (Dyn_Active5 || band6.filter.iter_t < 1);
+Band_Tick6 = Band_Process6 && (Dyn_Active6 || band7.filter.iter_t < 1);
+Band_Tick7 = Band_Process7 && (Dyn_Active7 || band8.filter.iter_t < 1);
+Band_Tick8 = Band_Process8 && (Dyn_Active8 || band9.filter.iter_t < 1);
+Band_Tick9 = Band_Process9 && (Dyn_Active9 || band10.filter.iter_t < 1);
+Band_Tick10 = Band_Process10 && (Dyn_Active10 || band11.filter.iter_t < 1);
+Band_Tick11 = Band_Process11 && (Dyn_Active11 || band12.filter.iter_t < 1);
+Band_Tick12 = Band_Process12 && (Dyn_Active12 || band13.filter.iter_t < 1);
+Band_Tick13 = Band_Process13 && (Dyn_Active13 || band14.filter.iter_t < 1);
+Band_Tick14 = Band_Process14 && (Dyn_Active14 || band15.filter.iter_t < 1);
+Band_Tick15 = Band_Process15 && (Dyn_Active15 || band16.filter.iter_t < 1);
+
 @sample
 
 function encodeMS(l, r, mid*, side*) ( 
@@ -2286,22 +2308,22 @@ Show_PreEQ ? (
 
 // Interpolate filter coefficients
 
-Band_Process0 ? band1.filter.ivf_tick();
-Band_Process1 ? band2.filter.ivf_tick();
-Band_Process2 ? band3.filter.ivf_tick();
-Band_Process3 ? band4.filter.ivf_tick();
-Band_Process4 ? band5.filter.ivf_tick();
-Band_Process5 ? band6.filter.ivf_tick();
-Band_Process6 ? band7.filter.ivf_tick();
-Band_Process7 ? band8.filter.ivf_tick();
-Band_Process8 ? band9.filter.ivf_tick();
-Band_Process9 ? band10.filter.ivf_tick();
-Band_Process10 ? band11.filter.ivf_tick();
-Band_Process11 ? band12.filter.ivf_tick();
-Band_Process12 ? band13.filter.ivf_tick();
-Band_Process13 ? band14.filter.ivf_tick();
-Band_Process14 ? band15.filter.ivf_tick();
-Band_Process15 ? band16.filter.ivf_tick();
+Band_Tick0 ? band1.filter.ivf_tick();
+Band_Tick1 ? band2.filter.ivf_tick();
+Band_Tick2 ? band3.filter.ivf_tick();
+Band_Tick3 ? band4.filter.ivf_tick();
+Band_Tick4 ? band5.filter.ivf_tick();
+Band_Tick5 ? band6.filter.ivf_tick();
+Band_Tick6 ? band7.filter.ivf_tick();
+Band_Tick7 ? band8.filter.ivf_tick();
+Band_Tick8 ? band9.filter.ivf_tick();
+Band_Tick9 ? band10.filter.ivf_tick();
+Band_Tick10 ? band11.filter.ivf_tick();
+Band_Tick11 ? band12.filter.ivf_tick();
+Band_Tick12 ? band13.filter.ivf_tick();
+Band_Tick13 ? band14.filter.ivf_tick();
+Band_Tick14 ? band15.filter.ivf_tick();
+Band_Tick15 ? band16.filter.ivf_tick();
 
 Listen_Process ? listen_filter.ivf_tick();
 
@@ -2507,18 +2529,21 @@ Listen_Process ? listen_filter.ivf_tick();
   spl1list *= listen_gain;
 );
 
-// Mid/Side encode
-Stereo_Mode == 0 ? (encodeMs(spl0, spl1, mid0, side0); spl0 = mid0; spl1 = side0);
+// Mid/Side (or Left/Right) gains and polarity, only when they change anything (Out_MS, per block)
+Out_MS ? (
+  // Mid/Side encode
+  Stereo_Mode == 0 ? (encodeMs(spl0, spl1, mid0, side0); spl0 = mid0; spl1 = side0);
 
-// Stereo gains
-spl0 *= gainML;
-spl1 *= gainSR;
+  // Stereo gains
+  spl0 *= gainML;
+  spl1 *= gainSR;
 
-MidPolarity ? spl0 = -spl0;
-SidePolarity ? spl1 = -spl1;
+  MidPolarity ? spl0 = -spl0;
+  SidePolarity ? spl1 = -spl1;
 
-// Mid/Side decode
-Stereo_Mode == 0 ? (mid0 = spl0; side0 = spl1; decodeMs(mid0, side0, spl0, spl1));
+  // Mid/Side decode
+  Stereo_Mode == 0 ? (mid0 = spl0; side0 = spl1; decodeMs(mid0, side0, spl0, spl1));
+);
 
 // Overall gains
 spl0 *= gainDb;

@@ -36,6 +36,11 @@ desc: Ivantsov decramped filters
     z0 += u P,  z1 = -z1 - u Q,  with P = b0, Q = b0 b1^2
   and the output
     y = u D + z1 E + z0 C,  u = x - z0 - z1
+  computed as y = x D + (z1 E2 + z0 C2), with E2 = E - D and C2 = C - D kept
+  alongside E and C: the part in brackets doesn't depend on x, so the path from
+  a sample's input to its output is one multiply and add, which matters with
+  many sections and bands in series. The first order section likewise uses
+  C2 = C - B.
   A section is stable exactly when P > 0, Q > 0 and P + Q < 2: a triangle, so
   a straight line between two stable sections stays stable. Changes glide
   linearly over SMOOTHING_TIME_MS. With D = E = C = 1 a section passes its
@@ -168,10 +173,10 @@ function ivf_op_calc(t, fc)
  * signal and the filter.
  */
 function ivf_sec_prep(i, n, n_run)
-  instance(P, Q, D, E, C, sP, sQ, sD, sE, sC, tP, tQ, tD, tE, tC, z0a, z1a, z0b, z1b)
+  instance(P, Q, D, E, C, E2, C2, sP, sQ, sD, sE, sC, tP, tQ, tD, tE, tC, z0a, z1a, z0b, z1b)
 (
   i > n_run ? (
-    P = tP; Q = tQ; D = 1; E = 1; C = 1;
+    P = tP; Q = tQ; D = 1; E = 1; C = 1; E2 = 0; C2 = 0;
     z0a = z1a = z0b = z1b = 0;
   );
   i > n ? (tP = P; tQ = Q; tD = 1; tE = 1; tC = 1);
@@ -179,10 +184,10 @@ function ivf_sec_prep(i, n, n_run)
 );
 
 function ivf_op_prep(on, running)
-  instance(P, B, C, sP, sB, sC, tP, tB, tC, z0a, z0b)
+  instance(P, B, C, C2, sP, sB, sC, tP, tB, tC, z0a, z0b)
 (
   !running ? (
-    P = tP; B = 1; C = 1;
+    P = tP; B = 1; C = 1; C2 = 0;
     z0a = z0b = 0;
   );
   !on ? (tP = P; tB = 1; tC = 1);
@@ -190,33 +195,38 @@ function ivf_op_prep(on, running)
 );
 
 function ivf_sec_lerp(t)
-  instance(P, Q, D, E, C, sP, sQ, sD, sE, sC, tP, tQ, tD, tE, tC)
+  instance(P, Q, D, E, C, E2, C2, sP, sQ, sD, sE, sC, tP, tQ, tD, tE, tC)
 (
   P = sP + t * (tP - sP);
   Q = sQ + t * (tQ - sQ);
   D = sD + t * (tD - sD);
   E = sE + t * (tE - sE);
   C = sC + t * (tC - sC);
+  E2 = E - D;
+  C2 = C - D;
 );
 
 function ivf_op_lerp(t)
-  instance(P, B, C, sP, sB, sC, tP, tB, tC)
+  instance(P, B, C, C2, sP, sB, sC, tP, tB, tC)
 (
   P = sP + t * (tP - sP);
   B = sB + t * (tB - sB);
   C = sC + t * (tC - sC);
+  C2 = C - B;
 );
 
 function ivf_sec_target()
-  instance(P, Q, D, E, C, tP, tQ, tD, tE, tC)
+  instance(P, Q, D, E, C, E2, C2, tP, tQ, tD, tE, tC)
 (
   P = tP; Q = tQ; D = tD; E = tE; C = tC;
+  E2 = E - D; C2 = C - D;
 );
 
 function ivf_op_target()
-  instance(P, B, C, tP, tB, tC)
+  instance(P, B, C, C2, tP, tB, tC)
 (
   P = tP; B = tB; C = tC;
+  C2 = C - B;
 );
 
 /*
@@ -592,43 +602,43 @@ function ivf_listen_notch(leftfreq, rightfreq, notchfreq, notchq)
  * One sample of a section, for channel 0 and channel 1
  */
 function ivf_sec0(x)
-  instance(P, Q, D, E, C, z0a, z1a)
+  instance(P, Q, D, E2, C2, z0a, z1a)
   local(u)
 (
   u = x - z0a - z1a;
-  x = u*D + z1a*E + z0a*C;
+  x = x*D + (z1a*E2 + z0a*C2);
   z0a += u*P;
   z1a = -z1a - u*Q;
   x;
 );
 
 function ivf_sec1(x)
-  instance(P, Q, D, E, C, z0b, z1b)
+  instance(P, Q, D, E2, C2, z0b, z1b)
   local(u)
 (
   u = x - z0b - z1b;
-  x = u*D + z1b*E + z0b*C;
+  x = x*D + (z1b*E2 + z0b*C2);
   z0b += u*P;
   z1b = -z1b - u*Q;
   x;
 );
 
 function ivf_op0(x)
-  instance(P, B, C, z0a)
+  instance(P, B, C2, z0a)
   local(u)
 (
   u = x - z0a;
-  x = u*B + z0a*C;
+  x = x*B + z0a*C2;
   z0a += u*P;
   x;
 );
 
 function ivf_op1(x)
-  instance(P, B, C, z0b)
+  instance(P, B, C2, z0b)
   local(u)
 (
   u = x - z0b;
-  x = u*B + z0b*C;
+  x = x*B + z0b*C2;
   z0b += u*P;
   x;
 );
