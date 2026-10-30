@@ -63,7 +63,7 @@ function ivf_bwtoq(bw)
   local(x)
 (
   x = exp(0.5*log(2) * bw);
-  1/(x - 1/x);
+  x/(sqr(x) - 1);
 );
 
 /*
