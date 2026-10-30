@@ -35,6 +35,16 @@ Includes an action that moves projects from ReEQ 1.2 over with all their setting
         <source file="Dependencies/spectrum.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.0/ReEQ2/Dependencies/spectrum.jsfx-inc</source>
         <source file="ReEQ upgrade to ReEQ2.lua" type="script" main="main">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.0/Scripts/ReEQ%20upgrade%20to%20ReEQ2.lua</source>
       </version>
+      <version name="2.0.1" author="Justin Johnson" time="2026-10-30T01:08:46Z">
+        <changelog><![CDATA[Lower CPU: roughly 40-50% less with a typical handful of bands and 10-15% less with 14-16, with exactly the same sound
+- Bands that aren't moving skip their per-sample glide update
+- The output Mid/Side gain stage is skipped when it does nothing
+- Faster filter sections when many bands run in series]]></changelog>
+        <source>https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.1/ReEQ2/ReEQ2.jsfx</source>
+        <source file="Dependencies/ivantsov_filter.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.1/ReEQ2/Dependencies/ivantsov_filter.jsfx-inc</source>
+        <source file="Dependencies/spectrum.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.1/ReEQ2/Dependencies/spectrum.jsfx-inc</source>
+        <source file="ReEQ upgrade to ReEQ2.lua" type="script" main="main">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.1/Scripts/ReEQ%20upgrade%20to%20ReEQ2.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="ReSpectrum">
