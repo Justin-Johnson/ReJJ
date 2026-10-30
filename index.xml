@@ -45,6 +45,17 @@ Includes an action that moves projects from ReEQ 1.2 over with all their setting
         <source file="Dependencies/spectrum.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.1/ReEQ2/Dependencies/spectrum.jsfx-inc</source>
         <source file="ReEQ upgrade to ReEQ2.lua" type="script" main="main">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.1/Scripts/ReEQ%20upgrade%20to%20ReEQ2.lua</source>
       </version>
+      <version name="2.0.2" author="Justin Johnson" time="2026-10-30T08:14:29Z">
+        <changelog><![CDATA[Set any value exactly with the new value stepper
+- Double-click a dial, dynamics knob or toolbar field to open it: each digit has up and down arrows (hold to repeat, or use the mouse wheel over a digit), with a sign column where the value can be negative
+- Changes apply as you click; values stay within each control's range; the revert icon puts back the value you started with
+- Cmd+double-click (Ctrl on Windows) resets any dial, knob or field to its default, the dynamics knobs included
+- Undo and automation now record the new value when you drag a panel dial]]></changelog>
+        <source>https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.2/ReEQ2/ReEQ2.jsfx</source>
+        <source file="Dependencies/ivantsov_filter.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.2/ReEQ2/Dependencies/ivantsov_filter.jsfx-inc</source>
+        <source file="Dependencies/spectrum.jsfx-inc">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.2/ReEQ2/Dependencies/spectrum.jsfx-inc</source>
+        <source file="ReEQ upgrade to ReEQ2.lua" type="script" main="main">https://raw.githubusercontent.com/Justin-Johnson/ReJJ/v2.0.2/Scripts/ReEQ%20upgrade%20to%20ReEQ2.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="ReSpectrum">
