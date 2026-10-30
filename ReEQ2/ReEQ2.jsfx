@@ -1668,9 +1668,10 @@ init_rate != srate ? (
   DYN_STEP = 16;
   DYN_KNEE = 6;
   Dyn_Listen = -1;
-  // The panel's small knobs: the one being dragged, the last one pressed (for double clicks); how far
-  // across a panel dial reaches for the mouse; the band the dynamics meter last showed
-  ui_kd = ui_kd_last = -1;
+  // The panel's small knob being dragged; the band the dynamics meter last showed; the value stepper's
+  // control (none) and the one pressed last (for double clicks)
+  ui_kd = -1;
+  ui_sv_id = ui_sv_click = -1;
   ui_dyn_mb = -1;
   // The band the ghost spectrum follows (none yet)
   Ghost_Band = -1;
@@ -1846,6 +1847,23 @@ init_rate != srate ? (
   MAX_Q = 40;
   MIN_Q = 0.10;
   Q_LOG_MAX = log(MAX_Q / MIN_Q);
+
+  // The ranges the dials, knobs and fields (and their steppers) keep to: band gain +-30dB; dynamics
+  // threshold -60..0dB, ratio 1..20, range +-24dB, attack 0.1..200ms, release 5..2000ms; the toolbar's
+  // dB fields -130..+30dB and Scale 0..200%
+  BAND_GAIN_MAX = 30;
+  DYN_THRESH_MIN = -60;
+  DYN_RATIO_MAX = 20;
+  DYN_RANGE_MAX = 24;
+  DYN_ATK_MIN = 0.1; DYN_ATK_MAX = 200;
+  DYN_REL_MIN = 5; DYN_REL_MAX = 2000;
+  FIELD_DB_MIN = -130; FIELD_DB_MAX = 30;
+  SCALE_MAX = 200;
+
+  // Value stepper ids: the panel's dials, the dynamics grid in reading order, the toolbar's fields
+  SV_FREQ = 0; SV_GAIN = 1; SV_Q = 2;
+  SV_THRESH = 3; SV_RATIO = 4; SV_RANGE = 5; SV_ATTACK = 6; SV_RELEASE = 7;
+  SV_IN = 8; SV_SCALE = 9; SV_MID = 10; SV_SIDE = 11; SV_OUT = 12;
 
   DB_EQ_RANGE = 18;
   DB_EQ_RANGE_STEPS = 6;
@@ -2884,6 +2902,15 @@ function ui_icon(kind, cx, cy) local(s, w, k, a, ex, ey, x1, y1) (
     gfx_roundrect(floor(cx - 6.5 * s - k) + 1, floor(cy - 2.5 * s) + 1, floor(8 * s) - 2, floor(5 * s) - 2, a - 1, 1);
     gfx_roundrect(floor(cx - 1.5 * s + k), floor(cy - 2.5 * s), floor(8 * s), floor(5 * s), a, 1);
     gfx_roundrect(floor(cx - 1.5 * s + k) + 1, floor(cy - 2.5 * s) + 1, floor(8 * s) - 2, floor(5 * s) - 2, a - 1, 1);
+  ) : kind == 9 ? (
+    // Revert: an arc over the top from the left, coming back down to an arrowhead on the left
+    ui_thick_arc(cx + 0.5 * s, cy + 0.5 * s, 4.5 * s, 1.5 * $pi, 2.8 * $pi, w);
+    ex = cx - 4 * s; ey = cy + 0.5 * s;
+    gfx_triangle(ex - 2.6 * s, ey - 0.6 * s, ex + 2.6 * s, ey - 0.6 * s, ex, ey + 2.8 * s);
+  ) : kind == 10 ? (
+    // Close: a cross
+    ui_thick_line(cx - 4 * s, cy - 4 * s, cx + 4 * s, cy + 4 * s, w);
+    ui_thick_line(cx - 4 * s, cy + 4 * s, cx + 4 * s, cy - 4 * s, w);
   );
 );
 
@@ -4843,12 +4870,12 @@ function handle_number_button() instance (x, y, width, menutext, label, drag, he
       md > 0 ? db -= 0.1 * abs(md*0.5);
       md < 0 ? db += 0.1 * abs(md*0.5);
       abs(db) < 0.005 ? db = 0;
-      db = min(30, db);
-      db = max(-130, db);
+      db = min(FIELD_DB_MAX, db);
+      db = max(FIELD_DB_MIN, db);
     ) : (
       md > 0 ? db -= abs(md*0.5);
       md < 0 ? db += abs(md*0.5);
-      db = min(200, db);
+      db = min(SCALE_MAX, db);
       db = max(0, db);
     );
     oldy = mouse_y;
@@ -4906,6 +4933,166 @@ function handle_number_dial(val) instance (x, y, r, v, width, menutext, label, d
   v;
 );
 
+
+// Gain does nothing for a notch, band pass or all pass; Q nothing for the fixed-shape cuts
+function ui_gain_inert(t) (
+  t == FILTER_NOTCH || t == FILTER_BAND_PASS || t == FILTER_ALL_PASS;
+);
+
+function ui_q_inert(b) local(t) (
+  t = Band_Type[b];
+  t == FILTER_LOW_CUT_BUTTERWORTH || t == FILTER_HIGH_CUT_BUTTERWORTH || t == FILTER_LOW_CUT_ANALOG || t == FILTER_HIGH_CUT_ANALOG
+    || ((t == FILTER_LOW_CUT || t == FILTER_HIGH_CUT) && Band_Slope[b] == 0);
+);
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// Value stepper: a popover with a column per digit, for setting a dial, knob or field exactly.
+// Each control is an id (SV_FREQ .. SV_OUT); b is the band for the panel's controls.
+////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+ * A control's range, digits (integer and decimal), default, title and unit, into sv_min, sv_max,
+ * sv_int, sv_dec, sv_def, #sv_lab and #sv_unit
+ */
+function sv_spec(id, b) (
+  strcpy(#sv_unit, "dB"); sv_def = 0;
+  id == SV_FREQ ? (sv_min = MIN_FREQ; sv_max = MAX_FREQ; sv_int = 5; sv_dec = 1; sv_def = 500; strcpy(#sv_lab, "Frequency"); strcpy(#sv_unit, "Hz")) :
+  id == SV_GAIN ? (sv_min = -BAND_GAIN_MAX; sv_max = BAND_GAIN_MAX; sv_int = 2; sv_dec = 1; strcpy(#sv_lab, "Gain")) :
+  id == SV_Q ? (sv_min = MIN_Q; sv_max = MAX_Q; sv_int = 2; sv_dec = 2; sv_def = 0.7071; strcpy(#sv_lab, ui_is_cut(Band_Type[b]) ? "Resonance" : "Q"); strcpy(#sv_unit, "")) :
+  id == SV_THRESH ? (sv_min = DYN_THRESH_MIN; sv_max = 0; sv_int = 2; sv_dec = 1; sv_def = -24; strcpy(#sv_lab, "Threshold")) :
+  id == SV_RATIO ? (sv_min = 1; sv_max = DYN_RATIO_MAX; sv_int = 2; sv_dec = 1; sv_def = 4; strcpy(#sv_lab, "Ratio"); strcpy(#sv_unit, ":1")) :
+  id == SV_RANGE ? (sv_min = -DYN_RANGE_MAX; sv_max = DYN_RANGE_MAX; sv_int = 2; sv_dec = 1; sv_def = -6; strcpy(#sv_lab, "Range")) :
+  id == SV_ATTACK ? (sv_min = DYN_ATK_MIN; sv_max = DYN_ATK_MAX; sv_int = 3; sv_dec = 1; sv_def = 5; strcpy(#sv_lab, "Attack"); strcpy(#sv_unit, "ms")) :
+  id == SV_RELEASE ? (sv_min = DYN_REL_MIN; sv_max = DYN_REL_MAX; sv_int = 4; sv_dec = 0; sv_def = 80; strcpy(#sv_lab, "Release"); strcpy(#sv_unit, "ms")) :
+  id == SV_SCALE ? (sv_min = 0; sv_max = SCALE_MAX; sv_int = 3; sv_dec = 0; sv_def = 100; strcpy(#sv_lab, "Scale"); strcpy(#sv_unit, "%")) : (
+    // The toolbar's dB fields
+    sv_min = FIELD_DB_MIN; sv_max = FIELD_DB_MAX; sv_int = 3; sv_dec = 1;
+    strcpy(#sv_lab, id == SV_IN ? "In" : id == SV_OUT ? "Out" : id == SV_MID ? (Stereo_Mode ? "Left" : "Mid") : (Stereo_Mode ? "Right" : "Side"));
+  );
+);
+
+function sv_get(id, b) (
+  id == SV_FREQ ? Band_Frequency[b] : id == SV_GAIN ? Band_Gain[b] : id == SV_Q ? Band_Q[b] :
+  id == SV_THRESH ? Band_Dyn_Thresh[b] : id == SV_RATIO ? Band_Dyn_Ratio[b] : id == SV_RANGE ? Band_Dynamic_Range[b] :
+  id == SV_ATTACK ? Band_Dyn_Attack[b] : id == SV_RELEASE ? Band_Dyn_Release[b] :
+  id == SV_IN ? InGain : id == SV_SCALE ? Scale : id == SV_MID ? MLGain : id == SV_SIDE ? SRGain : Gain;
+);
+
+/*
+ * Write a control's value as it is and tell REAPER (undo, automation). The panel's dials, the dynamics
+ * knobs and range handle, the toolbar's fields and the stepper all set their values through here (node
+ * drags and the wheel on the graph have their own paths). A band's sliders are brought up to date
+ * before REAPER is told, so it records the new value.
+ */
+function sv_put(id, b, v) (
+  id <= SV_RELEASE ? (
+    id == SV_FREQ ? Band_Frequency[b] = v : id == SV_GAIN ? Band_Gain[b] = v : id == SV_Q ? Band_Q[b] = v :
+      id == SV_THRESH ? Band_Dyn_Thresh[b] = v : id == SV_RATIO ? Band_Dyn_Ratio[b] = v : id == SV_RANGE ? Band_Dynamic_Range[b] = v :
+      id == SV_ATTACK ? Band_Dyn_Attack[b] = v : Band_Dyn_Release[b] = v;
+    // The dials reshape the band's filter; the dynamics settings are read as they run
+    id <= SV_Q ? flag_filter_update(b);
+    filters_to_sliders();
+    id == SV_FREQ ? notify_touched_frequency(b) : id == SV_GAIN ? notify_touched_gain(b) : id == SV_Q ? notify_touched_Q(b) :
+      notify_touched_dyn(b, id - SV_THRESH + 1);
+  ) :
+  id == SV_IN ? (InGain = v; slider_automate(InGain)) :
+  id == SV_SCALE ? (Scale = v; flag_filter_update_all(); slider_automate(Scale)) :
+  id == SV_MID ? (MLGain = v; slider_automate(MLGain)) :
+  id == SV_SIDE ? (SRGain = v; slider_automate(SRGain)) :
+  (Gain = v; slider_automate(Gain));
+);
+
+// Set a control, kept to its range
+function sv_set(id, b, v) (
+  sv_spec(id, b);
+  sv_put(id, b, min(max(v, sv_min), sv_max));
+);
+
+/*
+ * The control is there and active: a panel control needs its band selected, enabled and in the panel,
+ * and not inert (a dynamics knob needs the band's dynamics shown, Attack and Release need Manual
+ * timing); a toolbar field needs the toolbar
+ */
+function sv_live(id, b) local(t) (
+  id <= SV_RELEASE ? (
+    t = Band_Type[b];
+    b >= 0 && b == selected_node && ShowPanel && Band_Enabled[b] != BAND_STATE_OFF && (
+      id == SV_FREQ ? 1 :
+      id == SV_GAIN ? !ui_is_cut(t) && !ui_gain_inert(t) :
+      id == SV_Q ? !ui_q_inert(b) :
+      ui_dyn_panel && (id == SV_ATTACK || id == SV_RELEASE ? !Band_Dyn_Auto[b] : 1)
+    );
+  ) : !compact_width && !compact_height;
+);
+
+// v rounded to the control's last digit (sv_spec first)
+function sv_round(v) local(k) (
+  k = 10 ^ sv_dec;
+  floor(v * k + 0.5) / k;
+);
+
+/*
+ * Step a shown value v by st on its magnitude (dir 1 up, -1 down), so the digit moves as drawn; the
+ * magnitude stops at zero, and a control that can't be positive stays negative. dir 0 flips the sign.
+ * Rounded and kept to the range (sv_spec first).
+ */
+function sv_step(v, st, dir) local(sg) (
+  dir == 0 ? v = -v : (
+    sg = v < 0 || (v == 0 && sv_max <= 0) ? -1 : 1;
+    v = sg * max(abs(v) + dir * st, 0);
+  );
+  min(max(sv_round(v), sv_min), sv_max);
+);
+
+/*
+ * The stepper id of the control under the mouse, or -1. Uses the positions drawn last frame: the
+ * panel's dials, the dynamics grid (ui_draw_dyn_block) and the toolbar's fields.
+ */
+function sv_hit() local(b, c, r, id) (
+  id = -1; b = selected_node;
+  b >= 0 && mouse_within_panel() ? (
+    dial_freq.is_mouse_number_dial() ? id = SV_FREQ :
+    dial_gain.is_mouse_number_dial() ? id = SV_GAIN :
+    dial_q.is_mouse_number_dial() ? id = SV_Q :
+    ui_dyn_shown ? (
+      c = floor((mouse_x - ui_dyn_gx) / ui_dyn_cw);
+      r = abs(mouse_y - ui_dyn_r1) < ui_pt(16) ? 0 : abs(mouse_y - ui_dyn_r2) < ui_pt(16) ? 1 : -1;
+      c >= 0 && c < 3 && r >= 0 && r * 3 + c < 5 ? id = SV_THRESH + r * 3 + c;
+    );
+  ) : BOTTOM_MARGIN > 0 && mouse_y >= gfx_h - BOTTOM_MARGIN ? (
+    button_in_gain.is_mouse_number_button() ? id = SV_IN :
+    button_scale.is_mouse_number_button() ? id = SV_SCALE :
+    button_mid_gain.is_mouse_number_button() ? id = SV_MID :
+    button_side_gain.is_mouse_number_button() ? id = SV_SIDE :
+    button_gain.is_mouse_number_button() ? id = SV_OUT;
+  );
+  id >= 0 && !sv_live(id, b) ? -1 : id;
+);
+
+/*
+ * Open the stepper for a control, pointing at it
+ */
+function sv_open(id) local(k) (
+  ui_sv_id = id;
+  ui_sv_b = id <= SV_RELEASE ? selected_node : -1;
+  ui_sv_v0 = sv_get(id, ui_sv_b);
+  id == SV_FREQ ? (ui_pop_x = dial_freq.x - dial_freq.r; ui_pop_y = dial_freq.y - dial_freq.r; ui_pop_w = 2 * dial_freq.r) :
+  id == SV_GAIN ? (ui_pop_x = dial_gain.x - dial_gain.r; ui_pop_y = dial_gain.y - dial_gain.r; ui_pop_w = 2 * dial_gain.r) :
+  id == SV_Q ? (ui_pop_x = dial_q.x - dial_q.r; ui_pop_y = dial_q.y - dial_q.r; ui_pop_w = 2 * dial_q.r) :
+  id <= SV_RELEASE ? (
+    // The knob, 26pt across at the cell's left
+    k = id - SV_THRESH;
+    ui_pop_x = ui_dyn_gx + (k % 3) * ui_dyn_cw; ui_pop_w = ui_pt(26);
+    ui_pop_y = (k < 3 ? ui_dyn_r1 : ui_dyn_r2) - ui_pt(13);
+  ) :
+  id == SV_IN ? (ui_pop_x = button_in_gain.x; ui_pop_y = button_in_gain.y; ui_pop_w = button_in_gain.width) :
+  id == SV_SCALE ? (ui_pop_x = button_scale.x; ui_pop_y = button_scale.y; ui_pop_w = button_scale.width) :
+  id == SV_MID ? (ui_pop_x = button_mid_gain.x; ui_pop_y = button_mid_gain.y; ui_pop_w = button_mid_gain.width) :
+  id == SV_SIDE ? (ui_pop_x = button_side_gain.x; ui_pop_y = button_side_gain.y; ui_pop_w = button_side_gain.width) :
+  (ui_pop_x = button_gain.x; ui_pop_y = button_gain.y; ui_pop_w = button_gain.width);
+  ui_popup = 9; ui_pop_skip = 1; ui_block = 1;
+  ui_sv_wheel = mouse_wheel; ui_sv_wacc = 0; ui_sv_wcol = -1; ui_sv_hold = -1;
+);
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // UI: bottom toolbar, top-right controls, node panel and pickers
@@ -5161,7 +5348,7 @@ function ui_draw_bar()
   button_in_gain.db = InGain;
   can ? (
     nv = button_in_gain.handle_number_button();
-    nv != InGain ? (InGain = nv; gainIn = 2 ^ (InGain / 6); slider_automate(InGain));
+    nv != InGain ? sv_put(SV_IN, -1, nv);
   );
   ui_field(x, y, w_in, h, labels ? "IN" : "", inv, units ? "dB" : "", button_in_gain.drag || ui_hover(x, y, w_in, h));
   ui_clip_glow(x, y, w_in, h, ui_clip_in);
@@ -5175,7 +5362,7 @@ function ui_draw_bar()
   button_scale.db = Scale;
   can ? (
     nv = button_scale.handle_number_button();
-    nv != Scale ? (Scale = nv; flag_filter_update_all(); slider_automate(Scale));
+    nv != Scale ? sv_put(SV_SCALE, -1, nv);
   );
   ui_field(x, y, w_sc, h, labels ? "SCALE" : "", sc, "", button_scale.drag || ui_hover(x, y, w_sc, h));
 
@@ -5192,7 +5379,7 @@ function ui_draw_bar()
   button_mid_gain.db = MLGain;
   can ? (
     nv = button_mid_gain.handle_number_button();
-    nv != MLGain ? (MLGain = nv; slider_automate(MLGain));
+    nv != MLGain ? sv_put(SV_MID, -1, nv);
   );
   ui_field(x, y, w_mid, h, labels ? (Stereo_Mode ? "LEFT" : "MID") : "", midv, units ? "dB" : "", button_mid_gain.drag || ui_hover(x, y, w_mid - pol, h));
   ui_rgb(42, 49, 53); gfx_line(x + w_mid - pol, y + 1, x + w_mid - pol, y + h - 2, 0);
@@ -5206,7 +5393,7 @@ function ui_draw_bar()
   button_side_gain.db = SRGain;
   can ? (
     nv = button_side_gain.handle_number_button();
-    nv != SRGain ? (SRGain = nv; slider_automate(SRGain));
+    nv != SRGain ? sv_put(SV_SIDE, -1, nv);
   );
   ui_field(x, y, w_side, h, labels ? (Stereo_Mode ? "RIGHT" : "SIDE") : "", sidev, units ? "dB" : "", button_side_gain.drag || ui_hover(x, y, w_side - pol, h));
   ui_rgb(42, 49, 53); gfx_line(x + w_side - pol, y + 1, x + w_side - pol, y + h - 2, 0);
@@ -5240,7 +5427,7 @@ function ui_draw_bar()
   button_gain.db = Gain;
   can ? (
     nv = button_gain.handle_number_button();
-    nv != Gain ? (Gain = nv; gainDb = 2 ^ (Gain / 6); slider_automate(Gain));
+    nv != Gain ? sv_put(SV_OUT, -1, nv);
   );
   ui_field(x, y, w_out, h, labels ? "OUT" : "", outv, units ? "dB" : "", button_gain.drag || ui_hover(x, y, w_out, h));
 
@@ -6108,16 +6295,13 @@ function ui_knob_small(cx, cy, v, bipolar, grey, dim) local(s, t0, t1, th) (
 );
 
 /*
- * Vertical drag over a small knob's cell (id is the cell's number). Shift or Alt drags finely; a double
- * click gives dv. Returns the new 0..1 value.
+ * Vertical drag over a small knob's cell (id is the cell's number). Shift or Alt drags finely. Returns
+ * the new 0..1 value. (Double clicks are the general mouse code's, as for the dials: Cmd resets, a plain
+ * one opens the value stepper.)
  */
-function ui_knob_drag(id, x, y, w, h, v, dv) local(tm) (
+function ui_knob_drag(id, x, y, w, h, v) (
   ui_press && ui_hover(x, y, w, h) ? (
-    tm = time_precise();
-    ui_kd_last == id && tm - ui_kd_time < 0.4 ? (v = dv; ui_kd_time = 0) : (
-      ui_kd = id; ui_kd_y = mouse_y; button_focus = -2 - id; ui_kd_time = tm;
-    );
-    ui_kd_last = id;
+    ui_kd = id; ui_kd_y = mouse_y; button_focus = -2 - id;
   ) : ui_kd == id && (mouse_cap & 1) ? (
     v = min(max(v + (ui_kd_y - mouse_y) * (mouse_cap & 24 ? 0.0004 : 0.005), 0), 1);
     ui_kd_y = mouse_y;
@@ -6129,9 +6313,9 @@ function ui_knob_drag(id, x, y, w, h, v, dv) local(tm) (
  * One cell of the dynamics grid: a small knob with its label and value beside it. Returns the knob's
  * new 0..1 value; an inert cell only draws.
  */
-function ui_dyn_cell(id, x, cy, w, label, v, dv, bipolar, grey, dim, val, unit) local(s, tx, w1) (
+function ui_dyn_cell(id, x, cy, w, label, v, bipolar, grey, dim, val, unit) local(s, tx, w1) (
   s = ui_pt(1);
-  !dim ? v = ui_knob_drag(id, x, cy - 16 * s, w, 32 * s, v, dv);
+  !dim ? v = ui_knob_drag(id, x, cy - 16 * s, w, 32 * s, v);
   ui_knob_small(x + 13 * s, cy, v, bipolar, grey, dim);
   gfx_a = 1; ui_mix = dim ? 0.65 : 0;
   tx = x + 31 * s;
@@ -6214,40 +6398,45 @@ function ui_dyn_meter(mx, y, b) local(s, top, mh, f, t, g) (
  * A dynamic band's block, to the right of its dials from the hairline at hl to the panel's right edge
  * xr: Threshold, Ratio and Range over Attack, Release and Timing, then the meter
  */
-function ui_draw_dyn_block(b, hl, y, xr) local(s, gx, cw, r1, r2, v, nv, a, auto) (
+function ui_draw_dyn_block(b, hl, y, xr) local(s, gx, cw, r1, r2, v, nv, a, auto, lr) (
   s = ui_pt(1);
   ui_rgb(29, 35, 38); gfx_a = 1;
   gfx_line(hl, y + 46 * s, hl, y + 136 * s, 0);
   gx = hl + 12 * s; cw = 89 * s; r1 = y + 68 * s; r2 = y + 116 * s;
   auto = Band_Dyn_Auto[b];
+  // The grid, for the double click's hit test next frame (sv_hit)
+  ui_dyn_shown = 1; ui_dyn_gx = gx; ui_dyn_cw = cw; ui_dyn_r1 = r1; ui_dyn_r2 = r2;
 
   // Threshold, -60..0dB
-  v = (Band_Dyn_Thresh[b] + 60) / 60;
-  nv = ui_dyn_cell(0, gx, r1, cw, "THRESHOLD", v, 36 / 60, 0, 0, 0, ui_fmt_db(#, Band_Dyn_Thresh[b]), "dB");
-  nv != v ? (Band_Dyn_Thresh[b] = -60 + 60 * nv; filters_to_sliders(); notify_touched_dyn(b, 1));
+  v = 1 - Band_Dyn_Thresh[b] / DYN_THRESH_MIN;
+  nv = ui_dyn_cell(0, gx, r1, cw, "THRESHOLD", v, 0, 0, 0, ui_fmt_db(#, Band_Dyn_Thresh[b]), "dB");
+  nv != v ? sv_put(SV_THRESH, b, DYN_THRESH_MIN * (1 - nv));
 
   // Ratio, 1..20, on a log scale
-  v = log(max(Band_Dyn_Ratio[b], 1)) / log(20);
-  nv = ui_dyn_cell(1, gx + cw, r1, cw, "RATIO", v, log(4) / log(20), 0, 0, 0,
+  lr = log(DYN_RATIO_MAX);
+  v = log(max(Band_Dyn_Ratio[b], 1)) / lr;
+  nv = ui_dyn_cell(1, gx + cw, r1, cw, "RATIO", v, 0, 0, 0,
     sprintf(#, Band_Dyn_Ratio[b] < 10 ? "%.1f" : "%.0f", Band_Dyn_Ratio[b]), ":1");
-  nv != v ? (Band_Dyn_Ratio[b] = exp(nv * log(20)); filters_to_sliders(); notify_touched_dyn(b, 2));
+  nv != v ? sv_put(SV_RATIO, b, exp(nv * lr));
 
   // Range, -24..+24dB: its sign is the direction
-  v = (Band_Dynamic_Range[b] + 24) / 48;
-  nv = ui_dyn_cell(2, gx + 2 * cw, r1, cw, "RANGE", v, 18 / 48, 1, 0, 0, ui_fmt_db(#, Band_Dynamic_Range[b]), "dB");
-  nv != v ? (Band_Dynamic_Range[b] = -24 + 48 * nv; filters_to_sliders(); notify_touched_dyn(b, 3));
+  v = (Band_Dynamic_Range[b] / DYN_RANGE_MAX + 1) * 0.5;
+  nv = ui_dyn_cell(2, gx + 2 * cw, r1, cw, "RANGE", v, 1, 0, 0, ui_fmt_db(#, Band_Dynamic_Range[b]), "dB");
+  nv != v ? sv_put(SV_RANGE, b, DYN_RANGE_MAX * (2 * nv - 1));
 
   // Attack, 0.1..200ms, and release, 5..2000ms, on log scales; with Auto on they show the automatic
   // times, greyed and inert
   a = auto ? band_dyn_auto_attack(b) : Band_Dyn_Attack[b];
-  v = log(a / 0.1) / log(2000);
-  nv = ui_dyn_cell(3, gx, r2, cw, "ATTACK", v, log(50) / log(2000), 0, auto, auto, ui_fmt_ms(#, a), "ms");
-  !auto && nv != v ? (Band_Dyn_Attack[b] = 0.1 * exp(nv * log(2000)); filters_to_sliders(); notify_touched_dyn(b, 4));
+  lr = log(DYN_ATK_MAX / DYN_ATK_MIN);
+  v = log(a / DYN_ATK_MIN) / lr;
+  nv = ui_dyn_cell(3, gx, r2, cw, "ATTACK", v, 0, auto, auto, ui_fmt_ms(#, a), "ms");
+  !auto && nv != v ? sv_put(SV_ATTACK, b, DYN_ATK_MIN * exp(nv * lr));
 
   a = auto ? band_dyn_auto_release(b) : Band_Dyn_Release[b];
-  v = log(a / 5) / log(400);
-  nv = ui_dyn_cell(4, gx + cw, r2, cw, "RELEASE", v, log(16) / log(400), 0, auto, auto, ui_fmt_ms(#, a), "ms");
-  !auto && nv != v ? (Band_Dyn_Release[b] = 5 * exp(nv * log(400)); filters_to_sliders(); notify_touched_dyn(b, 5));
+  lr = log(DYN_REL_MAX / DYN_REL_MIN);
+  v = log(a / DYN_REL_MIN) / lr;
+  nv = ui_dyn_cell(4, gx + cw, r2, cw, "RELEASE", v, 0, auto, auto, ui_fmt_ms(#, a), "ms");
+  !auto && nv != v ? sv_put(SV_RELEASE, b, DYN_REL_MIN * exp(nv * lr));
 
   ui_dyn_timing(gx + 2 * cw, r2, cw, b);
   ui_dyn_meter(xr - 24 * s, y, b);
@@ -6282,6 +6471,138 @@ function ui_draw_dyn_source_pop(b) local(s, pw, ph, px, py, i, tx, ty, tw, th, o
     i += 1;
   );
   pr ? (!inpop ? ui_popup = 0; ui_block = 1);
+  gfx_setfont(1);
+);
+
+/*
+ * One arrow of a column: hover, dimmed when it would change nothing. A press steps once and arms the
+ * repeat (after 0.4s, then every 0.06s while held over it). Returns the value to set, or v.
+ */
+function sv_arrow(code, x, y, w, h, dir, v, st, pr) local(s, nv, en, hov, go) (
+  s = ui_pt(1);
+  nv = sv_step(v, st, dir);
+  en = nv != v;
+  hov = en && ui_in(x, y, w, h);
+  hov ? (ui_rgba(255, 255, 255, 0.06); ui_fill_rrect(x, y, w, h, 3 * s));
+  !en ? ui_rgb(52, 60, 65) : hov ? ui_rgb(223, 230, 233) : ui_rgb(109, 119, 124);
+  gfx_a = 1;
+  ui_chevron(x + w * 0.5, y + h * 0.5, 3.5 * s, dir == 0 ? (y < ui_sv_dy ? -1 : 1) : -dir);
+  go = 0;
+  hov && pr ? (go = 1; ui_sv_hold = code; ui_sv_ht = ui_t + 0.4) :
+    hov && ui_sv_hold == code && (mouse_cap & 1) && ui_t >= ui_sv_ht ? (go = 1; ui_sv_ht = ui_t + 0.06);
+  go ? nv : v;
+);
+
+/*
+ * The stepper popover (ui_popup 9): title, revert and close; then the sign column where the value can
+ * be negative, a column per digit with its arrows, and the unit. Every step applies at once; revert
+ * puts back the opening value; close, Esc or a press outside keep the current one.
+ */
+function ui_draw_stepper() local(s, id, b, skip, pr, cwid, wpt, nsign, ncol, uw, cw, pw, ph, px, py, x0, y1, y2, y3, ah, v, nv, n, c, k, p, d, x, st,
+                                  lead, hov, en, ix, dw, a) (
+  s = ui_pt(1);
+  id = ui_sv_id; b = ui_sv_b;
+  skip = ui_pop_skip; ui_pop_skip = 0;
+  pr = ui_press && !skip;
+  !(mouse_cap & 1) ? ui_sv_hold = -1;
+  sv_spec(id, b);
+
+  cwid = 17 * s; wpt = sv_dec > 0 ? 6 * s : 0; ah = 16 * s;
+  nsign = sv_min < 0;
+  ncol = nsign + sv_int + sv_dec;
+  gfx_setfont(3);
+  uw = strlen(#sv_unit) > 0 ? ui_text_w(#sv_unit) + 5 * s : 0;
+  cw = ncol * cwid + wpt + uw;
+  gfx_setfont(4);
+  pw = max(cw + 20 * s, ui_text_w(#sv_lab) + 11 * s + 58 * s);
+  ph = 30 * s + 4 * s + ah + 26 * s + ah + 6 * s;
+  px = floor(max(4 * s, min(ui_pop_x + ui_pop_w * 0.5 - pw * 0.5, gfx_w - pw - 4 * s)));
+  py = ui_pop_frame(px, pw, ph);
+  // Nearly opaque: it sits over the panel's own labels and values
+  ui_rgba(16, 19, 21, 0.7); ui_fill_rrect(px + 1, floor(py) + 1, floor(pw) - 2, floor(ph) - 2, floor(8 * s) - 1);
+  ui_pop_head(px, py, pw, #sv_lab, "");
+
+  // The value as shown, and as a whole count of its last digit
+  v = sv_round(sv_get(id, b));
+  n = floor(abs(v) * 10 ^ sv_dec + 0.5);
+  nv = v;
+
+  // Revert (greyed until the value has changed) and close
+  ix = px + pw - 6 * s - 22 * s;
+  hov = ui_in(ix, py + 4 * s, 22 * s, 22 * s);
+  hov ? (ui_rgba(255, 255, 255, 0.06); ui_fill_rrect(ix, py + 4 * s, 22 * s, 22 * s, 4 * s));
+  hov ? ui_rgb(223, 230, 233) : ui_rgb(154, 165, 170);
+  gfx_a = 1;
+  ui_icon(10, ix + 11 * s, py + 15 * s);
+  pr && hov ? ui_popup = 0;
+  ix -= 24 * s;
+  en = sv_get(id, b) != ui_sv_v0;
+  hov = en && ui_in(ix, py + 4 * s, 22 * s, 22 * s);
+  hov ? (ui_rgba(255, 255, 255, 0.06); ui_fill_rrect(ix, py + 4 * s, 22 * s, 22 * s, 4 * s));
+  !en ? ui_rgb(52, 60, 65) : hov ? ui_rgb(223, 230, 233) : ui_rgb(154, 165, 170);
+  gfx_a = 1;
+  ui_icon(9, ix + 11 * s, py + 15 * s);
+  pr && hov ? sv_put(id, b, ui_sv_v0);
+
+  // Columns, centred: arrows above and below each digit
+  x0 = floor(px + (pw - cw) * 0.5);
+  y1 = py + 34 * s; y2 = y1 + ah; y3 = y2 + 26 * s;
+  ui_sv_dy = y2;
+  dw = (mouse_wheel - ui_sv_wheel) / 120;
+  ui_sv_wheel = mouse_wheel;
+  x = x0;
+  nsign ? (
+    gfx_setfont(14);
+    ui_rgb(223, 230, 233); gfx_a = 1;
+    ui_text_c(x, y2, cwid, 26 * s, v < 0 ? "−" : sv_max > 0 ? "+" : "");
+    // Either arrow flips the sign, where the value can be positive
+    sv_max > 0 ? (
+      a = sv_arrow(0, x + 1, y1, cwid - 2, ah, 0, v, 0, pr); nv == v ? nv = a;
+      a = sv_arrow(1, x + 1, y3, cwid - 2, ah, 0, v, 0, pr); nv == v ? nv = a;
+    );
+    x += cwid;
+  );
+  c = 0;
+  loop(sv_int + sv_dec,
+    // This column steps 10^k; its digit is at place p of n
+    k = sv_int - 1 - c; p = k + sv_dec;
+    st = 10 ^ k;
+    c == sv_int ? (
+      gfx_setfont(14); ui_rgb(223, 230, 233); gfx_a = 1;
+      ui_text_c(x, y2, wpt, 26 * s, ".");
+      x += wpt;
+    );
+    d = floor(n / 10 ^ p) % 10;
+    lead = k > 0 && floor(n / 10 ^ p) == 0;
+    gfx_setfont(14);
+    lead ? ui_rgb(61, 71, 75) : ui_rgb(223, 230, 233);
+    gfx_a = 1;
+    ui_text_c(x, y2, cwid, 26 * s, sprintf(#, "%d", d));
+    // One step per frame from the arrows; every arrow still draws
+    a = sv_arrow(2 + 2 * c, x + 1, y1, cwid - 2, ah, 1, v, st, pr); nv == v ? nv = a;
+    a = sv_arrow(3 + 2 * c, x + 1, y3, cwid - 2, ah, -1, v, st, pr); nv == v ? nv = a;
+
+    // The wheel over the column steps it, in whole notches (a trackpad's part notches add up)
+    ui_in(x, y1, cwid, y3 + ah - y1) ? (
+      ui_sv_wcol != c ? (ui_sv_wcol = c; ui_sv_wacc = 0);
+      ui_sv_wacc += dw;
+      abs(ui_sv_wacc) >= 1 ? (
+        loop(floor(abs(ui_sv_wacc)), nv = sv_step(nv, st, sign(ui_sv_wacc)));
+        ui_sv_wacc -= sign(ui_sv_wacc) * floor(abs(ui_sv_wacc));
+      );
+    );
+    x += cwid;
+    c += 1;
+  );
+  uw > 0 ? (
+    gfx_setfont(3); ui_rgb(109, 119, 124); gfx_a = 1;
+    ui_text_l(x + 5 * s, y2, 26 * s, #sv_unit);
+  );
+  nv != v ? sv_set(id, b, nv);
+
+  // Outside presses close it and are not passed on
+  (pr || (ui_rpress && !skip)) && !ui_in(px, py, pw, ph) ? ui_popup = 0;
+  pr ? ui_block = 1;
   gfx_setfont(1);
 );
 
@@ -6460,7 +6781,7 @@ function ui_draw_panel()
     rv = freq_to_per(Band_Frequency[b], 1.0);
     ui_popup == 0 && !ui_block ? (
       v = dial_freq.handle_number_dial(rv);
-      v != rv ? (Band_Frequency[b] = per_to_freq(v, 1.0); flag_filter_update(b); notify_touched_frequency(b));
+      v != rv ? sv_put(SV_FREQ, b, per_to_freq(v, 1.0));
     );
     f = Band_Frequency[b];
     val = #;
@@ -6482,23 +6803,22 @@ function ui_draw_panel()
     ) : (
       dial_slope.x = -100000;
       dial_gain.x = cx; dial_gain.y = cy; dial_gain.r = 29 * s;
-      dimg = t == FILTER_NOTCH || t == FILTER_BAND_PASS || t == FILTER_ALL_PASS;
-      rv = (Band_Gain[b] + 30) / 60;
+      dimg = ui_gain_inert(t);
+      rv = (Band_Gain[b] / BAND_GAIN_MAX + 1) * 0.5;
       !dimg && ui_popup == 0 && !ui_block ? (
         v = dial_gain.handle_number_dial(rv);
-        v != rv ? (Band_Gain[b] = -30 + 60 * v; flag_filter_update(b); notify_touched_gain(b));
+        v != rv ? sv_put(SV_GAIN, b, BAND_GAIN_MAX * (2 * v - 1));
       );
-      ui_dial_face(cx, cy, "GAIN", (Band_Gain[b] + 30) / 60, 1, 0, dimg, ui_fmt_db(#, Band_Gain[b]), "dB");
+      ui_dial_face(cx, cy, "GAIN", (Band_Gain[b] / BAND_GAIN_MAX + 1) * 0.5, 1, 0, dimg, ui_fmt_db(#, Band_Gain[b]), "dB");
     );
 
     // Q, or resonance for the cuts
-    dimq = t == FILTER_LOW_CUT_BUTTERWORTH || t == FILTER_HIGH_CUT_BUTTERWORTH || t == FILTER_LOW_CUT_ANALOG || t == FILTER_HIGH_CUT_ANALOG
-      || ((t == FILTER_LOW_CUT || t == FILTER_HIGH_CUT) && Band_Slope[b] == 0);
+    dimq = ui_q_inert(b);
     dial_q.x = dimq ? -100000 : cx + sp; dial_q.y = cy; dial_q.r = 29 * s;
     rv = q_to_per(Band_Q[b], 1.0);
     !dimq && ui_popup == 0 && !ui_block ? (
       v = dial_q.handle_number_dial(rv);
-      v != rv ? (Band_Q[b] = per_to_q(v, 1.0); flag_filter_update(b); notify_touched_Q(b));
+      v != rv ? sv_put(SV_Q, b, per_to_q(v, 1.0));
     );
     ui_dial_face(cx + sp, cy, cut ? "RESONANCE" : "Q", q_to_per(Band_Q[b], 1.0), 0, 0, dimq, sprintf(#, "%.2f", Band_Q[b]), "");
 
@@ -6707,7 +7027,7 @@ ui_rpress && BOTTOM_MARGIN > 0 && mouse_y >= gfx_h - BOTTOM_MARGIN ? ui_chrome_p
 
 // A detector node: a press on it selects its band and drags the detector's frequency
 // (a band node over the ring comes first)
-ui_press && ui_fade > 0 && !showTextInput && ui_free() && !mouse_within_panel() && get_nearest_node() == -1 && (ui_dh = dyn_det_hit()) >= 0 ? (
+ui_press && ui_fade > 0 && ui_free() && !mouse_within_panel() && get_nearest_node() == -1 && (ui_dh = dyn_det_hit()) >= 0 ? (
   ui_ddrag = 1; ui_ddrag_b = ui_dh; ui_ddrag_off = dyn_det_nx(ui_dh) - mouse_x; button_focus = -51; ui_ddrag_moved = 0;
   selected_node = ui_dh; ui_select_only(ui_dh);
 );
@@ -6723,11 +7043,11 @@ ui_press && ui_rh_on && ui_free() && !mouse_within_panel() && sqr(mouse_x - ui_r
 );
 ui_rdrag && (mouse_cap & 1) ? (
   // Relative to the press, so a press alone (or on a handle held at the graph's edge) changes nothing
-  ui_rv = min(max(floor((ui_rdrag_r + y_to_db(mouse_y) - y_to_db(ui_rdrag_y)) * 10 + 0.5) / 10, -24), 24);
-  ui_rv != Band_Dynamic_Range[ui_rdrag_b] ? (Band_Dynamic_Range[ui_rdrag_b] = ui_rv; filters_to_sliders(); notify_touched_dyn(ui_rdrag_b, 3));
+  ui_rv = min(max(floor((ui_rdrag_r + y_to_db(mouse_y) - y_to_db(ui_rdrag_y)) * 10 + 0.5) / 10, -DYN_RANGE_MAX), DYN_RANGE_MAX);
+  ui_rv != Band_Dynamic_Range[ui_rdrag_b] ? sv_put(SV_RANGE, ui_rdrag_b, ui_rv);
 );
 
-do_general_mouse = 1 && !showTextInput && ui_popup == 0 && !ui_block && !ui_chrome_press && !ui_rdrag && !ui_ddrag;
+do_general_mouse = ui_popup == 0 && !ui_block && !ui_chrome_press && !ui_rdrag && !ui_ddrag;
 
 // While it sits out, keep its state current: a release must not act on a press it never saw,
 // wheel movement must not pile up, and listen ends with the modifier
@@ -6900,33 +7220,24 @@ do_general_mouse ? (
     
     click_up ? (
       tm = time_precise();
+      // The value (dial, knob or field) pressed, if any; a double click needs both presses on it
+      ui_sv_hit = sv_hit();
 
       // Double click?
       tm - click_time < 0.4 ? (
-        // Handle double click button value resets
+        // On a value, Cmd resets it to its default (the slope too); otherwise its stepper opens
         mouse_cap & 4 && ((mouse_y >= gfx_h - BOTTOM_MARGIN - gfx_texth) || (selected_node != -1 && mouse_within_panel())) ? (
-          button_scale.is_mouse_number_button() ? (Scale = button_scale.db = 100;) : 
-            button_gain.is_mouse_number_button() ? (Gain = button_gain.db = 0;) :
-            button_in_gain.is_mouse_number_button() ? (InGain = button_in_gain.db = 0;) :
-              button_mid_gain.is_mouse_number_button() ? (MLGain = button_mid_gain.db = 0;) :
-                button_side_gain.is_mouse_number_button() ? (SRGain = button_side_gain.db = 0;) :
-                  dial_slope.is_mouse_number_dial() ? (set_node_slope(selected_node, 1); ) :
-                  dial_gain.is_mouse_number_dial() ? (Band_Gain[selected_node] = 0; ) :
-                    dial_freq.is_mouse_number_dial() ? (Band_Frequency[selected_node] = 500; ) : 
-                      dial_q.is_mouse_number_dial() ? (Band_Q[selected_node] = 0.707);
-          
-          filters_to_sliders();
-          // Flag all filters for updating
-          flag_filter_update_all();
-        ) : (
-          mouse_within_panel() ? (
-            dial_freq.is_mouse_number_dial() ? (
-              // TODO: comment back in for text input development
-              //textField.text_field_init();
-              //showTextInput = 1;
-              0;
-            );
+          ui_sv_hit >= 0 && ui_sv_hit == ui_sv_click ? (
+            sv_spec(ui_sv_hit, selected_node);
+            sv_set(ui_sv_hit, selected_node, sv_def);
+          ) : selected_node != -1 && mouse_within_panel() && dial_slope.is_mouse_number_dial() ? (
+            set_node_slope(selected_node, 1);
+            filters_to_sliders();
+            flag_filter_update_all();
           );
+        ) : ui_sv_hit >= 0 && ui_sv_hit == ui_sv_click ? (
+          sv_open(ui_sv_hit);
+        ) : (
           // Handle general double click cases
           !mouse_within_panel() ? (
             // Delete band?
@@ -6995,6 +7306,7 @@ do_general_mouse ? (
         );
       );
       click_time = tm;
+      ui_sv_click = ui_sv_hit;
     );
 
     click_up = 0;
@@ -7221,6 +7533,8 @@ ui_popup == 3 && (compact_width || compact_height || Band_Enabled[ui_card_band] 
 (ui_popup == 4 || ui_popup == 5) && (compact_height || compact_width || ui_key == 27) ? ui_popup = 0;
 ui_popup == 6 && (compact_width || compact_height || ui_key == 27) ? ui_popup = 0;
 ui_popup == 8 && (UI_EMBED || ui_key == 27) ? ui_popup = 0;
+// The value stepper, when its control goes away or turns inert
+ui_popup == 9 && (ui_key == 27 || !sv_live(ui_sv_id, ui_sv_b)) ? ui_popup = 0;
 
 // Output peak meter: the audio side holds the peak since the last frame, this side decays it
 ui_t = time_precise();
@@ -7246,6 +7560,8 @@ in_pk0 = in_pk1 = 0;
 
 // ui_draw_top and ui_draw_bar record the buttons they drew; the mouse code reads them next frame
 ui_top_h = 0;
+// ui_draw_dyn_block records the dynamics grid when it draws it
+ui_dyn_shown = 0;
 ui_fade > 0 ? (
   !compact_height && !compact_width ? ui_draw_bar();
   !compact_height && !compact_width ? ui_draw_top();
@@ -7255,6 +7571,7 @@ ui_fade > 0 ? (
   ui_popup == 5 ? ui_draw_settings_pop();
   ui_popup == 6 ? ui_draw_range_pop();
   ui_popup == 8 ? ui_draw_credits();
+  ui_popup == 9 ? ui_draw_stepper();
 );
 
 // Mid-fade: blend the graph saved earlier back over the fading elements
