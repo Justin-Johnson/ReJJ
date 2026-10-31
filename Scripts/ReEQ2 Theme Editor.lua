@@ -3905,10 +3905,27 @@ local function save_current()
   end
 end
 
+-- The themes installed with ReEQ2 (by ReaPack, into Themes/): an update replaces them, so a theme saved
+-- under one of these names would be lost
+local SHIPPED = {}
+for _, n in ipairs({ "Amber", "Default", "Espresso", "Fjord", "Forest", "Glacier", "High Contrast", "Matcha",
+    "Midnight Neon", "Mono", "Ocean", "Paper", "Phosphor", "Rose", "Rosé", "Sunset", "Synthwave" }) do
+  SHIPPED[n:lower()] = true
+end
+
 local function save_as()
-  local ok, name = r.GetUserInputs("Save ReEQ2 theme as", 1, "Theme name,extrawidth=120", theme.name)
-  if not ok or trim(name) == "" then return end
-  theme.name = trim(name)
+  local name = theme.name
+  if SHIPPED[name:lower()] then name = name .. " (mine)" end
+  while true do
+    local ok
+    ok, name = r.GetUserInputs("Save ReEQ2 theme as", 1, "Theme name,extrawidth=120", name)
+    if not ok or trim(name) == "" then return end
+    name = trim(name)
+    if not SHIPPED[name:lower()] and not SHIPPED[safe_file_name(name):lower()] then break end
+    r.ShowMessageBox("\"" .. name .. "\" is one of the themes that come with ReEQ2, and an update would replace it.\n\n" ..
+      "Choose another name.", "Save ReEQ2 theme as", 0)
+  end
+  theme.name = name
   local path = THEMES_DIR .. "/" .. safe_file_name(theme.name) .. ".txt"
   if r.file_exists(path) and r.ShowMessageBox("Replace the theme \"" .. theme.name .. "\"?", "Save ReEQ2 theme as", 4) ~= 6 then return end
   if save_theme(theme, path) then save_current() else say("Couldn't write " .. path .. ".") end
