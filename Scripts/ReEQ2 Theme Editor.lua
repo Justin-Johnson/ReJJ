@@ -22,7 +22,7 @@ local JSFX_FILE = RES .. "/Effects/ReJJ/ReEQ2/ReEQ2.jsfx"
 local GM_NAME, GM_MAGIC, GM_TOKENS = "ReEQ2", 20261031, 8
 
 -- The version of ReEQ2 the preview was translated from
-local PREVIEW_FROM = "2.0.2"
+local PREVIEW_FROM = "2.1.0"
 
 local EXT = "ReEQ2 Theme Editor"
 
@@ -973,7 +973,7 @@ local preview_draw  -- function(x, y, w, h), set by the preview section
 local preview_pick  -- function(x, y, w, h) -> token key under the mouse, or nil
 
 ----------------------------------------------------------------------------------------------------
--- The preview: ReEQ2's own drawing, translated from ReEQ2 2.0.2 (ReEQ2.jsfx @gfx, spectrum.jsfx-inc
+-- The preview: ReEQ2's own drawing, translated from ReEQ2 2.1.0 (ReEQ2.jsfx @gfx, spectrum.jsfx-inc
 -- and ivantsov_filter.jsfx-inc) and drawn on fixed example state under ReEQ2's names. Each function
 -- names its source: a change to ReEQ2's drawing is made here too, and PREVIEW_FROM moves with it.
 --
@@ -1105,24 +1105,24 @@ local function preview_module()
   -- Theme and drawing helpers
   ------------------------------------------------------------------------------------------------
 
-  -- from ReEQ2 2.0.2: rscale()
+  -- from ReEQ2 2.1.0: rscale()
   local function rscale(v1, v2)
     local s = max(retina, 1)
     if s <= 2 then return v1 + (v2 - v1) * (s - 1) end
     return v2 * s * 0.5
   end
 
-  -- from ReEQ2 2.0.2: ui_pt()
+  -- from ReEQ2 2.1.0: ui_pt()
   local function ui_pt(v)
     return v * max(retina, 1)
   end
 
-  -- from ReEQ2 2.0.2: ui_font()
+  -- from ReEQ2 2.1.0: ui_font()
   local function ui_font(slot, pt, flags)
     gfx.setfont(slot, "Arial", floor(ui_pt(pt) + 0.5), flags)
   end
 
-  -- from ReEQ2 2.0.2: ui_col() (faded toward T_TILE by ui_mix)
+  -- from ReEQ2 2.1.0: ui_col() (faded toward T_TILE by ui_mix)
   local function ui_col(t)
     if picking then pick_set(t); return end
     local p, d = Pal[t], Pal[T.TILE]
@@ -1132,13 +1132,13 @@ local function preview_module()
     gfx.a = p[4]
   end
 
-  -- from ReEQ2 2.0.2: ui_col_a()
+  -- from ReEQ2 2.1.0: ui_col_a()
   local function ui_col_a(t, a)
     ui_col(t)
     gfx.a = A(a * Pal[t][4])
   end
 
-  -- from ReEQ2 2.0.2: ui_cola() (never faded)
+  -- from ReEQ2 2.1.0: ui_cola() (never faded)
   local function ui_cola(t, a)
     if picking then pick_set(t); return end
     local p = Pal[t]
@@ -1146,7 +1146,7 @@ local function preview_module()
     gfx.a = a * p[4]
   end
 
-  -- from ReEQ2 2.0.2: ui_col_mix() (picks as t0 below halfway, t1 above)
+  -- from ReEQ2 2.1.0: ui_col_mix() (picks as t0 below halfway, t1 above)
   local function ui_col_mix(t0, t1, f, a)
     if picking then pick_set(f < 0.5 and t0 or t1); return end
     local p, q, d = Pal[t0], Pal[t1], Pal[T.TILE]
@@ -1156,7 +1156,7 @@ local function preview_module()
     gfx.a = a * p[4]
   end
 
-  -- from ReEQ2 2.0.2: ui_band_col()
+  -- from ReEQ2 2.1.0: ui_band_col()
   local function ui_band_col(b)
     ui_col(T.BAND1 + b % 8)
   end
@@ -1173,7 +1173,7 @@ local function preview_module()
     end
   end
 
-  -- from ReEQ2 2.0.2: ui_fill_rrect()
+  -- from ReEQ2 2.1.0: ui_fill_rrect()
   local function ui_fill_rrect(x, y, w, h, r)
     x = floor(x); y = floor(y); w = floor(w); h = floor(h)
     r = floor(min(r, min(w, h) * 0.5))
@@ -1197,7 +1197,7 @@ local function preview_module()
     end
   end
 
-  -- from ReEQ2 2.0.2: ui_box()
+  -- from ReEQ2 2.1.0: ui_box()
   local function ui_box(x, y, w, h, r, tf, fa, tb)
     x = floor(x); y = floor(y); w = floor(w); h = floor(h)
     ui_cola(tf, fa)
@@ -1206,38 +1206,38 @@ local function preview_module()
     gfx.roundrect(x, y, w - 1, h - 1, r, 1)
   end
 
-  -- from ReEQ2 2.0.2: ui_text_c()
+  -- from ReEQ2 2.1.0: ui_text_c()
   local function ui_text_c(x, y, w, h, s)
     gfx.x = floor(x); gfx.y = floor(y)
     gfx.drawstr(s, 1 + 4, floor(x + w), floor(y + h))
   end
 
-  -- from ReEQ2 2.0.2: ui_text_l()
+  -- from ReEQ2 2.1.0: ui_text_l()
   local function ui_text_l(x, y, h, s)
     gfx.x = floor(x); gfx.y = floor(y)
     gfx.drawstr(s, 4 + 256, floor(x + gfx_w), floor(y + h))
   end
 
-  -- from ReEQ2 2.0.2: ui_text_at()
+  -- from ReEQ2 2.1.0: ui_text_at()
   local function ui_text_at(cx, cy, s)
     local w, h = gfx.measurestr(s)
     gfx.x = floor(cx - w * 0.5 + 0.5); gfx.y = floor(cy - h * 0.5 + 0.5)
     gfx.drawstr(s)
   end
 
-  -- from ReEQ2 2.0.2: ui_text_r()
+  -- from ReEQ2 2.1.0: ui_text_r()
   local function ui_text_r(x, y, w, h, s)
     gfx.x = floor(x); gfx.y = floor(y)
     gfx.drawstr(s, 2 + 4, floor(x + w), floor(y + h))
   end
 
-  -- from ReEQ2 2.0.2: ui_text_w()
+  -- from ReEQ2 2.1.0: ui_text_w()
   local function ui_text_w(s)
     local w = gfx.measurestr(s)
     return w
   end
 
-  -- from ReEQ2 2.0.2: ui_thick_line()
+  -- from ReEQ2 2.1.0: ui_thick_line()
   local function ui_thick_line(x1, y1, x2, y2, w)
     local dx, dy = x2 - x1, y2 - y1
     local l = max(sqrt(dx * dx + dy * dy), 0.001)
@@ -1249,7 +1249,7 @@ local function preview_module()
     until not (o <= (w - 1) * 0.5 + 0.01)
   end
 
-  -- from ReEQ2 2.0.2: ui_thick_arc()
+  -- from ReEQ2 2.1.0: ui_thick_arc()
   local function ui_thick_arc(cx, cy, r, a0, a1, w)
     local o = -(w - 1) * 0.5
     repeat
@@ -1258,29 +1258,29 @@ local function preview_module()
     until not (o <= (w - 1) * 0.5 + 0.01)
   end
 
-  -- from ReEQ2 2.0.2: ui_chevron()
+  -- from ReEQ2 2.1.0: ui_chevron()
   local function ui_chevron(cx, cy, s, dir)
     gfx.triangle(cx - s, cy - s * 0.5 * dir, cx + s, cy - s * 0.5 * dir, cx, cy + s * 0.5 * dir)
   end
 
-  -- from ReEQ2 2.0.2: ui_fmt_db()
+  -- from ReEQ2 2.1.0: ui_fmt_db()
   local function ui_fmt_db(v)
     if abs(v) < 0.05 then return "0.0" end
     if v > 0 then return string.format("+%.1f", v) end
     return string.format("−%.1f", -v)
   end
 
-  -- from ReEQ2 2.0.2: ui_is_cut()
+  -- from ReEQ2 2.1.0: ui_is_cut()
   local function ui_is_cut(t)
     return t == FILTER_LOW_CUT or t == FILTER_LOW_CUT_BUTTERWORTH or t == FILTER_HIGH_CUT or t == FILTER_HIGH_CUT_BUTTERWORTH
   end
 
-  -- from ReEQ2 2.0.2: band_dyn_capable()
+  -- from ReEQ2 2.1.0: band_dyn_capable()
   local function band_dyn_capable(t)
     return t == FILTER_PEAK or t == FILTER_LOW_SHELF or t == FILTER_HIGH_SHELF
   end
 
-  -- from ReEQ2 2.0.2: ui_slope_db(), ui_slope_index()
+  -- from ReEQ2 2.1.0: ui_slope_db(), ui_slope_index()
   local function ui_slope_db(i)
     if i < 6 then return 6 * (i + 1) end
     return i == 6 and 48 or i == 7 and 72 or i == 8 and 96 or 120
@@ -1619,7 +1619,7 @@ local function preview_module()
       return m
     end
 
-    -- from ReEQ2 2.0.2: band_set_filter()
+    -- from ReEQ2 2.1.0: band_set_filter()
     local function band_set_filter(f, t, freq, g, qval, slope)
       if t == 0 then ivf_bell(f, freq, qval, g)
       elseif t == 1 then ivf_low_cut(f, freq, qval, slope)
@@ -1664,13 +1664,13 @@ local function preview_module()
   -- The listen filter: draw_listen_helper() sets it, the listen spectrum is the input through it
   local listen_filter = ivf_new()
 
-  -- from ReEQ2 2.0.2: band_gfx_gain()
+  -- from ReEQ2 2.1.0: band_gfx_gain()
   local function band_gfx_gain(b)
     local live = Band_Dyn_On[b] ~= 0 and band_dyn_capable(Band_Type[b]) and Band_Enabled[b] == BAND_STATE_ENABLED
     return Band_Gain[b] + (live and Band_Dyn_Gain[b] or 0)
   end
 
-  -- from ReEQ2 2.0.2: update_visual_filters() (every band, every render)
+  -- from ReEQ2 2.1.0: update_visual_filters() (every band, every render)
   local function update_visual_filters()
     local band_scalar = Scale / 100.0
     for b = 0, NUM_BANDS - 1 do
@@ -1683,7 +1683,7 @@ local function preview_module()
   -- The layout (the top of ReEQ2's @gfx)
   ------------------------------------------------------------------------------------------------
 
-  -- from ReEQ2 2.0.2: @gfx, the compact flags, margins and panel placement
+  -- from ReEQ2 2.1.0: @gfx, the compact flags, margins and panel placement
   local function layout()
     retina = max(S, 1)
     gfx_w, gfx_h = floor(DEFAULT_W * retina + 0.5), floor(DEFAULT_H * retina + 0.5)
@@ -1720,29 +1720,29 @@ local function preview_module()
     RIGHT_MARGIN = 0
   end
 
-  -- from ReEQ2 2.0.2: freq_to_scx()
+  -- from ReEQ2 2.1.0: freq_to_scx()
   local function freq_to_scx(freq)
     return LEFT_MARGIN + ((gfx_w - LEFT_MARGIN - RIGHT_MARGIN) * log(freq / MIN_FREQ) / FREQ_LOG_MAX)
   end
 
-  -- from ReEQ2 2.0.2: scx_to_freq()
+  -- from ReEQ2 2.1.0: scx_to_freq()
   local function scx_to_freq(x)
     x = MIN_FREQ * exp(FREQ_LOG_MAX * (x - LEFT_MARGIN) / (gfx_w - LEFT_MARGIN - RIGHT_MARGIN))
     return max(min(x, MAX_FREQ), MIN_FREQ)
   end
 
-  -- from ReEQ2 2.0.2: db_to_y()
+  -- from ReEQ2 2.1.0: db_to_y()
   local function db_to_y(db)
     local m = 1.0 - (((db / DB_EQ_RANGE) / 2) + 0.5)
     return TOP_MARGIN + (m * (gfx_h - (ui_th1 * 2) - BOTTOM_MARGIN - (RAISED_BOTTOM * ENABLE_RAISED_BOTTOM)))
   end
 
-  -- from ReEQ2 2.0.2: get_filter_x()
+  -- from ReEQ2 2.1.0: get_filter_x()
   local function get_filter_x(band)
     return freq_to_scx(Band_Frequency[band])
   end
 
-  -- from ReEQ2 2.0.2: get_filter_y()
+  -- from ReEQ2 2.1.0: get_filter_y()
   local function get_filter_y(band)
     local y
     local t = Band_Type[band]
@@ -1779,7 +1779,7 @@ local function preview_module()
     }
     spectrum.freq_log_max = log(spectrum.max_freq / spectrum.min_freq)
 
-    -- from ReEQ2 2.0.2: update_state(), the smoothing: Smoothing_Value 1 (its default) is 1/48 octave
+    -- from ReEQ2 2.1.0: update_state(), the smoothing: Smoothing_Value 1 (its default) is 1/48 octave
     local Smoothing_Value = 1
     spectrum.smooth = Smoothing_Value == 1 and 1 / 48 or Smoothing_Value == 2 and 1 / 24 or Smoothing_Value == 3 and 1 / 12
       or Smoothing_Value == 4 and 1 / 6 or 0
@@ -1823,7 +1823,7 @@ local function preview_module()
       gfx.line(x1, y1, x2 - 1, y2 - 1, 1)
     end
 
-    -- from ReEQ2 2.0.2: an_set_color()
+    -- from ReEQ2 2.1.0: an_set_color()
     local function an_set_color(k, t, f)
       local p = Pal[t]
       spectrum.set_color(k, p[1] / 255 * f, p[2] / 255 * f, p[3] / 255 * f, p[4])
@@ -1836,7 +1836,7 @@ local function preview_module()
       spectrum.tok[k] = T.AN_LISTEN
     end
 
-    -- from ReEQ2 2.0.2: spectrum_colours()
+    -- from ReEQ2 2.1.0: spectrum_colours()
     local function spectrum_colours()
       local fade = do_listen ~= 0 and 0.5 or 1.0
 
@@ -2130,7 +2130,7 @@ local function preview_module()
   ------------------------------------------------------------------------------------------------
 
   local draw_grid, draw_filter_bands, draw_filter_response, draw_dyn_static, draw_dyn_range, draw_nodes = (function()
-    -- from ReEQ2 2.0.2: draw_grid()
+    -- from ReEQ2 2.1.0: draw_grid()
     local function draw_grid()
       local gb = gfx_h - BOTTOM_MARGIN - ui_pt(20)
 
@@ -2176,7 +2176,7 @@ local function preview_module()
       gfx.setfont(FONT_BASE)
     end
 
-    -- from ReEQ2 2.0.2: draw_line()
+    -- from ReEQ2 2.1.0: draw_line()
     local function draw_line(x1, y1, x2, y2)
       x1 = floor(x1)
       x2 = floor(x2)
@@ -2185,7 +2185,7 @@ local function preview_module()
       gfx.line(x1, y1, x2, y2, 1)
     end
 
-    -- from ReEQ2 2.0.2: draw_thick_line()
+    -- from ReEQ2 2.1.0: draw_thick_line()
     local function draw_thick_line(x1, y1, x2, y2)
       x1 = floor(x1)
       x2 = floor(x2)
@@ -2197,7 +2197,7 @@ local function preview_module()
       gfx.line(x1 - 1, y1 + 1, x2 + 1, y2 + 1, 1)
     end
 
-    -- from ReEQ2 2.0.2: draw_filter_bands() (the areas pick as T_BAND_AREA, the curves as the band)
+    -- from ReEQ2 2.1.0: draw_filter_bands() (the areas pick as T_BAND_AREA, the curves as the band)
     local function draw_filter_bands()
       -- Band fill opacity at the curve and at the 0dB line
       local FILL_ALPHA_CURVE = Pal[T.BAND_AREA][4]
@@ -2264,7 +2264,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: draw_filter_response()
+    -- from ReEQ2 2.1.0: draw_filter_response()
     local function draw_filter_response(group, tc)
       local step = 1
       ui_cola(tc, 1)
@@ -2322,7 +2322,7 @@ local function preview_module()
       until not (xf < gfx_w)
     end
 
-    -- from ReEQ2 2.0.2: draw_dyn_curve()
+    -- from ReEQ2 2.1.0: draw_dyn_curve()
     local function draw_dyn_curve(t, f, g, qv, dash, gap)
       local s = ui_pt(1)
       band_set_filter(dyn_curve, t, f, g, qv, 0)
@@ -2341,7 +2341,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: draw_dyn_static()
+    -- from ReEQ2 2.1.0: draw_dyn_static()
     local function draw_dyn_static()
       for b = 0, NUM_BANDS - 1 do
         local t = Band_Type[b]
@@ -2352,7 +2352,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: draw_dyn_range() (nothing hovered or dragged)
+    -- from ReEQ2 2.1.0: draw_dyn_range() (nothing hovered or dragged)
     local function draw_dyn_range()
       local s = ui_pt(1)
       local b = selected_node
@@ -2389,7 +2389,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: draw_node_stereo()
+    -- from ReEQ2 2.1.0: draw_node_stereo()
     local function draw_node_stereo(band, x, y, alpha)
       local size = ui_pt(7.5)
       ui_cola(T.HIGHLIGHT, alpha)
@@ -2408,7 +2408,7 @@ local function preview_module()
       if g == 2 or g == 4 then arcs(18, 22) end
     end
 
-    -- from ReEQ2 2.0.2: draw_node()
+    -- from ReEQ2 2.1.0: draw_node()
     local function draw_node(band, freq, db, enabled, selected)
       local x = get_filter_x(band)
       local y = get_filter_y(band)
@@ -2487,7 +2487,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: draw_nodes()
+    -- from ReEQ2 2.1.0: draw_nodes()
     local function draw_nodes()
       for band = 0, NUM_BANDS - 1 do
         if Band_Enabled[band] ~= BAND_STATE_OFF then draw_node(band, Band_Frequency[band], Band_Gain[band], Band_Enabled[band], 0) end
@@ -2508,7 +2508,7 @@ local function preview_module()
     local ghost_det = ivf_new()
     local listen_width, listen_q, listen_freq = 0.10, 0.7071, 1000
 
-    -- from ReEQ2 2.0.2: round(), log2()
+    -- from ReEQ2 2.1.0: round(), log2()
     local function round(v)
       local sg = v > 0 and 1 or v < 0 and -1 or 0
       return floor(v + 0.5 * sg)
@@ -2518,14 +2518,14 @@ local function preview_module()
       return log(x) / log(2)
     end
 
-    -- from ReEQ2 2.0.2: y_to_db()
+    -- from ReEQ2 2.1.0: y_to_db()
     local function y_to_db(y)
       local m = (y - TOP_MARGIN) / (gfx_h - (ui_th1 * 2) - BOTTOM_MARGIN - (RAISED_BOTTOM * ENABLE_RAISED_BOTTOM))
       m = (1.0 - (m + 0.5)) * 2 * DB_EQ_RANGE
       return max(min(m, DB_EQ_RANGE), -DB_EQ_RANGE)
     end
 
-    -- from ReEQ2 2.0.2: dyn_det_freq_u(), dyn_det_width(): an unlinked detector's frequency (20Hz to
+    -- from ReEQ2 2.1.0: dyn_det_freq_u(), dyn_det_width(): an unlinked detector's frequency (20Hz to
     -- 20kHz, below Nyquist) and width (0.25 to 8 octaves)
     local function dyn_det_freq_u(b)
       return min(max(Band_Dyn_DetFreq[b], 20), min(20000, 0.45 * srate))
@@ -2535,7 +2535,7 @@ local function preview_module()
       return min(max(Band_Dyn_DetWidth[b], 0.25), 8)
     end
 
-    -- from ReEQ2 2.0.2: dyn_det_put(), into the filter det (EEL's this). Returns the gain that brings the
+    -- from ReEQ2 2.1.0: dyn_det_put(), into the filter det (EEL's this). Returns the gain that brings the
     -- detector's centre to 0dB (1 when linked).
     local function dyn_det_put(det, b)
       local t = Band_Type[b]
@@ -2564,7 +2564,7 @@ local function preview_module()
       return 1 / max(m, 0.05)
     end
 
-    -- from ReEQ2 2.0.2: dyn_det_freq(), dyn_det_q()
+    -- from ReEQ2 2.1.0: dyn_det_freq(), dyn_det_q()
     local function dyn_det_freq(b)
       return Band_Dyn_Link[b] ~= 0 and Band_Frequency[b] or dyn_det_freq_u(b)
     end
@@ -2573,13 +2573,13 @@ local function preview_module()
       return Band_Dyn_Link[b] ~= 0 and Band_Q[b] or 1.41 / dyn_det_width(b)
     end
 
-    -- from ReEQ2 2.0.2: dyn_ghost_ok()
+    -- from ReEQ2 2.1.0: dyn_ghost_ok()
     local function dyn_ghost_ok(b)
       return b >= 0 and Band_Dyn_On[b] ~= 0 and band_dyn_capable(Band_Type[b]) and Band_Enabled[b] == BAND_STATE_ENABLED
         and (Band_Dyn_Source[b] > 0 or Band_Dyn_Link[b] == 0)
     end
 
-    -- from ReEQ2 2.0.2: dyn_det_on(), dyn_det_nx(), dyn_det_ny()
+    -- from ReEQ2 2.1.0: dyn_det_on(), dyn_det_nx(), dyn_det_ny()
     local function dyn_det_on(b)
       return Band_Dyn_On[b] ~= 0 and band_dyn_capable(Band_Type[b]) and Band_Enabled[b] ~= BAND_STATE_OFF and Band_Dyn_Link[b] == 0
     end
@@ -2592,7 +2592,7 @@ local function preview_module()
       return floor(db_to_y(-0.75 * DB_EQ_RANGE)) + 0.5
     end
 
-    -- from ReEQ2 2.0.2: draw_dyn_detectors() (none hovered or dragged)
+    -- from ReEQ2 2.1.0: draw_dyn_detectors() (none hovered or dragged)
     local function draw_dyn_detectors()
       local s = ui_pt(1)
       for b = 0, NUM_BANDS - 1 do
@@ -2629,7 +2629,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: draw_dyn_ghost(). The two washes (the analyser dimmed, the detector's range
+    -- from ReEQ2 2.1.0: draw_dyn_ghost(). The two washes (the analyser dimmed, the detector's range
     -- tinted) stay out of the pick image, so what's under them can be picked.
     local function draw_dyn_ghost(gb, a)
       local s = ui_pt(1)
@@ -2683,7 +2683,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: draw_info_panel(), with the mouse over nothing (no node near it, so the card
+    -- from ReEQ2 2.1.0: draw_info_panel(), with the mouse over nothing (no node near it, so the card
     -- describes the band being heard, if any; the Shift-drag listen's card follows the mouse and isn't
     -- translated)
     local function draw_info_panel()
@@ -2782,7 +2782,7 @@ local function preview_module()
       return hide
     end
 
-    -- from ReEQ2 2.0.2: draw_listen_helper(), for a band being heard (listen_node, or the hovered band
+    -- from ReEQ2 2.1.0: draw_listen_helper(), for a band being heard (listen_node, or the hovered band
     -- while Shift is held; the free Shift-drag listen follows the mouse and isn't translated). It sets
     -- the listen filter, then draws the range lines when draw is true: render() also runs it before
     -- the analyser, as ReEQ2's previous frame did, so the listen spectrum has its filter.
@@ -2893,14 +2893,14 @@ local function preview_module()
     local LimitOutput, AutoGainEnabled, MidPolarity, SidePolarity, AG_Target = 0, 0, 0, 0, 1
     local ui_ipk0, ui_ipk1, ui_pk0, ui_pk1, ui_clip_in, ui_clip_out = 0, 0, 0, 0, 0, 0
 
-    -- from ReEQ2 2.0.2: ui_shape_name()
+    -- from ReEQ2 2.1.0: ui_shape_name()
     local function ui_shape_name(t)
       local names = { [0] = "Bell", "Low Cut", "Low Cut BW", "Low Shelf", "High Shelf", "High Cut", "High Cut BW", "Notch",
         "Band Pass", "Tilt Shelf", "Pultec Low", "All Pass", "Vintage Lo" }
       return names[t] or "Vintage Hi"
     end
 
-    -- from ReEQ2 2.0.2: ui_gain_inert(), ui_q_inert(), ui_group_name()
+    -- from ReEQ2 2.1.0: ui_gain_inert(), ui_q_inert(), ui_group_name()
     local function ui_gain_inert(t)
       return t == FILTER_NOTCH or t == FILTER_BAND_PASS or t == FILTER_ALL_PASS
     end
@@ -2915,7 +2915,7 @@ local function preview_module()
       return g == 0 and "Stereo" or g == 1 and "Mid" or g == 2 and "Side" or g == 3 and "Left" or "Right"
     end
 
-    -- from ReEQ2 2.0.2: freq_to_per(), q_to_per()
+    -- from ReEQ2 2.1.0: freq_to_per(), q_to_per()
     local function freq_to_per(freq, range)
       return range * log(freq / MIN_FREQ) / FREQ_LOG_MAX
     end
@@ -2924,7 +2924,7 @@ local function preview_module()
       return range * log(q / MIN_Q) / Q_LOG_MAX
     end
 
-    -- from ReEQ2 2.0.2: band_dyn_auto_attack(), band_dyn_auto_release()
+    -- from ReEQ2 2.1.0: band_dyn_auto_attack(), band_dyn_auto_release()
     local function band_dyn_auto_attack(b)
       local f = dyn_det_freq(b)
       return min(max(1000 * (1.5 / f + dyn_det_q(b) / (PI * f)) + 0.5, 0.5), 30)
@@ -2934,12 +2934,12 @@ local function preview_module()
       return min(max(8 * band_dyn_auto_attack(b), 25), 300)
     end
 
-    -- from ReEQ2 2.0.2: ui_fmt_ms()
+    -- from ReEQ2 2.1.0: ui_fmt_ms()
     local function ui_fmt_ms(v)
       return string.format(v < 10 and "%.1f" or "%.0f", v)
     end
 
-    -- from ReEQ2 2.0.2: ui_dial()
+    -- from ReEQ2 2.1.0: ui_dial()
     local function ui_dial(cx, cy, v, bipolar, nd, dim)
       local s = ui_pt(1)
       cx = floor(cx) + 0.5; cy = floor(cy) + 0.5
@@ -2990,7 +2990,7 @@ local function preview_module()
       ui_mix = 0
     end
 
-    -- from ReEQ2 2.0.2: ui_icon()
+    -- from ReEQ2 2.1.0: ui_icon()
     local function ui_icon(kind, cx, cy)
       local s = ui_pt(1); local w = 1.4 * s
       if kind == 1 then
@@ -3052,7 +3052,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: ui_button_draw(), ui_button() (style 0 normal, 1 on, 2 danger on hover)
+    -- from ReEQ2 2.1.0: ui_button_draw(), ui_button() (style 0 normal, 1 on, 2 danger on hover)
     local function ui_button_draw(x, y, w, h, label, style, hov)
       if style == 1 then
         ui_box(x, y, w, h, ui_pt(5), T.ACCENT_FILL, 1, T.ACCENT_BORDER)
@@ -3072,7 +3072,7 @@ local function preview_module()
       ui_button_draw(x, y, w, h, label, style, false)
     end
 
-    -- from ReEQ2 2.0.2: ui_icon_button_draw(), ui_icon_button()
+    -- from ReEQ2 2.1.0: ui_icon_button_draw(), ui_icon_button()
     local function ui_icon_button_draw(x, y, w, h, kind, style, hov)
       ui_button_draw(x, y, w, h, "", style, hov)
       ui_col(style == 1 and T.ACCENT or (style == 2 and hov) and T.DANGER or hov and T.TEXT or T.TEXT_SECONDARY)
@@ -3083,7 +3083,7 @@ local function preview_module()
       ui_icon_button_draw(x, y, w, h, kind, style, false)
     end
 
-    -- from ReEQ2 2.0.2: ui_dropdown()
+    -- from ReEQ2 2.1.0: ui_dropdown()
     local function ui_dropdown(x, y, w, h, label, open)
       local hov = false
       if open then
@@ -3098,7 +3098,7 @@ local function preview_module()
       ui_chevron(x + w - ui_pt(11), y + h * 0.5, ui_pt(3), open and -1 or 1)
     end
 
-    -- from ReEQ2 2.0.2: ui_seg2()
+    -- from ReEQ2 2.1.0: ui_seg2()
     local function ui_seg2(x, y, h, w0, w1, l0, l1, sel)
       local r = ui_pt(5)
       local hov0, hov1 = false, false
@@ -3122,7 +3122,7 @@ local function preview_module()
       ui_text_c(x + w0, y, w1, h, l1)
     end
 
-    -- from ReEQ2 2.0.2: ui_field()
+    -- from ReEQ2 2.1.0: ui_field()
     local function ui_field(x, y, w, h, label, val, unit, hot)
       ui_box(x, y, w, h, ui_pt(5), T.CONTROL, 1, hot and T.BORDER_HOVER or T.BORDER)
       local tx = x + ui_pt(9)
@@ -3143,7 +3143,7 @@ local function preview_module()
       return tx
     end
 
-    -- from ReEQ2 2.0.2: ui_text_button()
+    -- from ReEQ2 2.1.0: ui_text_button()
     local function ui_text_button(x, y, w, h, label)
       local hov = false
       gfx.setfont(FONT_EMPH)
@@ -3151,7 +3151,7 @@ local function preview_module()
       ui_text_c(x, y, w, h, label)
     end
 
-    -- from ReEQ2 2.0.2: ui_dial_face()
+    -- from ReEQ2 2.1.0: ui_dial_face()
     local function ui_dial_face(cx, cy, label, v, bipolar, nd, dim, val, unit)
       local s = ui_pt(1)
       local a = dim and 0.35 or 1
@@ -3170,7 +3170,7 @@ local function preview_module()
       gfx.a = 1
     end
 
-    -- from ReEQ2 2.0.2: ui_meter_seg()
+    -- from ReEQ2 2.1.0: ui_meter_seg()
     local function ui_meter_seg(bx, by, bw, bh, fw, f0, f1, t0, t1)
       local x0, x1 = bx + f0 * bw, bx + f1 * bw
       local xc = min(x1, bx + fw)
@@ -3182,7 +3182,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: ui_meter()
+    -- from ReEQ2 2.1.0: ui_meter()
     local function ui_meter(x, y, w, h, mw, p0, p1)
       local bx = floor(x + w - ui_pt(7) - mw)
       local bh = max(1, floor(ui_pt(3)))
@@ -3203,7 +3203,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: ui_clip_glow()
+    -- from ReEQ2 2.1.0: ui_clip_glow()
     local function ui_clip_glow(x, y, w, h, glow)
       if glow > 0.001 then
         ui_cola(T.CLIP, 0.10 * glow); ui_fill_rrect(x, y, w, h, ui_pt(5))
@@ -3212,7 +3212,7 @@ local function preview_module()
       end
     end
 
-    -- from ReEQ2 2.0.2: ui_knob_small()
+    -- from ReEQ2 2.1.0: ui_knob_small()
     local function ui_knob_small(cx, cy, v, bipolar, grey, dim)
       local s = ui_pt(1)
       cx = floor(cx) + 0.5; cy = floor(cy) + 0.5
@@ -3235,7 +3235,7 @@ local function preview_module()
       ui_mix = 0
     end
 
-    -- from ReEQ2 2.0.2: ui_dyn_cell() (drawing only)
+    -- from ReEQ2 2.1.0: ui_dyn_cell() (drawing only)
     local function ui_dyn_cell(id, x, cy, w, label, v, bipolar, grey, dim, val, unit)
       local s = ui_pt(1)
       ui_knob_small(x + 13 * s, cy, v, bipolar, grey, dim)
@@ -3251,7 +3251,7 @@ local function preview_module()
       return v
     end
 
-    -- from ReEQ2 2.0.2: ui_dyn_timing() (drawing only)
+    -- from ReEQ2 2.1.0: ui_dyn_timing() (drawing only)
     local function ui_dyn_timing(x, cy, w, b)
       local s = ui_pt(1)
       local on = Band_Dyn_Auto[b] ~= 0
@@ -3271,7 +3271,7 @@ local function preview_module()
       ui_text_l(tx, cy - 2 * s, 14 * s, on and "Auto" or "Manual")
     end
 
-    -- from ReEQ2 2.0.2: ui_dyn_meter() (the level as the meter first shows it: Band_Dyn_Level)
+    -- from ReEQ2 2.1.0: ui_dyn_meter() (the level as the meter first shows it: Band_Dyn_Level)
     local function ui_dyn_meter(mx, y, b)
       local s = ui_pt(1)
       local top, mh = y + 56 * s, 62 * s
@@ -3299,7 +3299,7 @@ local function preview_module()
       ui_text_c(mx - 16 * s, top + mh + 4 * s, 32 * s, 14 * s, ui_fmt_db(g))
     end
 
-    -- from ReEQ2 2.0.2: ui_draw_dyn_block() (drawing only)
+    -- from ReEQ2 2.1.0: ui_draw_dyn_block() (drawing only)
     local function ui_draw_dyn_block(b, hl, y, xr)
       local s = ui_pt(1)
       ui_col(T.BORDER_SUBTLE)
@@ -3336,7 +3336,7 @@ local function preview_module()
       ui_dyn_meter(xr - 24 * s, y, b)
     end
 
-    -- from ReEQ2 2.0.2: ui_draw_bar() (drawing only)
+    -- from ReEQ2 2.1.0: ui_draw_bar() (drawing only)
     local function ui_draw_bar()
       local s = ui_pt(1)
       local bh = ui_pt(40); local y0 = gfx_h - bh
@@ -3436,7 +3436,7 @@ local function preview_module()
       gfx.setfont(FONT_BASE)
     end
 
-    -- from ReEQ2 2.0.2: ui_draw_header()
+    -- from ReEQ2 2.1.0: ui_draw_header()
     local function ui_draw_header()
       local s = ui_pt(1)
       if HEADER_H > 0 then
@@ -3490,7 +3490,7 @@ local function preview_module()
       gfx.setfont(FONT_BASE)
     end
 
-    -- from ReEQ2 2.0.2: ui_draw_top()
+    -- from ReEQ2 2.1.0: ui_draw_top()
     local function ui_draw_top()
       local h, y = ui_pt(22), ui_pt(6)
       local gw = ui_pt(24)
@@ -3504,7 +3504,7 @@ local function preview_module()
       gfx.setfont(FONT_BASE)
     end
 
-    -- from ReEQ2 2.0.2: ui_draw_panel() (drawing only)
+    -- from ReEQ2 2.1.0: ui_draw_panel() (drawing only)
     local function ui_draw_panel()
       local s = ui_pt(1)
       local b = selected_node
@@ -3637,7 +3637,7 @@ local function preview_module()
   local draw, pick, thumb = (function()
     local IMG, PICK_IMG = 100, 101
 
-    -- from ReEQ2 2.0.2: the @gfx main section, in its order, fully faded in (ui_fade 1)
+    -- from ReEQ2 2.1.0: the @gfx main section, in its order, fully faded in (ui_fade 1)
     local function render(pick)
       picking = pick
       pal_load()
