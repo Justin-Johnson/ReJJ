@@ -2937,7 +2937,7 @@ function ui_button_draw(x, y, w, h, label, style, hov) (
       ui_box(x, y, w, h, ui_pt(5), hov ? 22 : 13, hov ? 27 : 16, hov ? 30 : 18, 1, 42, 49, 53);
   strlen(label) > 0 ? (
     gfx_setfont(style == 1 ? FONT_BODY_B : FONT_BODY);
-    style == 1 ? ui_rgb(92, 200, 234) : hov ? ui_rgb(223, 230, 233) : ui_rgb(109, 119, 124);
+    style == 1 ? ui_rgb(92, 200, 234) : hov ? ui_rgb(223, 230, 233) : ui_rgb(132, 143, 149);
     gfx_a = 1;
     ui_text_c(x, y, w, h, label);
   );
@@ -2974,7 +2974,7 @@ function ui_dropdown(x, y, w, h, label, open) local(hov) (
   open ? ui_rgb(232, 246, 251) : ui_rgb(223, 230, 233);
   gfx_a = 1;
   ui_text_l(x + ui_pt(9), y, h, label);
-  open ? ui_rgb(92, 200, 234) : ui_rgb(91, 100, 104);
+  open ? ui_rgb(92, 200, 234) : ui_rgb(112, 122, 127);
   ui_chevron(x + w - ui_pt(11), y + h * 0.5, ui_pt(3), open ? -1 : 1);
   ui_clicked(x, y, w, h);
 );
@@ -2996,10 +2996,10 @@ function ui_seg2(x, y, h, w0, w1, l0, l1, sel) local(r, hov0, hov1) (
   gfx_line(x + w0, y, x + w0, y + h - 1, 0);
 
   gfx_setfont(sel == 0 ? FONT_BODY_B : FONT_BODY);
-  sel == 0 ? ui_rgb(92, 200, 234) : hov0 ? ui_rgb(223, 230, 233) : ui_rgb(109, 119, 124);
+  sel == 0 ? ui_rgb(92, 200, 234) : hov0 ? ui_rgb(223, 230, 233) : ui_rgb(132, 143, 149);
   ui_text_c(x, y, w0, h, l0);
   gfx_setfont(sel == 1 ? FONT_BODY_B : FONT_BODY);
-  sel == 1 ? ui_rgb(92, 200, 234) : hov1 ? ui_rgb(223, 230, 233) : ui_rgb(109, 119, 124);
+  sel == 1 ? ui_rgb(92, 200, 234) : hov1 ? ui_rgb(223, 230, 233) : ui_rgb(132, 143, 149);
   ui_text_c(x + w0, y, w1, h, l1);
 
   ui_clicked(x, y, w0, h) ? 0 : ui_clicked(x + w0, y, w1, h) ? 1 : sel;
@@ -3013,7 +3013,7 @@ function ui_field(x, y, w, h, label, val, unit, hot) local(tx) (
   ui_box(x, y, w, h, ui_pt(5), 9, 11, 12, 1, hot ? 58 : 42, hot ? 68 : 49, hot ? 73 : 53);
   tx = x + ui_pt(9);
   strlen(label) > 0 ? (
-    gfx_setfont(FONT_CAP); ui_rgb(91, 100, 104);
+    gfx_setfont(FONT_CAP); ui_rgb(112, 122, 127);
     ui_text_l(tx, y, h, label);
     tx += ui_text_w(label) + ui_pt(7);
   );
@@ -3021,7 +3021,7 @@ function ui_field(x, y, w, h, label, val, unit, hot) local(tx) (
   ui_text_l(tx, y, h, val);
   tx += ui_text_w(val);
   strlen(unit) > 0 ? (
-    gfx_setfont(FONT_BODY); ui_rgb(109, 119, 124);
+    gfx_setfont(FONT_BODY); ui_rgb(132, 143, 149);
     tx += ui_pt(3);
     ui_text_l(tx, y, h, unit);
     tx += ui_text_w(unit);
@@ -3914,7 +3914,7 @@ function draw_grid() local (db, y, x, f, gb, major, lab, k, s, lw) (
   while (
     x = floor(freq_to_scx(f)) + 0.5;
     major = f == 100 || f == 1000 || f == 10000;
-    ui_rgba(255, 255, 255, major ? 0.10 : 0.05);
+    ui_rgba(255, 255, 255, major ? 0.13 : 0.07);
     gfx_line(x, HEADER_H, x, gb, 0);
 
     (f == 20 || f == 50 || f == 100 || f == 200 || f == 500 || f == 1000 || f == 2000 || f == 5000 || f == 10000 || f == 20000)
@@ -3922,7 +3922,7 @@ function draw_grid() local (db, y, x, f, gb, major, lab, k, s, lw) (
       lab = #;
       f >= 1000 ? sprintf(lab, "%dk", f / 1000) : sprintf(lab, "%d", f);
       lw = ui_text_w(lab);
-      ui_rgba(91, 100, 104, 1);
+      ui_rgba(112, 122, 127, 1);
       // Kept inside the window: 20k sits close to the right edge
       ui_text_l(min(x - lw * 0.5, gfx_w - lw - ui_pt(4)), gb + ui_pt(2), ui_pt(14), lab);
     );
@@ -3935,7 +3935,7 @@ function draw_grid() local (db, y, x, f, gb, major, lab, k, s, lw) (
   k = 0;
   while (
     y = floor(db_to_y(db)) + 0.5;
-    ui_rgba(255, 255, 255, db == 0 ? 0.16 : 0.05);
+    ui_rgba(255, 255, 255, db == 0 ? 0.16 : 0.07);
     gfx_line(0, y, gfx_w, y, 0);
     !compact_height || (k % 2) == 0 ? (
       lab = #;
@@ -4152,7 +4152,7 @@ function draw_info_panel(note_select)
       ui_rgb(238, 242, 244); gfx_a = 1;
       ui_text_l(xbase + ui_pt(9), ybase + ui_pt(5), ui_pt(16), line1);
       gfx_setfont(FONT_BODY);
-      ui_rgb(109, 119, 124);
+      ui_rgb(132, 143, 149);
       gfx_setfont(FONT_EMPH); lw = ui_text_w(line1); gfx_setfont(FONT_BODY);
       ui_text_l(xbase + ui_pt(9) + lw + ui_pt(4), ybase + ui_pt(5), ui_pt(16), nn);
       ui_rgb(154, 165, 170);
@@ -5225,7 +5225,7 @@ function ui_text_button(x, y, w, h, label) local(hov) (
 function ui_dial_face(cx, cy, label, v, bipolar, nd, dim, val, unit) local(s, w1, w2, x) (
   s = ui_pt(1);
   gfx_a = dim ? 0.35 : 1;
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_c(cx - 60 * s, cy - 50 * s, 120 * s, 12 * s, label);
   ui_dial(cx, cy, v, bipolar, nd, dim);
   gfx_a = dim ? 0.35 : 1;
@@ -5235,7 +5235,7 @@ function ui_dial_face(cx, cy, label, v, bipolar, nd, dim, val, unit) local(s, w1
   gfx_setfont(FONT_EMPH); ui_rgb(238, 242, 244);
   ui_text_l(x, cy + 34 * s, 16 * s, val);
   strlen(unit) > 0 ? (
-    gfx_setfont(FONT_BODY); ui_rgb(109, 119, 124);
+    gfx_setfont(FONT_BODY); ui_rgb(132, 143, 149);
     ui_text_l(x + w1 + 3 * s, cy + 34 * s, 16 * s, unit);
   );
   gfx_a = 1;
@@ -5397,7 +5397,7 @@ function ui_draw_bar()
   );
   ui_field(x, y, w_mid, h, labels ? (Stereo_Mode ? "LEFT" : "MID") : "", midv, units ? "dB" : "", button_mid_gain.drag || ui_hover(x, y, w_mid - pol, h));
   ui_rgb(42, 49, 53); gfx_line(x + w_mid - pol, y + 1, x + w_mid - pol, y + h - 2, 0);
-  ui_hover(x + w_mid - pol, y, pol, h) || MidPolarity ? ui_rgb(MidPolarity ? 92 : 223, MidPolarity ? 200 : 230, MidPolarity ? 234 : 233) : ui_rgb(109, 119, 124);
+  ui_hover(x + w_mid - pol, y, pol, h) || MidPolarity ? ui_rgb(MidPolarity ? 92 : 223, MidPolarity ? 200 : 230, MidPolarity ? 234 : 233) : ui_rgb(132, 143, 149);
   gfx_setfont(FONT_BODY); ui_text_c(x + w_mid - pol, y, pol, h, "ø");
   ui_clicked(x + w_mid - pol, y, pol, h) ? (MidPolarity = !MidPolarity; slider_automate(MidPolarity));
 
@@ -5411,7 +5411,7 @@ function ui_draw_bar()
   );
   ui_field(x, y, w_side, h, labels ? (Stereo_Mode ? "RIGHT" : "SIDE") : "", sidev, units ? "dB" : "", button_side_gain.drag || ui_hover(x, y, w_side - pol, h));
   ui_rgb(42, 49, 53); gfx_line(x + w_side - pol, y + 1, x + w_side - pol, y + h - 2, 0);
-  ui_hover(x + w_side - pol, y, pol, h) || SidePolarity ? ui_rgb(SidePolarity ? 92 : 223, SidePolarity ? 200 : 230, SidePolarity ? 234 : 233) : ui_rgb(109, 119, 124);
+  ui_hover(x + w_side - pol, y, pol, h) || SidePolarity ? ui_rgb(SidePolarity ? 92 : 223, SidePolarity ? 200 : 230, SidePolarity ? 234 : 233) : ui_rgb(132, 143, 149);
   gfx_setfont(FONT_BODY); ui_text_c(x + w_side - pol, y, pol, h, "ø");
   ui_clicked(x + w_side - pol, y, pol, h) ? (SidePolarity = !SidePolarity; slider_automate(SidePolarity));
 
@@ -5486,7 +5486,7 @@ function ui_draw_header() local(s, x, i) (
       x += 10 * s;
       ui_rgb(42, 49, 53); gfx_rect(floor(x), floor(HEADER_H * 0.5 - 7 * s), max(1, floor(s)), floor(14 * s));
       x += 11 * s;
-      gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+      gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
       #ui_desc = "PARAMETRIC EQUALIZER";
       i = 0;
       loop(strlen(#ui_desc),
@@ -5609,9 +5609,9 @@ function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on,
   cut = ui_is_cut(Band_Type[b]);
   cur = cut ? ui_slope_index(Band_Slope[b]) : -1;
   gfx_a = cut ? 1 : 0.35;
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(px + 8 * s, dy, 22 * s, "SLOPE");
-  gfx_setfont(FONT_CAP); ui_rgb(91, 100, 104);
+  gfx_setfont(FONT_CAP); ui_rgb(112, 122, 127);
   ui_text_r(px + pw - 48 * s, dy, 40 * s, 22 * s, "dB/oct");
   cx0 = px + 56 * s; cw = (pw - 56 * s - 56 * s - 27 * s) / 10;
   k = 0;
@@ -5730,7 +5730,7 @@ function ui_draw_node_card()
   gfx_setfont(FONT_BODY_B); ui_rgb(223, 230, 233);
   ui_text_l(x + 24 * s, y, 22 * s, lab);
   k = x + 24 * s + ui_text_w(lab) + 8 * s;
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(k, y, 22 * s, Band_Frequency[b] < 1000 ? sprintf(#, Band_Frequency[b] < 100 ? "%.1f Hz" : "%.0f Hz", Band_Frequency[b]) : sprintf(#, "%.2f kHz", Band_Frequency[b] / 1000));
 
   bw = 26 * s; bh = 22 * s;
@@ -5760,7 +5760,7 @@ function ui_draw_node_card()
   y += 1 + 8 * s;
 
   // Shape tiles
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(x, y, 10 * s, "SHAPE");
   y += 10 * s + 5 * s;
   i = 0;
@@ -5791,9 +5791,9 @@ function ui_draw_node_card()
   cut = ui_is_cut(Band_Type[b]);
   cur = cut ? ui_slope_index(Band_Slope[b]) : -1;
   gfx_a = cut ? 1 : 0.35;
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(x, y, 20 * s, "SLOPE");
-  gfx_setfont(FONT_CAP); ui_rgb(91, 100, 104);
+  gfx_setfont(FONT_CAP); ui_rgb(112, 122, 127);
   ui_text_r(x0 + W - pad - 40 * s, y, 40 * s, 20 * s, "dB/oct");
   cw = (W - 2 * pad - 40 * s - 46 * s - 27 * s) / 10;
   k = 0;
@@ -5816,7 +5816,7 @@ function ui_draw_node_card()
   y += 1 + 8 * s;
 
   // Stereo placement: the picker's glyphs and names, a little smaller
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(x, y, 10 * s, "STEREO");
   y += 10 * s + 5 * s;
   cw = (W - 2 * pad - 12 * s) / 5;
@@ -5904,7 +5904,7 @@ function ui_setrow(x, y, w, label, unit, n, sel, pr, l0, l1, l2, l3, l4) local(s
   s = ui_pt(1);
   gfx_setfont(FONT_CAP); ui_rgb(154, 165, 170);
   ui_text_l(x, y, 22 * s, label);
-  gfx_setfont(FONT_CAP); ui_rgb(91, 100, 104);
+  gfx_setfont(FONT_CAP); ui_rgb(112, 122, 127);
   ui_text_l(x + w - 38 * s, y, 22 * s, unit);
   ui_segn(x + 72 * s, y, w - 72 * s - 46 * s, 22 * s, n, sel, pr, l0, l1, l2, l3, l4);
 );
@@ -5918,7 +5918,7 @@ function ui_pop_head(px, py, pw, title, sub) local(s) (
   ui_rgba(31, 38, 41, 1); gfx_line(px + 1, py + 30 * s, px + pw - 2, py + 30 * s, 0);
   gfx_setfont(FONT_BODY_B); ui_rgb(223, 230, 233);
   ui_text_l(px + 11 * s, py, 30 * s, title);
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_r(px + pw - 11 * s - 120 * s, py, 120 * s, 30 * s, sub);
 );
 
@@ -5953,7 +5953,7 @@ function ui_draw_analyzer_pop() local(s, pad, pw, ph, px, py, x, y, w, tw, th, i
   x = px + pad; w = pw - 2 * pad; y = py + 30 * s + 10 * s;
 
   // Display: Off, Fill, Line, Heat, each with a tiny preview
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(x, y, 10 * s, "DISPLAY");
   y += 10 * s + 6 * s;
   tw = (w - 12 * s) / 4; th = 46 * s;
@@ -6008,17 +6008,17 @@ function ui_draw_analyzer_pop() local(s, pad, pw, ph, px, py, x, y, w, tw, th, i
   ui_box(x, y, w, 34 * s, 5 * s, hov ? 22 : 16, hov ? 27 : 19, hov ? 30 : 21, 1, 32, 38, 42);
   gfx_setfont(FONT_BODY); ui_rgb(223, 230, 233);
   ui_text_l(x + 9 * s, y + 3 * s, 16 * s, "Show Pre-EQ");
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(x + 9 * s, y + 17 * s, 13 * s, "Grey line behind the output");
   tx = x + w - 9 * s - 30 * s; ty = y + 9 * s;
   Show_PreEQ ? ui_box(tx, ty, 30 * s, 16 * s, 8 * s, 15, 42, 51, 1, 29, 90, 109) : ui_box(tx, ty, 30 * s, 16 * s, 8 * s, 13, 16, 18, 1, 42, 49, 53);
-  Show_PreEQ ? ui_rgb(92, 200, 234) : ui_rgb(109, 119, 124);
+  Show_PreEQ ? ui_rgb(92, 200, 234) : ui_rgb(132, 143, 149);
   gfx_circle(Show_PreEQ ? tx + 22 * s : tx + 8 * s, ty + 8 * s, 5 * s, 1, 1);
   pr && hov ? (Show_PreEQ = !Show_PreEQ; update_state());
   y += 34 * s + 8 * s;
 
   // Spectrum: the seven modes with the stereo glyphs
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(x, y, 10 * s, "SPECTRUM");
   y += 10 * s + 6 * s;
   tw = (w - 12 * s) / 4; th = 44 * s;
@@ -6061,18 +6061,18 @@ function ui_draw_settings_pop() local(s, pad, pw, ph, px, py, x, y, w, r, pr, sk
 
   x = px + pad; w = pw - 2 * pad; y = py + 30 * s + 10 * s;
 
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124); ui_text_l(x, y, 10 * s, "DYNAMICS");
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149); ui_text_l(x, y, 10 * s, "DYNAMICS");
   y += 18 * s;
   r = ui_setrow(x, y, w, "Lookahead", "ms", 4, Lookahead_Value, pr, "Off", "1", "5", "10", "");
   r >= 0 ? (Lookahead_Value = r; sliderchange(Lookahead_Value));
   y += 22 * s + 4 * s;
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(x, y, 14 * s, "Adds latency when on");
   y += 14 * s + 8 * s;
   ui_rgb(31, 38, 41); gfx_line(x, y, x + w, y, 0);
   y += 1 + 8 * s;
 
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124); ui_text_l(x, y, 10 * s, "RANGE");
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149); ui_text_l(x, y, 10 * s, "RANGE");
   y += 18 * s;
   r = ui_setrow(x, y, w, "Ceiling", "dB", 3, Ceiling_Value, pr, "0", "20", "40", "", "");
   r >= 0 ? (Ceiling_Value = r; update_state());
@@ -6083,7 +6083,7 @@ function ui_draw_settings_pop() local(s, pad, pw, ph, px, py, x, y, w, r, pr, sk
   ui_rgb(31, 38, 41); gfx_line(x, y, x + w, y, 0);
   y += 1 + 8 * s;
 
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124); ui_text_l(x, y, 10 * s, "RESPONSE");
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149); ui_text_l(x, y, 10 * s, "RESPONSE");
   y += 18 * s;
   r = ui_setrow(x, y, w, "Tilt", "dB/oct", 5, Tilt_Value, pr, "0", "1.5", "3", "4.5", "6");
   r >= 0 ? (Tilt_Value = r; update_state());
@@ -6094,7 +6094,7 @@ function ui_draw_settings_pop() local(s, pad, pw, ph, px, py, x, y, w, r, pr, sk
   ui_rgb(31, 38, 41); gfx_line(x, y, x + w, y, 0);
   y += 1 + 8 * s;
 
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124); ui_text_l(x, y, 10 * s, "FFT");
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149); ui_text_l(x, y, 10 * s, "FFT");
   y += 18 * s;
   r = ui_setrow(x, y, w, "Size", "", 4, Block_Value, pr, "2048", "4096", "8192", "16k", "");
   r >= 0 ? (Block_Value = r; update_state());
@@ -6105,7 +6105,7 @@ function ui_draw_settings_pop() local(s, pad, pw, ph, px, py, x, y, w, r, pr, sk
   // The window's full name, and what the FFT size does
   gfx_setfont(FONT_BODY); ui_rgb(154, 165, 170);
   ui_text_l(x, y, 16 * s, Type_Value == 0 ? "Hamming Window" : Type_Value == 1 ? "Blackman-Harris Window" : Type_Value == 2 ? "Blackman Window" : "Rectangular Window");
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(x, y + 16 * s, 14 * s, "Larger FFT sizes show more low-end detail");
 
   ui_top_pop_close(px, py, pw, ph, pr, skip);
@@ -6187,7 +6187,7 @@ function ui_draw_credits()
   gfx_x = floor(x + w1 + w2 + 2 * s); gfx_y = floor(y + 20 * s - 15 * s);
   gfx_drawstr("2");
 
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_spaced_c(mid, cy + 72 * s, 13 * s, "PARAMETRIC EQUALIZER");
   gfx_setfont(FONT_BODY); ui_rgb(154, 165, 170);
   ui_text_c(cx, cy + 92 * s, cw, 16 * s, sprintf(#, "Version %s", #VERSION));
@@ -6201,12 +6201,12 @@ function ui_draw_credits()
 
   ui_rgb(35, 42, 46); gfx_line(cx + 40 * s, cy + 178 * s, cx + cw - 40 * s, cy + 178 * s, 0);
 
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_spaced_c(mid, cy + 190 * s, 13 * s, "FILTERS");
   gfx_setfont(FONT_BODY); ui_rgb(200, 208, 212);
   ui_text_c(cx, cy + 205 * s, cw, 16 * s, "ivantsov-filters by Yuriy Ivantsov (MIT)");
 
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_spaced_c(mid, cy + 229 * s, 13 * s, "THANKS");
   gfx_setfont(FONT_BODY); ui_rgb(200, 208, 212);
   ui_text_c(cx, cy + 244 * s, cw, 16 * s, "Cockos, for REAPER");
@@ -6252,7 +6252,7 @@ function ui_draw_range_pop() local(s, pw, ph, px, py, i, ry, on, hov, pr, skip, 
     on ? ui_rgb(92, 200, 234) : hov ? ui_rgb(223, 230, 233) : ui_rgb(154, 165, 170);
     gfx_a = 1;
     ui_text_l(rx + 9 * s, ry, 24 * s, sprintf(#, "±%d dB", i == 0 ? 6 : i == 1 ? 12 : i == 2 ? 18 : i == 3 ? 24 : 30));
-    gfx_setfont(FONT_CAP); ui_rgb(91, 100, 104);
+    gfx_setfont(FONT_CAP); ui_rgb(112, 122, 127);
     ui_text_r(rx, ry, rw - 9 * s, 24 * s, sprintf(#, "%d dB grid", i == 0 ? 1 : i == 1 ? 3 : i == 2 ? 6 : i == 3 ? 8 : 10));
     pr && hov ? (Db_Range = i; update_state(); ui_popup = 0);
     i += 1;
@@ -6286,7 +6286,7 @@ function ui_knob_small(cx, cy, v, bipolar, grey, dim) local(s, t0, t1, th) (
   ui_thick_arc(cx, cy, 12 * s, 1.25 * $pi, 2.75 * $pi, 2 * s);
   bipolar ? (t0 = min(0.5, v); t1 = max(0.5, v)) : (t0 = 0; t1 = v);
   t1 - t0 > 0.004 ? (
-    grey ? ui_rgb(109, 119, 124) : ui_band_rgb(selected_node);
+    grey ? ui_rgb(132, 143, 149) : ui_band_rgb(selected_node);
     ui_thick_arc(cx, cy, 12 * s, 1.25 * $pi + 1.5 * $pi * t0, 1.25 * $pi + 1.5 * $pi * t1, 2 * s);
   );
   ui_rgb(10, 12, 13); gfx_circle(cx, cy, 9 * s, 1, 1);
@@ -6323,12 +6323,12 @@ function ui_dyn_cell(id, x, cy, w, label, v, bipolar, grey, dim, val, unit) loca
   ui_knob_small(x + 13 * s, cy, v, bipolar, grey, dim);
   gfx_a = 1; ui_mix = dim ? 0.65 : 0;
   tx = x + 31 * s;
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(tx, cy - 13 * s, 10 * s, label);
   gfx_setfont(FONT_BODY_B); ui_rgb(223, 230, 233);
   ui_text_l(tx, cy - 2 * s, 14 * s, val);
   w1 = ui_text_w(val);
-  strlen(unit) > 0 ? (gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124); ui_text_l(tx + w1 + 2 * s, cy - 2 * s, 14 * s, unit));
+  strlen(unit) > 0 ? (gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149); ui_text_l(tx + w1 + 2 * s, cy - 2 * s, 14 * s, unit));
   ui_mix = 0;
   v;
 );
@@ -6347,11 +6347,11 @@ function ui_dyn_timing(x, cy, w, b) local(s, sx, on, hov, tx) (
   sx = x + 1 * s;
   on ? ui_box(sx, cy - 8 * s, 28 * s, 16 * s, 8 * s, 15, 42, 51, 1, 29, 90, 109)
      : ui_box(sx, cy - 8 * s, 28 * s, 16 * s, 8 * s, 13, 16, 18, 1, hov ? 58 : 42, hov ? 68 : 49, hov ? 73 : 53);
-  on ? ui_rgb(92, 200, 234) : ui_rgb(109, 119, 124);
+  on ? ui_rgb(92, 200, 234) : ui_rgb(132, 143, 149);
   gfx_a = 1;
   gfx_circle(on ? sx + 20 * s : sx + 8 * s, cy, 5 * s, 1, 1);
   tx = x + 35 * s;
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_l(tx, cy - 13 * s, 10 * s, "TIMING");
   gfx_setfont(FONT_BODY_B); on ? ui_rgb(92, 200, 234) : hov ? ui_rgb(223, 230, 233) : ui_rgb(154, 165, 170);
   ui_text_l(tx, cy - 2 * s, 14 * s, on ? "Auto" : "Manual");
@@ -6375,7 +6375,7 @@ function ui_dyn_meter(mx, y, b) local(s, top, mh, f, t, g) (
   s = ui_pt(1);
   top = y + 56 * s; mh = 62 * s;
   gfx_a = 1;
-  gfx_setfont(FONT_CAP); ui_rgb(109, 119, 124);
+  gfx_setfont(FONT_CAP); ui_rgb(132, 143, 149);
   ui_text_c(mx - 16 * s, y + 42 * s, 32 * s, 10 * s, "GR");
 
   // The level falls back at 30dB/s, so it reads steadily
@@ -6385,7 +6385,7 @@ function ui_dyn_meter(mx, y, b) local(s, top, mh, f, t, g) (
   gfx_rect(mx - 6 * s, top, 4 * s, mh);
   gfx_rect(mx + 1 * s, top, 5 * s, mh);
   f = min(max((ui_dyn_lv + 60) / 60, 0), 1);
-  ui_rgb(109, 119, 124);
+  ui_rgb(132, 143, 149);
   f > 0 ? gfx_rect(mx - 6 * s, top + mh * (1 - f), 4 * s, mh * f);
   t = min(max((Band_Dyn_Thresh[b] + 60) / 60, 0), 1);
   ui_band_rgb(b);
@@ -6468,7 +6468,7 @@ function ui_draw_dyn_source_pop(b) local(s, pw, ph, px, py, i, tx, ty, tw, th, o
     on ? ui_rgb(92, 200, 234) : ui_rgb(223, 230, 233);
     ui_text_l(tx + 8 * s, ty, th, i == 0 ? "Band" : sprintf(#, "SC %d", i));
     i > 0 ? (
-      gfx_setfont(FONT_BODY); ui_rgb(109, 119, 124);
+      gfx_setfont(FONT_BODY); ui_rgb(132, 143, 149);
       ui_text_r(tx, ty, tw - 8 * s, th, sprintf(#, "Ch. %d/%d", 2 * i + 1, 2 * i + 2));
     );
     pr && hov ? (Band_Dyn_Source[b] = i; notify_dyn_state(b); ui_popup = 0);
@@ -6488,7 +6488,7 @@ function sv_arrow(code, x, y, w, h, dir, v, st, pr) local(s, nv, en, hov, go) (
   en = nv != v;
   hov = en && ui_in(x, y, w, h);
   hov ? (ui_rgba(255, 255, 255, 0.06); ui_fill_rrect(x, y, w, h, 3 * s));
-  !en ? ui_rgb(52, 60, 65) : hov ? ui_rgb(223, 230, 233) : ui_rgb(109, 119, 124);
+  !en ? ui_rgb(52, 60, 65) : hov ? ui_rgb(223, 230, 233) : ui_rgb(132, 143, 149);
   gfx_a = 1;
   ui_chevron(x + w * 0.5, y + h * 0.5, 3.5 * s, dir == 0 ? (y < ui_sv_dy ? -1 : 1) : -dir);
   go = 0;
@@ -6599,7 +6599,7 @@ function ui_draw_stepper() local(s, id, b, skip, pr, cwid, wpt, nsign, ncol, uw,
     c += 1;
   );
   uw > 0 ? (
-    gfx_setfont(FONT_BODY); ui_rgb(109, 119, 124); gfx_a = 1;
+    gfx_setfont(FONT_BODY); ui_rgb(132, 143, 149); gfx_a = 1;
     ui_text_l(x + 5 * s, y2, 26 * s, #sv_unit);
   );
   nv != v ? sv_set(id, b, nv);
