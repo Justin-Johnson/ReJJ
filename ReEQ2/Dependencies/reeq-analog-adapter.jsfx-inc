@@ -1,0 +1,232 @@
+@init
+// A plan contains a count and topology tag, then up to ten two-pole sections
+// and a one-pole section. Each record includes the display's power coefficients.
+function ri_bind(plan_address, curve_address, band_index, role)
+ instance(plan,curve,idx,domain,nrun,tag,wet,fade_left,goal,ramp_left)(
+  plan=plan_address;curve=curve_address;idx=band_index;domain=role;
+  plan[0]=0;plan[1]=0;nrun=tag=wet=fade_left=goal=ramp_left=0;
+  role===2?(this.n_run=this.op_run=0;);
+);
+function ri_record(plan,slot,kind,ord,hz,q,db) local(r)(
+  r=plan+4+slot*24;r[0]=kind;r[1]=ord;r[2]=hz/srate;r[3]=q;r[4]=db;
+);
+function ri_recipe(plan,type,hz,q,db,slope,dynamic) local(n,i,ord,k,qq,cut,t)(
+  n=0;
+  type===0 || type===3 || type===4 ? (
+    dynamic || db!==0?(k=type===0?7:type===3?4:3;ri_record(plan,0,k,2,hz,q,db);n=1;);
+  ):type===1 || type===2 || type===5 || type===6 ? (
+    ord=min(20,max(1,floor(slope)+1));k=type<=2?0:1;i=0;
+    loop(floor(ord/2),qq=(type===2 || type===6)?.5/cos($pi*(2*i+1+(ord&1))/(2*ord)):q;
+      ri_record(plan,i,k,2,hz,qq,0);i+=1;);
+    n=i;ord&1?(ri_record(plan,n,k,1,hz,1,0);n+=1;);
+  ):type===7 || type===8 || type===11 ? (
+    ri_record(plan,0,type===7?6:type===8?5:2,2,hz,q,0);n=1;
+  ):type===9 ? (
+    db!==0?(ri_record(plan,0,3,2,hz,q,db);ri_record(plan,1,4,2,hz,q,-db);n=2;);
+  ):type===10 ? (
+    db!==0?(cut=(q/40)*min(max(db,0),10);ri_record(plan,0,4,2,1.5*hz,.701,db);
+      ri_record(plan,1,7,2,1.5*hz,.701,-cut);n=2;);
+  ):type===12 ? (
+    ri_record(plan,0,4,2,1.25*hz,.701,db);ri_record(plan,1,0,1,hz,1,0);n=2;
+  ):type===13 ? (
+    t=1+max(db,-12)/12;cut=min(22040,db>0?22000:hz*(1+3.25*t));
+    ri_record(plan,0,3,2,hz,.701,db);ri_record(plan,1,1,2,cut,.701,0);n=2;
+  );
+  plan[0]=n;plan[1]=n?(type+1)*32+(type===1 || type===2 || type===5 || type===6?ord:0):0;
+);
+// Supply the original analog magnitude evaluator with the same section recipe as the audio.
+function ri_visual_section(r) instance(aT,aF,aZ,aG)(
+  aT=r[0];aF=r[2]*srate;aZ=.5/r[3];aG=r[4]===0?1:10^(r[4]/40);
+);
+function ri_prepare_visual() instance(plan,n_run,op_run) local(last)(
+  n_run=plan[0];op_run=0;
+  n_run>0?(
+    last=plan+4+(n_run-1)*24;
+    last[1]===1?(op_run=1;n_run-=1;this.op.ri_visual_section(last););
+  );
+  n_run>0?this.s1.ri_visual_section(plan+4);
+  n_run>1?this.s2.ri_visual_section(plan+28);
+  n_run>2?this.s3.ri_visual_section(plan+52);
+  n_run>3?this.s4.ri_visual_section(plan+76);
+  n_run>4?this.s5.ri_visual_section(plan+100);
+  n_run>5?this.s6.ri_visual_section(plan+124);
+  n_run>6?this.s7.ri_visual_section(plan+148);
+  n_run>7?this.s8.ri_visual_section(plan+172);
+  n_run>8?this.s9.ri_visual_section(plan+196);
+  n_run>9?this.s10.ri_visual_section(plan+220);
+ );
+function ri_target(r,curve,k,o,f,q,g,graphics) local(hit)(
+    hit=curve>=0 && curve[0]>0 && k===curve[1] && o===curve[2] && f===curve[3] && q===curve[4] && g>=curve[8] && g<=curve[8+(curve[0]-1)*40+1];
+    !(hit && this.reader.wf_curve_read(this.v,curve,g))?this.designer.wf_design(this.v,AF_Bank,AF_Notch,AF_Wide,k,o,f,q,g);
+    r[5]=this.v.md;r[6]=this.v.mp;r[7]=this.v.mr;r[8]=this.v.mq;r[9]=this.v.mo0;r[10]=this.v.mo1;
+    r[11]=this.v.cp;r[12]=this.v.cd;r[13]=this.v.nv_k;r[14]=this.v.mt;
+    graphics?(
+      this.plot.ef_plot_coefficients(this.v,k,o===1);
+      r[14]=this.plot.num_dc;r[15]=this.plot.num_real_mix;r[16]=this.plot.num_imag_mix;r[17]=this.plot.num_ny;
+      r[18]=this.plot.den_dc;r[19]=this.plot.den_real_mix;r[20]=this.plot.den_imag_mix;r[21]=this.plot.den_ny;
+    );
+);
+function ri_compute(plan,curve,graphics) local(n,r,k,o,f,q,g,prev)(
+  n=plan[0];n>0?(
+    r=plan+4;this.ri_target(r,curve,r[0],r[1],r[2],r[3],r[4],graphics);
+    n>1?loop(n-1,
+      prev=r;r+=24;k=r[0];o=r[1];f=r[2];q=r[3];g=r[4];
+      k===prev[0] && o===prev[1] && f===prev[2] && q===prev[3] && g===prev[4]?memcpy(r+5,prev+5,graphics?17:10):
+        this.following.ri_target(r,curve,k,o,f,q,g,graphics);
+    );
+  );
+);
+function ri_magnitude(hz) instance(plan) local(x,y,i,r,n,d,power)(
+  hz=min(max(hz,0),srate*.5);
+  hz<=srate*.25?(x=sqr(sin(hz*$pi/srate));y=1-x;):(y=sqr(sin((srate*.5-hz)*$pi/srate));x=1-y;);
+  i=0;power=1;loop(plan[0],r=plan+4+24*i;
+    n=y*sqr(r[14]*y-r[15]*x)+x*sqr(r[16]*y-r[17]*x);
+    d=y*sqr(r[18]*y-r[19]*x)+x*sqr(r[20]*y-r[21]*x);power*=n/d;i+=1;);sqrt(power);
+);
+function ri_load(r,steps,reset_state)
+ instance(kind,first,cold,active,used,flat,mt_dirty,bg_slim,checked,ready,packed,left,md,mp,mr,mq,mo1,cp,nv_k,step_md,step_mp,step_mr,step_mq,step_mo1,step_cp,step_nv_k)
+ local(inv,pp,qq)(
+ kind=r[0];first=r[1]===1;inv=1/steps;
+ kind===6?(
+  reset_state?this.nv_reset():packed?this.nt_restore();
+  this.target.md=r[5];
+  this.target.mp=r[6];
+  this.target.mr=r[7];
+  this.target.mq=r[8];
+  this.target.mo1=r[10];
+  this.target.cp=r[11];
+  this.target.nv_k=r[13];
+  checked=0;!ready?(ready=1;left=0;this.nv_land();this.nt_pack();checked=1;):(
+   left=steps;
+   step_md=(this.target.md-md)*inv;
+   step_mp=(this.target.mp-mp)*inv;
+   step_mr=(this.target.mr-mr)*inv;
+   step_mq=(this.target.mq-mq)*inv;
+   step_mo1=(this.target.mo1-mo1)*inv;
+   step_cp=(this.target.cp-cp)*inv;
+   step_nv_k=(this.target.nv_k-nv_k)*inv;
+  );
+ ):(
+  reset_state?this.bs_reset():active?this.bs_restore();
+  cold.mfirst=first;used=kind===2?1:2;flat=(kind===3 || kind===4 || kind===7) && r[4]===0;
+  cold.target.md=r[5];
+  cold.target.mp=r[6];
+  cold.target.mr=r[7];
+  cold.target.mq=r[8];
+  cold.target.mo0=r[9];
+  cold.target.mo1=r[10];
+  cold.target.cp=r[11];
+  cold.target.cd=r[12];
+  pp=cold.target.jp=cold.target.mp-cold.target.mr;qq=cold.target.jq=cold.target.mq-cold.target.mr;
+  cold.target.mt=first?1:r[14];cold.target.co=1-cold.target.cd;
+  mt_dirty=1;bg_slim=0;checked=0;
+  !cold.j9_ready?(cold.j9_ready=1;cold.j9_left=0;cold.j9_land();this.bs_prepare();):(
+   cold.j9_left=steps;
+   cold.step_md=(cold.target.md-cold.md)*inv;
+   cold.step_mp=(cold.target.mp-cold.mp)*inv;
+   cold.step_mr=(cold.target.mr-cold.mr)*inv;
+   cold.step_mq=(cold.target.mq-cold.mq)*inv;
+   cold.step_mo0=(cold.target.mo0-cold.mo0)*inv;
+   cold.step_mo1=(cold.target.mo1-cold.mo1)*inv;
+   cold.step_cp=(cold.target.cp-cold.cp)*inv;
+   cold.step_cd=(cold.target.cd-cold.cd)*inv;
+   cold.step_co=(cold.target.co-cold.co)*inv;
+  );
+ );
+);
+function ri_section(io*) instance(kind,first)(
+ first?(kind===0?this.ip_zero2(io):this.ip_unity2(io)):
+ kind===6?this.ip_notch_parallel(io):kind===2?this.ip_allpass2(io):kind===4?this.ip_gain3(io):
+ kind===0 || kind===5?this.ip_zero3(io):this.ip_unity3(io);
+);
+function ri_commit(reset_state) instance(plan,nrun,tag,steps,ramp_left)(
+ nrun=plan[0];tag=plan[1];ramp_left=reset_state?0:steps;
+ nrun>0?this.s1.ri_load(plan+4,steps,reset_state);
+ nrun>1?this.s2.ri_load(plan+28,steps,reset_state);
+ nrun>2?this.s3.ri_load(plan+52,steps,reset_state);
+ nrun>3?this.s4.ri_load(plan+76,steps,reset_state);
+ nrun>4?this.s5.ri_load(plan+100,steps,reset_state);
+ nrun>5?this.s6.ri_load(plan+124,steps,reset_state);
+ nrun>6?this.s7.ri_load(plan+148,steps,reset_state);
+ nrun>7?this.s8.ri_load(plan+172,steps,reset_state);
+ nrun>8?this.s9.ri_load(plan+196,steps,reset_state);
+ nrun>9?this.s10.ri_load(plan+220,steps,reset_state);
+ );
+function ri_fade(value) instance(wet,goal,fade_left,mix_step)(
+ goal!==value || fade_left<=0?(goal=value;fade_left=max(16,ceil(.015*srate));mix_step=(goal-wet)/fade_left;);
+);
+function ri_accept(interval) instance(plan,domain,tag,nrun,wet,fade_left,goal,steps)(
+ steps=interval;
+ domain===1?(
+  tag===plan[1]?(this.ri_commit(0);nrun && goal===0?this.ri_fade(1);):
+  wet<=0?(this.ri_commit(1);nrun?this.ri_fade(1);):
+  this.ri_fade(0);
+ );
+);
+function ri_config(type,hz,db,q,slope,dynamic) instance(plan,curve,domain,idx,last_base,last_span) local(req,k,lo,hi,g0,span,f,single)(
+ single=domain===1 && dynamic && (type===0 || type===3 || type===4);single?(
+   k=type===0?7:type===3?4:3;f=hz/srate;plan[0]=1;plan[1]=(type+1)*32;
+   plan[4]=k;plan[5]=2;plan[6]=f;plan[7]=q;plan[8]=db;
+ ):ri_recipe(plan,type,hz,q,db,slope,dynamic);
+ domain===1?(
+   req=AF_Requests+idx*8;
+   dynamic?(
+     k=type===0?7:type===3?4:3;
+     g0=Band_Gain[idx]*band_scalar;span=Band_Dynamic_Range[idx]*band_scalar;f=plan[6];
+     !req[0] || k!==req[1] || f!==req[2] || q!==req[3] || g0!==last_base || span!==last_span?(
+       last_base=g0;last_span=span;
+       lo=max(-108,min(107,floor(g0+min(0,span))));hi=min(108,max(lo+1,ceil(g0+max(0,span))));
+       !req[0] || k!==req[1] || f!==req[2] || q!==req[3] || lo!==req[4] || hi!==req[5]?(
+         AF_Pending=AF_Pending | (1<<idx);
+         req[0]=1;req[1]=k;req[2]=f;req[3]=q;req[4]=lo;req[5]=hi;req[6]=0;req[7]+=1;
+       );
+     );
+    ):(req[0]=0;AF_Pending=AF_Pending & (65535-(1<<idx)););
+   single?AF_audio.ri_target(plan+4,curve,k,2,f,q,db,0):AF_audio.ri_compute(plan,dynamic?curve:-1,0);this.ri_accept(dynamic?16:32);
+ ):domain===2?this.ri_prepare_visual():AF_meter.ri_compute(plan,-1,1);
+);
+function ri_off() instance(plan,idx,domain)(
+ domain===1?(AF_Requests[idx*8]=0;AF_Pending=AF_Pending & (65535-(1<<idx)););plan[0]=plan[1]=0;this.ri_accept(32);
+);
+function ri_visual_off() instance(plan,n_run,op_run)(plan[0]=plan[1]=n_run=op_run=0;);
+function ri_resting() instance(nrun,fade_left,s1)(fade_left<=0 && (nrun===0 || (s1.kind===6?s1.left<=0:s1.cold.j9_left<=0)););
+function ri_fast_kind() instance(nrun,fade_left,s1)(
+ nrun===1 && fade_left<=0?(s1.first?(s1.kind===0?5:6):s1.kind===6?7:s1.kind===2?4:s1.kind===4?3:s1.kind===0 || s1.kind===5?2:1):0;
+);
+function ri_process(io*) instance(nrun,plan,tag,wet,goal,fade_left,mix_step,ramp_left)
+ local(l,r)(
+ fade_left>0?(l=io.l;r=io.r;);
+ nrun>0?(this.s1.ri_section(io);nrun>1?(this.s2.ri_section(io);
+ nrun>2?this.s3.ri_section(io);
+ nrun>3?this.s4.ri_section(io);
+ nrun>4?this.s5.ri_section(io);
+ nrun>5?this.s6.ri_section(io);
+ nrun>6?this.s7.ri_section(io);
+ nrun>7?this.s8.ri_section(io);
+ nrun>8?this.s9.ri_section(io);
+ nrun>9?this.s10.ri_section(io);
+ ););
+
+ fade_left>0?(
+   wet+=mix_step;fade_left-=1;fade_left===0?wet=goal;
+   io.l=l+wet*(io.l-l);io.r=r+wet*(io.r-r);
+   fade_left===0 && goal===0?(this.ri_commit(1);nrun?this.ri_fade(1););
+ );
+);
+function ri_block_work() local(i,b,r,curve,valid)(
+ // One builder for all 16 bands. Cancel stale requests and publish only complete
+ // curves. One cell or 32 directory entries at most in one audio block.
+ i=0;loop(16,(AF_Pending & (1<<i))?(r=AF_Requests+8*i;r[6]+=samplesblock;);i+=1;);
+ AF_Job>=0?(r=AF_Requests+8*AF_Job;!r[0] || r[7]!==AF_Generation?AF_Job=-1;);
+ AF_Job<0?(
+   i=0;while(i<16 && AF_Job<0)(
+     b=(AF_Next+i)&15;r=AF_Requests+b*8;curve=AF_Curves+b*AF_CurveSlots;
+     valid=curve[0]>0 && curve[1]===r[1] && curve[3]===r[2] && curve[4]===r[3] && curve[8]===r[4] && curve[8+40*(curve[0]-1)+1]===r[5];
+     (AF_Pending & (1<<b)) && valid?AF_Pending=AF_Pending & (65535-(1<<b));
+     (AF_Pending & (1<<b)) && r[0] && !valid && r[6]>=.025*srate?(
+       AF_Job=b;AF_Generation=r[7];AF_Next=(b+1)&15;
+       AF_builder.wf_curve_begin(curve,AF_Scratch,AF_Bank,AF_Notch,AF_Wide,r[1],2,r[2],r[3],r[4],r[5]);
+     );i+=1;);
+ );
+ AF_Job>=0?(AF_builder.wf_curve_step();AF_builder.phase===3 || AF_builder.phase<0?(AF_Pending=AF_Pending & (65535-(1<<AF_Job));AF_Job=-1;););
+);

@@ -1,6 +1,6 @@
 -- @description ReEQ2: theme editor
 -- @author Justin Johnson
--- @version 1.0.0
+-- @version 1.0.1
 -- @about
 --   Edits ReEQ2's colours on a preview of ReEQ2, saves themes used by every ReEQ2, and sets the size
 --   new ReEQ2 windows open at. Open ReEQ2 windows follow the edits as you make them.
@@ -22,7 +22,7 @@ local JSFX_FILE = RES .. "/Effects/ReJJ/ReEQ2/ReEQ2.jsfx"
 local GM_NAME, GM_MAGIC, GM_TOKENS = "ReEQ2", 20261031, 8
 
 -- The version of ReEQ2 the preview was translated from
-local PREVIEW_FROM = "2.1.0"
+local PREVIEW_FROM = "2.2.0"
 
 local EXT = "ReEQ2 Theme Editor"
 
@@ -973,7 +973,7 @@ local preview_draw  -- function(x, y, w, h), set by the preview section
 local preview_pick  -- function(x, y, w, h) -> token key under the mouse, or nil
 
 ----------------------------------------------------------------------------------------------------
--- The preview: ReEQ2's own drawing, translated from ReEQ2 2.1.0 (ReEQ2.jsfx @gfx, spectrum.jsfx-inc
+-- The preview: ReEQ2's own drawing, translated from ReEQ2 2.2.0 (ReEQ2.jsfx @gfx, spectrum.jsfx-inc
 -- and ivantsov_filter.jsfx-inc) and drawn on fixed example state under ReEQ2's names. Each function
 -- names its source: a change to ReEQ2's drawing is made here too, and PREVIEW_FROM moves with it.
 --
@@ -2197,7 +2197,7 @@ local function preview_module()
       gfx.line(x1 - 1, y1 + 1, x2 + 1, y2 + 1, 1)
     end
 
-    -- from ReEQ2 2.1.0: draw_filter_bands() (the areas pick as T_BAND_AREA, the curves as the band)
+    -- from ReEQ2 2.2.0: draw_filter_bands() (the areas pick as T_BAND_AREA, the curves as the band)
     local function draw_filter_bands()
       -- Band fill opacity at the curve and at the 0dB line
       local FILL_ALPHA_CURVE = Pal[T.BAND_AREA][4]
@@ -2212,15 +2212,15 @@ local function preview_module()
           gfx.r, gfx.g, gfx.b = Band_Red[band], Band_Green[band], Band_Blue[band]
           local xo1 = 0
           local yo1 = (gfx_h - gfx.texth) * 0.5
-          local xf = 0
-          repeat
+          for point = 0, 1000 do
+            local xf = point == 1000 and gfx_w or point * step
             local freq = scx_to_freq(xf)
             local transfer = ivf_analog_magnitude(gfx_band[band], freq)
             if transfer < 0.001 then transfer = 0.001 end
             local m = 20 * log10(transfer)
             local scy = db_to_y(m)
 
-            if xo1 > 0 then
+            if point > 0 then
               local x0, y0, x1, y1 = xo1, yo1, xf, scy
               if yo1 < bottom and scy < bottom then
                 gfx.a = 1.0
@@ -2258,8 +2258,7 @@ local function preview_module()
             end
 
             xo1 = xf; yo1 = scy
-            xf = xf + step
-          until not (xf < gfx_w)
+          end
         end
       end
     end

@@ -1,0 +1,35 @@
+@init
+// One owner per builder. Start and advance on the audio/control thread.
+// base[0] is the publication flag. It stays zero until both data and index are ready.
+function wf_curve_begin(dst,tmp,fit_bank,notch_bank,wide_bank,type,ord,frequency,resonance,lower_db,upper_db)
+ instance(base,scratch,bank,notch,wide,kind,order,fc,q,lo,hi,count,root,roots,root_width,top,a,b,phase,di,dj,failures,root_start)(
+  base=dst;scratch=tmp;bank=fit_bank;notch=notch_bank;wide=wide_bank;kind=type;order=ord;fc=frequency;q=resonance;
+  lo=max(-108,floor(lower_db));hi=min(108,ceil(upper_db));hi<=lo?(lo=max(-108,min(lo,107));hi=lo+1;);
+  base[0]=0;base[1]=kind;base[2]=order;base[3]=fc;base[4]=q;base[6]+=1;base[7]=72631;
+  root_start=root=count=top=di=dj=failures=0;roots=max(1,ceil(hi-lo));root_width=(hi-lo)/roots;a=lo;b=lo+root_width;phase=1;
+);
+// One call attempts one polynomial cell, or writes up to 32 directory entries.
+function wf_curve_step()
+ instance(base,scratch,bank,notch,wide,kind,order,fc,q,lo,hi,count,root,roots,root_width,top,a,b,phase,di,dj,failures,root_start)
+ local(vals,co,co3,stack,h,t,safe,safe3,metric,metric3,node,dc,degree,valid,dst,j,dir,n,g)(
+  phase===1?(
+    vals=scratch;co=scratch+40;co3=scratch+80;stack=scratch+120;h=b-a;
+
+t=0;this.bg_work.wf_design(this.bg_ref,bank,notch,wide,kind,order,fc,q,a+h*t);vals[0]=sqrt(max(0,this.bg_ref.mp-this.bg_ref.mr));vals[1]=sqrt(max(0,this.bg_ref.mq-this.bg_ref.mr));vals[2]=this.bg_ref.md;vals[3]=order===1?0:this.bg_ref.mo1;vals[4]=this.bg_ref.cp;vals[5]=this.bg_ref.cd;t=0.09549150281252627;this.bg_work.wf_design(this.bg_ref,bank,notch,wide,kind,order,fc,q,a+h*t);vals[6]=sqrt(max(0,this.bg_ref.mp-this.bg_ref.mr));vals[7]=sqrt(max(0,this.bg_ref.mq-this.bg_ref.mr));vals[8]=this.bg_ref.md;vals[9]=order===1?0:this.bg_ref.mo1;vals[10]=this.bg_ref.cp;vals[11]=this.bg_ref.cd;t=0.3454915028125263;this.bg_work.wf_design(this.bg_ref,bank,notch,wide,kind,order,fc,q,a+h*t);vals[12]=sqrt(max(0,this.bg_ref.mp-this.bg_ref.mr));vals[13]=sqrt(max(0,this.bg_ref.mq-this.bg_ref.mr));vals[14]=this.bg_ref.md;vals[15]=order===1?0:this.bg_ref.mo1;vals[16]=this.bg_ref.cp;vals[17]=this.bg_ref.cd;t=0.6545084971874737;this.bg_work.wf_design(this.bg_ref,bank,notch,wide,kind,order,fc,q,a+h*t);vals[18]=sqrt(max(0,this.bg_ref.mp-this.bg_ref.mr));vals[19]=sqrt(max(0,this.bg_ref.mq-this.bg_ref.mr));vals[20]=this.bg_ref.md;vals[21]=order===1?0:this.bg_ref.mo1;vals[22]=this.bg_ref.cp;vals[23]=this.bg_ref.cd;t=0.9045084971874737;this.bg_work.wf_design(this.bg_ref,bank,notch,wide,kind,order,fc,q,a+h*t);vals[24]=sqrt(max(0,this.bg_ref.mp-this.bg_ref.mr));vals[25]=sqrt(max(0,this.bg_ref.mq-this.bg_ref.mr));vals[26]=this.bg_ref.md;vals[27]=order===1?0:this.bg_ref.mo1;vals[28]=this.bg_ref.cp;vals[29]=this.bg_ref.cd;t=1;this.bg_work.wf_design(this.bg_ref,bank,notch,wide,kind,order,fc,q,a+h*t);vals[30]=sqrt(max(0,this.bg_ref.mp-this.bg_ref.mr));vals[31]=sqrt(max(0,this.bg_ref.mq-this.bg_ref.mr));vals[32]=this.bg_ref.md;vals[33]=order===1?0:this.bg_ref.mo1;vals[34]=this.bg_ref.cp;vals[35]=this.bg_ref.cd;bg_fit(vals,co);bg_fit3(vals,co3);safe=bg_safe(co);safe3=bg_safe(co3);metric=metric3=0;node=1;loop(7,t=node*.125;this.bg_work.wf_design(this.bg_ref,bank,notch,wide,kind,order,fc,q,a+h*t);bg_poly(this.bg_eval,co,t);dc=kind===4?exp((a+h*t)*.1151292546497022842):1;metric=max(metric,bg_error(this.bg_eval,this.bg_ref,dc,order===1));bg_poly(this.bg_eval3,co3,t);metric3=max(metric3,bg_error(this.bg_eval3,this.bg_ref,dc,order===1));node+=1;);degree=safe3 && metric3<.000005?3:5;valid=degree===3 || (safe && metric<.000005);
+    !valid && h>.00001 && top<24 && count-root_start+top+2 <= floor(512*(root+1)/roots)-floor(512*root/roots)?(
+      stack[top*2]=.5*(a+b);stack[top*2+1]=b;top+=1;b=.5*(a+b);
+    ):count>=512?(phase=-1;):(
+      degree===3?memcpy(co,co3,36);
+      dst=base+8+40*count;dst[0]=a;dst[1]=b;dst[2]=1/h;dst[3]=valid?degree:0;memcpy(dst+4,co,36);
+      !valid?failures+=1;count+=1;
+      top>0?(top-=1;a=stack[top*2];b=stack[top*2+1];):(
+        root+=1;root_start=count;root>=roots?phase=2:(a=lo+root*root_width;b=lo+(root+1)*root_width;);
+      );
+    );
+  ):phase===2?(
+    dir=base+8+40*count;n=ceil(16*(hi-lo))+1;
+    loop(min(32,n-di),g=lo+di*.0625;while(dj+1<count && base[8+40*(dj+1)]<=g)(dj+=1;);dir[di]=dj;di+=1;);
+    di>=n?(base[5]=dir;base[0]=count;phase=3;);
+  );phase;
+);
+function wf_curve_read(out*,base,gain) instance(revision,owner,index,lo,hi,iv,good,ready,c00,c01,c02,c03,c04,c05,c10,c11,c12,c13,c14,c15,c20,c21,c22,c23,c24,c25,c30,c31,c32,c33,c34,c35,c40,c41,c42,c43,c44,c45,c50,c51,c52,c53,c54,c55) local(dir,offset,a,b,m,p,t,vp,vq,P,Q,R,dc)( (!ready || revision!==base[6] || owner!==base || gain<lo || gain>hi)?(ready=1;owner=base;revision=base[6];dir=base[5];offset=floor(16*(gain-base[8]));a=dir[offset];b=gain>=base[8+(base[0]-1)*40+1]?base[0]:dir[offset+1]+1;while(b-a>1)(m=floor((a+b)*.5);gain<base[8+m*40]?b=m:a=m;);index=a;p=base+8+40*a;lo=p[0];hi=p[1];iv=p[2];good=p[3];good===3?(c00=p[4];c01=p[5];c02=p[6];c03=p[7];c10=p[10];c11=p[11];c12=p[12];c13=p[13];c20=p[16];c21=p[17];c22=p[18];c23=p[19];c30=p[22];c31=p[23];c32=p[24];c33=p[25];c40=p[28];c41=p[29];c42=p[30];c43=p[31];c50=p[34];c51=p[35];c52=p[36];c53=p[37];):(c00=p[4];c01=p[5];c02=p[6];c03=p[7];c04=p[8];c05=p[9];c10=p[10];c11=p[11];c12=p[12];c13=p[13];c14=p[14];c15=p[15];c20=p[16];c21=p[17];c22=p[18];c23=p[19];c24=p[20];c25=p[21];c30=p[22];c31=p[23];c32=p[24];c33=p[25];c34=p[26];c35=p[27];c40=p[28];c41=p[29];c42=p[30];c43=p[31];c44=p[32];c45=p[33];c50=p[34];c51=p[35];c52=p[36];c53=p[37];c54=p[38];c55=p[39];););good?(t=(gain-lo)*iv;good===3?(vp=c00+t*(c01+t*(c02+t*c03));vq=c10+t*(c11+t*(c12+t*c13));out.md=c20+t*(c21+t*(c22+t*c23));out.mo1=c30+t*(c31+t*(c32+t*c33));out.cp=c40+t*(c41+t*(c42+t*c43));out.cd=c50+t*(c51+t*(c52+t*c53));):(vp=c00+t*(c01+t*(c02+t*(c03+t*(c04+t*(c05)))));vq=c10+t*(c11+t*(c12+t*(c13+t*(c14+t*(c15)))));out.md=c20+t*(c21+t*(c22+t*(c23+t*(c24+t*(c25)))));out.mo1=c30+t*(c31+t*(c32+t*(c33+t*(c34+t*(c35)))));out.cp=c40+t*(c41+t*(c42+t*(c43+t*(c44+t*(c45)))));out.cd=c50+t*(c51+t*(c52+t*(c53+t*(c54+t*(c55))))););P=vp*vp;Q=vq*vq;R=vp*vq;out.mp=P+R;out.mq=Q+R;out.mr=R;out.jp=P;out.jq=Q;out.mt=base[2]===1?1:vq/vp;out.co=1-out.cd;dc=base[1]===4?exp(gain*.1151292546497022842):1;out.mo0=dc-out.md;);good;);

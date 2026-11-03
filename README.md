@@ -5,6 +5,11 @@ Reaper JSFX Plugins
 `ReEQ2/ReEQ2.jsfx` — a 16-band parametric equalizer with decramped filters up to 30 kHz, per-band dynamic
 EQ with sidechain inputs, and a built-in analyser.
 
+ReEQ² 2.2 fits the digital filters more closely to their analog curves near Nyquist, including when a
+band's frequency is set above it. The graph follows the analog shapes across the full 10 Hz–30 kHz range.
+Existing ReEQ² projects retain their band settings and automation. High-frequency bands can sound different
+with the updated filters.
+
 Every colour in ReEQ² can be themed. The "ReEQ2 Theme Editor" action (installed with ReEQ2 from ReaPack:
 search the Actions window for "ReEQ2 Theme Editor"; in this repository at `Scripts/ReEQ2 Theme Editor.lua`)
 edits themes on a preview of ReEQ², with open ReEQ² windows following along, and sets the size new ReEQ²
