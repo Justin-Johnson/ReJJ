@@ -6,9 +6,8 @@ Reaper JSFX Plugins
 EQ with sidechain inputs, and a built-in analyser.
 
 ReEQ² 2.2 fits the digital filters more closely to their analog curves near Nyquist, including when a
-band's frequency is set above it. The graph follows the analog shapes across the full 10 Hz–30 kHz range.
-Existing ReEQ² projects retain their band settings and automation. High-frequency bands can sound different
-with the updated filters.
+band's frequency is set above it. Existing ReEQ² projects retain their band settings and automation.
+High-frequency bands can sound different with the updated filters.
 
 ReEQ² 2.2 also adds a UI size, 100% to 200%, for displays where its text is small (such as 1080p screens at
 100% scaling). Each ReEQ² sets it under Settings > Display, and the Theme Editor sets the default (125% until
