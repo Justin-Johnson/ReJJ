@@ -36,13 +36,6 @@ function spectrum.get_memory_index() instance(mem_index) (
 );
 
 /*
- * Round a number up or down
- */
-function spectrum.round(in) (
-  in = floor(in + 0.5 * sign(in));
-);
-
-/*
  * Given frequency, return screen x position
  */
 function spectrum.freq_to_x(freq) (
@@ -55,30 +48,6 @@ function spectrum.freq_to_x(freq) (
 function spectrum.x_to_freq(x) (
   x = spectrum.min_freq * exp(spectrum.freq_log_max * (x - spectrum.left_margin) / (gfx_w - spectrum.left_margin - spectrum.right_margin));
   max(min(x, spectrum.max_freq), spectrum.min_freq);
-);
-
-/*
- * Given decibels, return screen y position
- */
-function spectrum.db_to_y(db) ( 
-  spectrum.top_margin + (((db - spectrum.ceiling) / (spectrum.noise_floor - spectrum.ceiling)) * (gfx_h - spectrum.top_margin - spectrum.bottom_margin - gfx_texth));
-);
-
-/*
- * Given screen y position, return decibels
- */
-function spectrum.y_to_db(y) (
-  y = (y - spectrum.top_margin) / (gfx_h - spectrum.top_margin - spectrum.bottom_margin - gfx_texth);
-  spectrum.ceiling + (y * (spectrum.noise_floor - spectrum.ceiling) );
-);
-
-/*
- * Given a magnitude (1.0 .... very small number), return y screen position
- * No tilt
- */
-function spectrum.magnitude_to_y(m) local(db) (
-  db = 10 * log10(m);
-  spectrum.top_margin + (((db - spectrum.ceiling) / (spectrum.noise_floor - spectrum.ceiling)) * (gfx_h - spectrum.top_margin - spectrum.bottom_margin - gfx_texth));
 );
 
 /*
@@ -164,85 +133,34 @@ function spectrum.sample6(s) (
 );
 
 /*
+ * Start each buffer's writer (spectrum.sample0 to sample6, in @sample) at the start of its history
+ */
+function spectrum.reset_positions() (
+  spectrum.pos0 = spectrum.samples0; spectrum.end0 = spectrum.samples0 + spectrum.histsize;
+  spectrum.pos1 = spectrum.samples1; spectrum.end1 = spectrum.samples1 + spectrum.histsize;
+  spectrum.pos2 = spectrum.samples2; spectrum.end2 = spectrum.samples2 + spectrum.histsize;
+  spectrum.pos3 = spectrum.samples3; spectrum.end3 = spectrum.samples3 + spectrum.histsize;
+  spectrum.pos4 = spectrum.samples4; spectrum.end4 = spectrum.samples4 + spectrum.histsize;
+  spectrum.pos5 = spectrum.samples5; spectrum.end5 = spectrum.samples5 + spectrum.histsize;
+  spectrum.pos6 = spectrum.samples6; spectrum.end6 = spectrum.samples6 + spectrum.histsize;
+);
+
+/*
  * Reset all spectrum buffers
  */
-function spectrum.reset_buffers() ( 
+function spectrum.reset_buffers() local(i) (
   // Clear sample buffers and force recalculate window
   spectrum.windowsize = 0;
-  memset(spectrum.samples0, 0, spectrum.histsize);
-  memset(spectrum.samples1, 0, spectrum.histsize);
-  memset(spectrum.samples2, 0, spectrum.histsize);
-  memset(spectrum.samples3, 0, spectrum.histsize);
-
-  // Spectrum 1
-  memset(spectrum.bin_mag0, 0, spectrum.max_buffer);
-  memset(spectrum.bin_freq0, 0, spectrum.max_buffer);
-  memset(spectrum.bin_y0, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag0, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq0, 0, spectrum.max_buffer);
-  memset(spectrum.samples0, 0, spectrum.histsize);
-  spectrum.pos0 = spectrum.samples0;
-  spectrum.end0 = spectrum.samples0 + spectrum.histsize;
-
-  // Spectrum 2
-  memset(spectrum.bin_mag1, 0, spectrum.max_buffer);
-  memset(spectrum.bin_freq1, 0, spectrum.max_buffer);
-  memset(spectrum.bin_y1, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag1, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq1, 0, spectrum.max_buffer);
-  memset(spectrum.samples1, 0, spectrum.histsize);
-  spectrum.pos1 = spectrum.samples1;
-  spectrum.end1 = spectrum.samples1 + spectrum.histsize;
-
-  // Spectrum 3
-  memset(spectrum.bin_mag2, 0, spectrum.max_buffer);
-  memset(spectrum.bin_freq2, 0, spectrum.max_buffer);
-  memset(spectrum.bin_y2, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag2, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq2, 0, spectrum.max_buffer);
-  memset(spectrum.samples2, 0, spectrum.histsize);
-  spectrum.pos2 = spectrum.samples2;
-  spectrum.end2 = spectrum.samples2 + spectrum.histsize;
-
-  // Spectrum 4
-  memset(spectrum.bin_mag3, 0, spectrum.max_buffer);
-  memset(spectrum.bin_freq3, 0, spectrum.max_buffer);
-  memset(spectrum.bin_y3, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag3, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq3, 0, spectrum.max_buffer);
-  memset(spectrum.samples3, 0, spectrum.histsize);
-  spectrum.pos3 = spectrum.samples3;
-  spectrum.end3 = spectrum.samples3 + spectrum.histsize;
-
-  // Spectrum 5
-  memset(spectrum.bin_mag4, 0, spectrum.max_buffer);
-  memset(spectrum.bin_freq4, 0, spectrum.max_buffer);
-  memset(spectrum.bin_y4, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag4, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq4, 0, spectrum.max_buffer);
-  memset(spectrum.samples4, 0, spectrum.histsize);
-  spectrum.pos4 = spectrum.samples4;
-  spectrum.end4 = spectrum.samples4 + spectrum.histsize;
-
-  // Spectrum 6
-  memset(spectrum.bin_mag5, 0, spectrum.max_buffer);
-  memset(spectrum.bin_freq5, 0, spectrum.max_buffer);
-  memset(spectrum.bin_y5, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag5, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq5, 0, spectrum.max_buffer);
-  memset(spectrum.samples5, 0, spectrum.histsize);
-  spectrum.pos5 = spectrum.samples5;
-  spectrum.end5 = spectrum.samples5 + spectrum.histsize;
-
-  // Spectrum 7 (ghost)
-  memset(spectrum.bin_mag6, 0, spectrum.max_buffer);
-  memset(spectrum.bin_freq6, 0, spectrum.max_buffer);
-  memset(spectrum.bin_y6, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag6, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq6, 0, spectrum.max_buffer);
-  memset(spectrum.samples6, 0, spectrum.histsize);
-  spectrum.pos6 = spectrum.samples6;
-  spectrum.end6 = spectrum.samples6 + spectrum.histsize;
+  i = 0;
+  loop(7,
+    memset(spectrum.buf_samples[i], 0, spectrum.histsize);
+    memset(spectrum.buf_y[i], 0, spectrum.max_buffer);
+    memset(spectrum.buf_peakmag[i], spectrum.small_mag, spectrum.max_buffer);
+    i += 1;
+  );
+  memset(spectrum.bin_mag, 0, spectrum.max_buffer);
+  memset(spectrum.bin_freq, 0, spectrum.max_buffer);
+  spectrum.reset_positions();
 );
 
 /*
@@ -275,22 +193,12 @@ function spectrum.set_color(buf_index, r, g, b, a) (
 /*
  * Set whether spectrum peaks are shown
  */
-function spectrum.set_show_peaks(show) ( 
+function spectrum.set_show_peaks(show) local(i) (
   spectrum.show_peaks = show;
 
-  // Clear out the peak data
-  memset(spectrum.bin_peakmag0, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq0, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag1, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq1, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag2, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq2, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag3, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq3, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag4, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq4, 0, spectrum.max_buffer);
-  memset(spectrum.bin_peakmag5, spectrum.small_mag, spectrum.max_buffer);
-  memset(spectrum.bin_peakfreq5, 0, spectrum.max_buffer);
+  // Clear out the peak data (the ghost, buffer 6, has none)
+  i = 0;
+  loop(6, memset(spectrum.buf_peakmag[i], spectrum.small_mag, spectrum.max_buffer); i += 1);
 );
 
 /*
@@ -303,7 +211,7 @@ function spectrum.set_fill(buf_index, fill) (
 /*
  * Initialise all variables and allocate buffers
  */
-function spectrum.init() (
+function spectrum.init() local(i) (
   // Main buffer size for all calcs
   spectrum.max_buffer = 16384;
 
@@ -367,107 +275,37 @@ function spectrum.init() (
   spectrum.point_x = spectrum.alloc_memory(16384);
   spectrum.point_y = spectrum.alloc_memory(16384);
 
-  // Buffer 0
-  spectrum.samples0 = spectrum.alloc_memory(spectrum.histsize);
-  spectrum.bin_mag0 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_freq0 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_y0 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakmag0 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakfreq0 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.pos0 = spectrum.samples0;
-  spectrum.end0 = spectrum.samples0 + spectrum.histsize;
-  spectrum.set_color(0, spectrum.default_r, spectrum.default_g, spectrum.default_b, spectrum.default_a);
-  spectrum.set_fill(0, 1);
-
-  // Buffer 1
-  spectrum.samples1 = spectrum.alloc_memory(spectrum.histsize);
-  spectrum.bin_mag1 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_freq1 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_y1 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakmag1 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakfreq1 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.pos1 = spectrum.samples1;
-  spectrum.end1 = spectrum.samples1 + spectrum.histsize;
-  spectrum.set_color(1, spectrum.default_r, spectrum.default_g, spectrum.default_b, spectrum.default_a);
-  spectrum.set_fill(1, 1);
-
-  // Buffer 2
-  spectrum.samples2 = spectrum.alloc_memory(spectrum.histsize);
-  spectrum.bin_mag2 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_freq2 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_y2 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakmag2 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakfreq2 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.pos2 = spectrum.samples2;
-  spectrum.end2 = spectrum.samples2 + spectrum.histsize;
-  spectrum.set_color(2, spectrum.default_r, spectrum.default_g, spectrum.default_b, spectrum.default_a);
-  spectrum.set_fill(2, 1);
-
-  // Buffer 3
-  spectrum.samples3 = spectrum.alloc_memory(spectrum.histsize);
-  spectrum.bin_mag3 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_freq3 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_y3 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakmag3 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakfreq3 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.pos3 = spectrum.samples3;
-  spectrum.end3 = spectrum.samples3 + spectrum.histsize;
-  spectrum.set_color(3, spectrum.default_r, spectrum.default_g, spectrum.default_b, spectrum.default_a);
-  spectrum.set_fill(3, 1);
-
-  // Buffer 4
-  spectrum.samples4 = spectrum.alloc_memory(spectrum.histsize);
-  spectrum.bin_mag4 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_freq4 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_y4 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakmag4 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakfreq4 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.pos4 = spectrum.samples4;
-  spectrum.end4 = spectrum.samples4 + spectrum.histsize;
-  spectrum.set_color(4, spectrum.default_r, spectrum.default_g, spectrum.default_b, spectrum.default_a);
-  spectrum.set_fill(4, 1);
-
-  // Buffer 5
-  spectrum.samples5 = spectrum.alloc_memory(spectrum.histsize);
-  spectrum.bin_mag5 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_freq5 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_y5 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakmag5 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakfreq5 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.pos5 = spectrum.samples5;
-  spectrum.end5 = spectrum.samples5 + spectrum.histsize;
-  spectrum.set_color(5, spectrum.default_r, spectrum.default_g, spectrum.default_b, spectrum.default_a);
-  spectrum.set_fill(5, 1);
-
-  // Buffer 6: the ghost spectrum, drawn as a line whose opacity follows ghost_w
-  spectrum.samples6 = spectrum.alloc_memory(spectrum.histsize);
-  spectrum.bin_mag6 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_freq6 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_y6 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakmag6 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.bin_peakfreq6 = spectrum.alloc_memory(spectrum.max_buffer);
-  spectrum.pos6 = spectrum.samples6;
-  spectrum.end6 = spectrum.samples6 + spectrum.histsize;
+  // Buffers 0 to 6 (6: the ghost spectrum, drawn as a line whose opacity follows ghost_w). Each keeps its
+  // sample history, smoothed columns and peaks; the per-bin work in bin_mag and bin_freq is scratch for
+  // whichever is being drawn.
+  spectrum.bin_mag = spectrum.alloc_memory(spectrum.max_buffer);
+  spectrum.bin_freq = spectrum.alloc_memory(spectrum.max_buffer);
+  spectrum.buf_samples = spectrum.alloc_memory(7);
+  spectrum.buf_y = spectrum.alloc_memory(7);
+  spectrum.buf_peakmag = spectrum.alloc_memory(7);
+  i = 0;
+  loop(7,
+    spectrum.buf_samples[i] = spectrum.alloc_memory(spectrum.histsize);
+    spectrum.buf_y[i] = spectrum.alloc_memory(spectrum.max_buffer);
+    spectrum.buf_peakmag[i] = spectrum.alloc_memory(spectrum.max_buffer);
+    spectrum.set_color(i, spectrum.default_r, spectrum.default_g, spectrum.default_b, spectrum.default_a);
+    spectrum.set_fill(i, 1);
+    i += 1;
+  );
   spectrum.set_color(6, 0.86, 0.89, 0.9, 1);
   spectrum.set_fill(6, 3);
+  // The writers in @sample keep plain pointers; ReEQ2 clears the ghost's history and columns
+  spectrum.samples0 = spectrum.buf_samples[0];
+  spectrum.samples1 = spectrum.buf_samples[1];
+  spectrum.samples2 = spectrum.buf_samples[2];
+  spectrum.samples3 = spectrum.buf_samples[3];
+  spectrum.samples4 = spectrum.buf_samples[4];
+  spectrum.samples5 = spectrum.buf_samples[5];
+  spectrum.samples6 = spectrum.buf_samples[6];
+  spectrum.bin_y6 = spectrum.buf_y[6];
+  spectrum.reset_positions();
 
   spectrum.last_time = spectrum.alloc_memory(7);
-);
-
-/*
- * Cubic hermite, given A,B,C,D and time (t) return cubic interpolation
- * http://paulbourke.net/miscellaneous/interpolation/
- */
-function cubic_hermite(A, B, C, D, t) local(a0, a1, a2, a3, t2)
-(
-   t2 = t * t;
-
-   a0 = D - C - A + B;
-   a1 = A - B - a0;
-   a2 = C - A;
-   a3 = B;
-
-   a0 * t * t2 + a1 * t2 + a2 * t + a3;
 );
 
 /*
@@ -517,70 +355,12 @@ function spectrum.draw(bufindex)
         p0, p2, p3, c, c1, sg, r, g, b, a, time, delta, yb, pk, spectrum_fill, bottom, top, span, y, ly, ty, last)
 (
   // Select buffer to draw
-  bufindex == 0 ? ( 
-    spectrum.samples = spectrum.samples0;
-    spectrum.bin_mag = spectrum.bin_mag0;
-    spectrum.bin_freq = spectrum.bin_freq0;
-    spectrum.bin_y = spectrum.bin_y0;
-    spectrum.bin_peakmag = spectrum.bin_peakmag0;
-    spectrum.bin_peakfreq = spectrum.bin_peakfreq0;
-    spectrum.pos = spectrum.pos0;
-    spectrum.end = spectrum.end0;
-  ) : bufindex == 1 ? ( 
-    spectrum.samples = spectrum.samples1;
-    spectrum.bin_mag = spectrum.bin_mag1;
-    spectrum.bin_freq = spectrum.bin_freq1;
-    spectrum.bin_y = spectrum.bin_y1;
-    spectrum.bin_peakmag = spectrum.bin_peakmag1;
-    spectrum.bin_peakfreq = spectrum.bin_peakfreq1;
-    spectrum.pos = spectrum.pos1;
-    spectrum.end = spectrum.end1;
-  ) : bufindex == 2 ? ( 
-    spectrum.samples = spectrum.samples2;
-    spectrum.bin_mag = spectrum.bin_mag2;
-    spectrum.bin_freq = spectrum.bin_freq2;
-    spectrum.bin_y = spectrum.bin_y2;
-    spectrum.bin_peakmag = spectrum.bin_peakmag2;
-    spectrum.bin_peakfreq = spectrum.bin_peakfreq2;
-    spectrum.pos = spectrum.pos2;
-    spectrum.end = spectrum.end2;
-  ) : bufindex == 3 ? ( 
-    spectrum.samples = spectrum.samples3;
-    spectrum.bin_mag = spectrum.bin_mag3;
-    spectrum.bin_freq = spectrum.bin_freq3;
-    spectrum.bin_y = spectrum.bin_y3;
-    spectrum.bin_peakmag = spectrum.bin_peakmag3;
-    spectrum.bin_peakfreq = spectrum.bin_peakfreq3;
-    spectrum.pos = spectrum.pos3;
-    spectrum.end = spectrum.end3;
-  ) : bufindex == 4 ? ( 
-    spectrum.samples = spectrum.samples4;
-    spectrum.bin_mag = spectrum.bin_mag4;
-    spectrum.bin_freq = spectrum.bin_freq4;
-    spectrum.bin_y = spectrum.bin_y4;
-    spectrum.bin_peakmag = spectrum.bin_peakmag4;
-    spectrum.bin_peakfreq = spectrum.bin_peakfreq4;
-    spectrum.pos = spectrum.pos4;
-    spectrum.end = spectrum.end4;
-  ) : bufindex == 5 ? ( 
-    spectrum.samples = spectrum.samples5;
-    spectrum.bin_mag = spectrum.bin_mag5;
-    spectrum.bin_freq = spectrum.bin_freq5;
-    spectrum.bin_y = spectrum.bin_y5;
-    spectrum.bin_peakmag = spectrum.bin_peakmag5;
-    spectrum.bin_peakfreq = spectrum.bin_peakfreq5;
-    spectrum.pos = spectrum.pos5;
-    spectrum.end = spectrum.end5;
-  ) : bufindex == 6 ? ( 
-    spectrum.samples = spectrum.samples6;
-    spectrum.bin_mag = spectrum.bin_mag6;
-    spectrum.bin_freq = spectrum.bin_freq6;
-    spectrum.bin_y = spectrum.bin_y6;
-    spectrum.bin_peakmag = spectrum.bin_peakmag6;
-    spectrum.bin_peakfreq = spectrum.bin_peakfreq6;
-    spectrum.pos = spectrum.pos6;
-    spectrum.end = spectrum.end6;
-  );
+  spectrum.samples = spectrum.buf_samples[bufindex];
+  spectrum.bin_y = spectrum.buf_y[bufindex];
+  spectrum.bin_peakmag = spectrum.buf_peakmag[bufindex];
+  spectrum.end = spectrum.samples + spectrum.histsize;
+  spectrum.pos = bufindex == 0 ? spectrum.pos0 : bufindex == 1 ? spectrum.pos1 : bufindex == 2 ? spectrum.pos2 :
+    bufindex == 3 ? spectrum.pos3 : bufindex == 4 ? spectrum.pos4 : bufindex == 5 ? spectrum.pos5 : spectrum.pos6;
 
   // Create the smoothing spectrum.window if necessary
   spectrum.windowsize != spectrum.fftsize ? (
@@ -805,280 +585,4 @@ function spectrum.draw(bufindex)
   );
   );
 
-/*
-  // Keep this around for reference/debugging.
-  i = 0;
-  ipnt = 0;
-
-  buf3=spectrum.fftworkspace;
-
-  gfx_r = 1; gfx_g = 1; gfx_b = 1; gfx_a = 1;
-
-  lx = -1;
-
-  loop(spectrum.fftsize*0.5,
-    mag = sqr(buf3[i*2+0]) + sqr(buf3[i*2+1]);
-    freq = (i * srate) / spectrum.fftsize;
-
-    freq = max(1, freq);
-
-    ty = spectrum.magnitude_to_y(mag);
-    tx = spectrum.freq_to_x(freq);
-
-    lx != -1 ? (
-      //Line
-      gfx_line(lx, ly, tx, ty, 1);
-      gfx_line(lx+1, ly+1, tx+1, ty+1,1);
-    );
-    lx=tx; ly=ty;
-    i+=1;
-    ipnt += 1;
-  );
-*/
-
-/*
-  // Keep this for reference - cubic curve fitting.
-  percent = ipnt / (num_samples - 1);
-  x = (num_bins-1) * percent;
-
-  index = floor(x);
-        
-  t = x - floor(x);
-  
-  A = spectrum.point_x[max(0,index-1)];
-  B = spectrum.point_x[index+0];
-  C = spectrum.point_x[min(num_bins-1, index+1)];
-  D = spectrum.point_x[min(num_bins-1, index+2)];
-  tx = cubic_hermite(A, B, C, D, t);
-
-  A = spectrum.point_y[max(0,index-1)];
-  B = spectrum.point_y[index+0];
-  C = spectrum.point_y[min(num_bins-1, index+1)];
-  D = spectrum.point_y[min(num_bins-1, index+2)];
-  ty = cubic_hermite(A, B, C, D, t);
-*/
-
-);
-
-/*
- * Draw the spectrum bode grid
- */
-function spectrum.draw_grid(skip_dblines) local(db, y, f, lx, tx, dotext, frq, width, height) (
-  // Draw magnitude axis
-  gfx_y = -100;
-  db = spectrum.ceiling;
-  while(
-    y = spectrum.db_to_y(db);
-
-    y > gfx_y ? (
-      !skip_dblines ? (
-        gfx_r=gfx_g=gfx_b=1; gfx_a=0.3;
-        gfx_line(gfx_texth*2,y,gfx_w,y,0);
-      );
-      gfx_x=0;
-      gfx_r=gfx_g=gfx_b=0.4; gfx_a=1.0;
-      gfx_y = y - (gfx_texth * 0.5);
-      gfx_drawnumber(db,0);
-
-      gfx_y+=gfx_texth;
-    );
-
-    db -= 10;
-    db >= spectrum.noise_floor;
-  );
-
-  // Draw frequency axis
-  f = 10;
-  gfx_x = 0;
-  lx = 0;
-  while(
-    tx = spectrum.freq_to_x(f);
-
-    dotext = tx > gfx_x && (f==20 || f==50 || f==100 || f == 200 || f == 500 || f == 1000 || f == 2000 || f == 5000 || f == 10000);
-    gfx_a = dotext ? 0.8 : 0.6;
-    tx > lx ? ( lx=tx+4; gfx_line(tx,0,tx,gfx_h - (dotext ? 12 : gfx_texth+2) - spectrum.bottom_margin,0); );
-    dotext ? (
-      gfx_r=gfx_g=gfx_b=0.4; gfx_a=1.0;
-
-      frq = #;
-      sprintf(frq,"%.1f Hz", read_freq);
-      f>=1000 ? sprintf(frq,"%dk",f/1000) : sprintf(frq,"%d",f);
-
-      gfx_measurestr(frq, width, height);
-
-      gfx_x = tx - (width*0.5);
-
-      gfx_y = gfx_h-(gfx_texth-2)-spectrum.bottom_margin;
-      gfx_drawstr(frq);
-    );
-    f += (f<100?10:f<1000?100:f<10000?1000:10000);
-
-    f < spectrum.max_freq;
-  );
-);
-
-/*
- * Draw a piano octave
- * Also returns note frequency if a note was selected with mouse
- */
-function draw_octave(anote)
-  local(a,b,c,d,e,f,g,aSharp,gSharp,fSharp,dSharp,cSharp,aa,gw,hw,sw,w, bx,ax,gx,fx,ex,dx,cx,aax,
-        cc,csx,cxx, i, note_select)
-( 
-  b      = anote * pow(2, 2/12);   
-  aSharp = anote * pow(2, 1/12);
-  a = anote;
-  gSharp = anote * pow(2, -1/12); 
-  g      = anote * pow(2, -2/12); 
-  fSharp = anote * pow(2, -3/12); 
-  f      = anote * pow(2, -4/12); 
-  e      = anote * pow(2, -5/12); 
-  dSharp = anote * pow(2, -6/12); 
-  d      = anote * pow(2, -7/12); 
-  cSharp = anote * pow(2, -8/12);  
-  c      = anote * pow(2, -9/12); 
-
-  cc = c*2;
-
-  bx = spectrum.freq_to_x(b);
-  asx = spectrum.freq_to_x(aSharp);
-  ax = spectrum.freq_to_x(a);
-  gsx = spectrum.freq_to_x(gSharp);
-  gx = spectrum.freq_to_x(g);
-  fsx = spectrum.freq_to_x(fSharp);
-  fx = spectrum.freq_to_x(f);
-  ex = spectrum.freq_to_x(e);
-  dsx = spectrum.freq_to_x(dSharp);
-  dx = spectrum.freq_to_x(d);
-  csx = spectrum.freq_to_x(cSharp);
-  cx = spectrum.freq_to_x(c);
-
-  note_select = 0;
-
-  cxx = spectrum.freq_to_x(cc);
-
-  hw = (bx - ax) * 0.5;
-  w = dx - cx - 2;
-
-  gfx_r = gfx_g = gfx_b = 1;
-  gfx_a = 1;
-
-  sw = (cxx - cx) / 7;
-
-  is_hover = 0;
-  hover_x = -1;
-  sharp_w = (sw * 0.50);
-  xp = cx + (sw * 0.75);
-
-  ffw = spectrum.freq_to_x(cSharp) - cx;
-
-  i = 0;
-
-  while(
-    i != 2 ? (
-      mouse_x >= xp && mouse_x <= xp + sharp_w && mouse_y >= spectrum.piano_y && mouse_y <= spectrum.piano_y + 35 ? ( 
-        is_hover = 2; hover_sharp = i;
-        hover_x = xp; hover_w = sharp_w; hover_h = 35;
-      );
-    );
-    xp += sw;
-    i += 1;
-    i < 6;
-  );
-
-  i = 0;
-  xp = cx;
-  loop(7,
-    is_hover == 0 && mouse_x >= xp && mouse_x <= xp+sw && mouse_y >= spectrum.piano_y && mouse_y <= spectrum.piano_y + 60 ? ( 
-      is_hover = 1; hover_key = i;
-      hover_x = xp; hover_w = sw-1; hover_h = 60;
-    );
-
-    gfx_rect(xp, spectrum.piano_y, sw-1, 60);
-
-    i += 1;
-    xp += sw;
-  );
-
-  is_hover == 1 ? ( 
-    gfx_r = 0.7; gfx_b = 0.7; gfx_g = 0.7; gfx_a = 1;
-    gfx_rect(hover_x, spectrum.piano_y, hover_w, hover_h);
-  );
-
-  gfx_r = gfx_g = gfx_b = 0;
-
-  xp = cx + (sw * 0.75);
-
-  i = 0;
-
-  loop(6,
-    i != 2 ? (
-      gfx_rect(xp, spectrum.piano_y, sw*0.50, 35);
-    );
-    i += 1;
-    xp += sw;
-  );
-
-  is_hover == 2 ? ( 
-    gfx_r = 0.7; gfx_b = 0.7; gfx_g = 0.7; gfx_a = 1;
-    gfx_rect(hover_x, spectrum.piano_y, hover_w, hover_h);
-  );
-
-  is_hover ? ( 
-    is_hover == 1 ? ( 
-      hover_key == 0 ? (frq = c; sw = csx - cx;);
-      hover_key == 1 ? (frq = d; sw = dsx - dx;);
-      hover_key == 2 ? (frq = e; sw = fx - ex;);
-      hover_key == 3 ? (frq = f; sw = fsx - fx;);
-      hover_key == 4 ? (frq = g; sw = gsx - gx;);
-      hover_key == 5 ? (frq = a; sw = asx - ax;);
-      hover_key == 6 ? (frq = b; sw = cxx - bx;);
-  
-      xp = spectrum.freq_to_x(frq);
-      note_select = frq;
-
-      gfx_r = 1; gfx_g = 0.8; gfx_b = 0.8; gfx_a = 0.3;
-      gfx_rect(xp, spectrum.piano_y + 65, sw, gfx_h - spectrum.bottom_margin - (spectrum.piano_y + 65));
-    ) : (
-      hover_sharp == 0 ? (frq = cSharp; sw = dx - csx;);
-      hover_sharp == 1 ? (frq = dSharp; sw = ex - dsx;);
-      hover_sharp == 3 ? (frq = fSharp; sw = gx - fsx;);
-      hover_sharp == 4 ? (frq = gSharp; sw = ax - gsx;);
-      hover_sharp == 5 ? (frq = aSharp; sw = bx - asx;);
-  
-      xp = spectrum.freq_to_x(frq);
-      note_select = frq;
-
-      gfx_r = 1; gfx_g = 0.8; gfx_b = 0.8; gfx_a = 0.3;
-      gfx_rect(xp, spectrum.piano_y + 65, sw, gfx_h - spectrum.bottom_margin - (spectrum.piano_y + 65));
-    );
-  );
-
-  note_select;
-);
-
-/*
- * Draw the piano keys (all octaves)
- */
-function spectrum.draw_piano() local(A4, note_select) ( 
-
-  gfx_r = gfx_g = gfx_b = 1; gfx_a = 1;
-
-  A4 = 440;
-
-  note_select = 0;
-  note_select = max(draw_octave(A4 * pow(2, -5)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, -4)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, -3)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, -2)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, -1)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, 0)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, 1)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, 2)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, 3)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, 4)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, 5)), note_select);
-  note_select = max(draw_octave(A4 * pow(2, 6)), note_select);
-
-  note_select;
 );
