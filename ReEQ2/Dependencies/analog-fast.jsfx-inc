@@ -22,8 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-// Experimental standalone analog-matched filter core. ReEQ2 is not modified.
-// Initialize the three shared banks once; see usage.txt for memory ownership.
+// ReEQ2's analog-matched filter core: fitted sections for every band type.
+// ReEQ2's @init allocates the three shared banks (AF_Bank, AF_Notch, AF_Anchor) and fills them once
+// with ef_tables_init.
 @init
 function ri_unpack64(base, offset, data, count) local(i)(
   i=0;loop(count,base[offset+i]=str_getchar(data,i*8,'d');i+=1;);
