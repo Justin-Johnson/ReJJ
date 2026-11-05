@@ -10,9 +10,61 @@ function ri_bind(plan_address, curve_address, band_index, role)
 function ri_record(plan,slot,kind,ord,hz,q,db) local(r)(
   r=plan+4+slot*24;r[0]=kind;r[1]=ord;r[2]=hz/srate;r[3]=q;r[4]=db;
 );
-function ri_recipe(plan,type,hz,q,db,slope,dynamic) local(n,i,ord,k,qq,cut,t,r)(
-  n=0;
-  type===0 || type===3 || type===4 ? (
+// The slope step a band's shape takes: bells 12/24/36/48 dB/oct (steps 1/3/5/7), shelves 6/12/18/24/36
+// (0/1/2/3/5), anything else to the nearest of those; cuts any step
+function ri_slope_step(type,slope) local(s)(
+  s=floor(slope+.5);
+  type===0?(s<=2?1:s<=4?3:s<=6?5:7):type===3 || type===4?(s<=3?max(s,0):5):slope;
+);
+// A 2nd-order high shelf's level in dB at f (the analogue section ivf_sec_amag draws: kind 3, gain g dB)
+function ri_hs2_db(fc,q,g,f) local(a,z,o,r,dr,di,nr,ni)(
+  a=10^(g/40);z=.5/q;o=f/fc;r=sqrt(a);
+  dr=a-o*o;di=2*z*r*o;nr=a*(1-a*o*o);ni=a*di;
+  10*log10((nr*nr+ni*ni)/(dr*dr+di*di));
+);
+// A steep bell's level at its centre hz: a Butterworth high shelf of order ord rising by g at lo, another
+// falling by g at hi
+function ri_band_centre(hz,lo,hi,g,ord) local(i,qq,t)(
+  t=0;i=0;
+  loop(ord>>1,qq=.5/cos($pi*(2*i+1)/(2*ord));t+=ri_hs2_db(lo,qq,2*g/ord,hz)+ri_hs2_db(hi,qq,-2*g/ord,hz);i+=1;);
+  t;
+);
+// A steep bell's highest Q for gain db: the narrowest it can be and still reach db at its centre with its
+// shelves at no more than twice db (a bisection on log Q, as the bell narrows the centre falls); 40 at 0 dB
+function ri_bell_q_max(ord,db) local(a,b,m,w)(
+  db=abs(db);w=ivf_qtobw(40);
+  db<.001 || ri_band_centre(1000,1000*2^(-w/2),1000*2^(w/2),2*db,ord)>=db?40:(
+    a=log(.1);b=log(40);
+    loop(30,m=.5*(a+b);w=ivf_qtobw(exp(m));ri_band_centre(1000,1000*2^(-w/2),1000*2^(w/2),2*db,ord)>=db?a=m:b=m;);
+    exp(a);
+  );
+);
+function ri_recipe(plan,type,hz,q,db,slope,dynamic) local(n,i,ord,k,qq,cut,t,r,w,lo,hi,g,a,b)(
+  // (locals keep their values between calls: ord is read for the tag below)
+  n=0;ord=0;
+  type===0 && !dynamic && ri_slope_step(0,slope)>1 ? (
+    // A steeper bell, flat topped: a Butterworth high shelf rising at the lower edge and one falling at the
+    // upper edge, each of the bell's order; the edges where a 12 dB/oct bell of the same Q has half its gain,
+    // and the shelves' gain found so the centre is at db
+    db!==0?(
+      // (the edges kept inside the analog fit's range: they reach that far only for very wide bells)
+      ord=ri_slope_step(0,slope)+1;w=ivf_qtobw(min(q,ri_bell_q_max(ord,db)));
+      lo=max(hz*2^(-w/2),.0000261*srate);hi=min(hz*2^(w/2),3.749*srate);
+      a=0;b=2*abs(db);loop(40,g=.5*(a+b);ri_band_centre(hz,lo,hi,g,ord)<abs(db)?a=g:b=g;);
+      g=(db<0?-1:1)*.5*(a+b);
+      i=0;loop(ord>>1,qq=.5/cos($pi*(2*i+1)/(2*ord));
+        ri_record(plan,n,3,2,lo,qq,2*g/ord);ri_record(plan,n+1,3,2,hi,qq,-2*g/ord);n+=2;i+=1;);
+    );
+  ):(type===3 || type===4) && !dynamic && ri_slope_step(type,slope)!==1 ? (
+    // A steeper (or 6/18 dB/oct) shelf: Butterworth sections at hz, each second-order one taking 2/ord of the
+    // gain and the first-order one (odd orders, last) 1/ord; the highest-Q section's Q scaled by the band's Q
+    // as on the Butterworth cuts
+    db!==0?(
+      ord=ri_slope_step(type,slope)+1;k=type===3?4:3;r=ivf_cut_r(q,ord);i=0;
+      loop(ord>>1,qq=.5/cos($pi*(2*i+1+(ord&1))/(2*ord))*(i===(ord>>1)-1?r:1);ri_record(plan,i,k,2,hz,qq,2*db/ord);i+=1;);
+      n=i;ord&1?(ri_record(plan,n,k,1,hz,1,db/ord);n+=1;);
+    );
+  ):type===0 || type===3 || type===4 ? (
     dynamic || db!==0?(k=type===0?7:type===3?4:3;ri_record(plan,0,k,2,hz,q,db);n=1;);
   ):type===1 || type===2 || type===5 || type===6 ? (
     // Types 2 and 6: Butterworth, the highest-Q (last) section's Q times r for the band's Q (ivf_cut_r).
@@ -34,7 +86,8 @@ function ri_recipe(plan,type,hz,q,db,slope,dynamic) local(n,i,ord,k,qq,cut,t,r)(
     t=1+max(db,-12)/12;cut=min(22040,db>0?22000:hz*(1+3.25*t));
     ri_record(plan,0,3,2,hz,.701,db);ri_record(plan,1,1,2,cut,.701,0);n=2;
   );
-  plan[0]=n;plan[1]=n?(type+1)*32+(type===1 || type===2 || type===5 || type===6?ord:0):0;
+  // The tag: a different structure (shape, or order of a cut, or of a steeper bell or shelf) fades rather than glides
+  plan[0]=n;plan[1]=n?(type+1)*32+(type===1 || type===2 || type===5 || type===6 || ((type===0 || type===3 || type===4) && ord>0)?ord:0):0;
 );
 // Supply the original analog magnitude evaluator with the same section recipe as the audio.
 function ri_visual_section(r) instance(aT,aF,aZ,aG)(

@@ -1166,6 +1166,18 @@ function band_dyn_capable(t) (
   t == FILTER_PEAK || t == FILTER_LOW_SHELF || t == FILTER_HIGH_SHELF;
 );
 
+// A band's slope step: a cut's from the Slope slider, a bell's or shelf's its own
+function band_slope(b) local(t) (
+  t = Band_Type[b];
+  t == FILTER_LOW_CUT || t == FILTER_LOW_CUT_BUTTERWORTH || t == FILTER_HIGH_CUT || t == FILTER_HIGH_CUT_BUTTERWORTH ?
+    Band_Slope[b] : Band_ShapeSlope[b];
+);
+
+// Whether band b can be dynamic: a bell or shelf at 12 dB/oct (a dynamic band runs one section)
+function band_dyn_ok(b) (
+  band_dyn_capable(Band_Type[b]) && ri_slope_step(Band_Type[b], band_slope(b)) == 1;
+);
+
 /*
  * A band's first slider (Enabled, then Group, Type, Frequency, Gain, Q and Slope), and its first dynamics
  * slider (On, then Threshold, Ratio, Range, Attack and Release)
@@ -1260,7 +1272,7 @@ function flag_filter_update_all() (
  * The gain a band is drawn at: a dynamic band's static gain plus its live change
  */
 function band_gfx_gain(b) (
-  Band_Gain[b] + (Band_Dyn_On[b] && band_dyn_capable(Band_Type[b]) && Band_Enabled[b] == BAND_STATE_ENABLED ? Band_Dyn_Gain[b] : 0);
+  Band_Gain[b] + (Band_Dyn_On[b] && band_dyn_ok(b) && Band_Enabled[b] == BAND_STATE_ENABLED ? Band_Dyn_Gain[b] : 0);
 );
 
 /*
@@ -1278,7 +1290,7 @@ function band_gfx_due(b) local(g) (
  * Set a band's drawing filter (gfx_bandN, band b) when it's due
  */
 function band_visual_update(b, scal) (
-  band_gfx_due(b) ? (Band_GfxUpdate[b] = 0; this.band_set_visual(Band_Type[b], Band_Frequency[b], Band_GfxGain[b] * scal, Band_Q[b], Band_Slope[b]));
+  band_gfx_due(b) ? (Band_GfxUpdate[b] = 0; this.band_set_visual(Band_Type[b], Band_Frequency[b], Band_GfxGain[b] * scal, Band_Q[b], band_slope(b)));
 );
 
 function update_visual_filters() local (s) (
@@ -1307,8 +1319,8 @@ function update_visual_filters() local (s) (
  */
 function band_audio_update(b, scal) (
   Band_Update[b] && (Band_Dyn_On[b] || AF_Clock>=AF_Due[b]) ? (AF_Due[b]=AF_Clock+32; Band_Update[b] = 0; Band_Enabled[b] != BAND_STATE_ENABLED ? this.band_off() :
-    Band_Dyn_On[b] && band_dyn_capable(Band_Type[b]) ? this.band_dyn_set_filter(b, scal) :
-    (this.band_dyn_reset(); this.band_set_filter(Band_Type[b], Band_Frequency[b], Band_Gain[b] * scal, Band_Q[b], Band_Slope[b])); );
+    Band_Dyn_On[b] && band_dyn_ok(b) ? this.band_dyn_set_filter(b, scal) :
+    (this.band_dyn_reset(); this.band_set_filter(Band_Type[b], Band_Frequency[b], Band_Gain[b] * scal, Band_Q[b], band_slope(b))); );
 );
 
 function update_audio_filters() local (s) (
@@ -1374,7 +1386,7 @@ function ag_init_weights() local(i, w) (
 function ag_measure(b) instance(filter) local(i, m, p) (
   p = AG_Power + b * AG_POINTS;
   Band_Enabled[b] == BAND_STATE_ENABLED ? (
-    this.band_set_meter(Band_Type[b], Band_Frequency[b], Band_Gain[b] * Scale / 100.0, Band_Q[b], Band_Slope[b]);
+    this.band_set_meter(Band_Type[b], Band_Frequency[b], Band_Gain[b] * Scale / 100.0, Band_Q[b], band_slope(b));
 
     i = 0;
     loop(AG_POINTS,
@@ -1521,6 +1533,9 @@ init_rate != srate ? (
   Band_Gain = MEMORY.alloc_memory(NUM_BANDS);
   Band_Q = MEMORY.alloc_memory(NUM_BANDS);
   Band_Slope = MEMORY.alloc_memory(NUM_BANDS);
+  // A bell's or shelf's slope step (12 dB/oct until set): its own, so the Slope slider stays the cuts'
+  Band_ShapeSlope = MEMORY.alloc_memory(NUM_BANDS);
+  memset(Band_ShapeSlope, 1, NUM_BANDS);
   Band_Dynamic_Range = MEMORY.alloc_memory(NUM_BANDS);
   Band_Red = MEMORY.alloc_memory(NUM_BANDS);
   Band_Green = MEMORY.alloc_memory(NUM_BANDS);
@@ -1700,6 +1715,8 @@ init_rate != srate ? (
   FilterMappingTo = MEMORY.alloc_memory(14);
   // The native menu's shapes as last listed (legacy cuts only while in use)
   Menu_Shape = MEMORY.alloc_memory(14);
+  // and its slopes (those the band's shape takes)
+  Menu_Slope = MEMORY.alloc_memory(10);
   FilterMappingTo[0] = 0;
   FilterMappingTo[1] = 1;
   FilterMappingTo[2] = 2;
@@ -1799,6 +1816,8 @@ update_state();
 file_avail(handle) >= 0 ? (
   // Read mode
   file_var(0, version);
+  // Bells and shelves have their own slope from 114; before, they were all 12 dB/oct
+  memset(Band_ShapeSlope, 1, NUM_BANDS);
   // Files before 112 have no UI size: they follow the default
   UI_Size = 0;
 
@@ -1846,6 +1865,7 @@ file_avail(handle) >= 0 ? (
       file_var(0, UI_Size);
       !ui_size_valid(UI_Size) ? UI_Size = 0;
     );
+    version >= 114 ? file_mem(0, Band_ShapeSlope, numBands);
 
   ) : (
     // Old version that has no version number
@@ -1875,7 +1895,7 @@ file_avail(handle) >= 0 ? (
   // Write mode
   // The version number should reflect the ReEQ version when the file
   // format changed.
-  version = 113;
+  version = 114;
 
   file_var(0, version);
   file_var(0, NUM_BANDS);
@@ -1901,6 +1921,7 @@ file_avail(handle) >= 0 ? (
   file_mem(0, Band_Dyn_DetFreq, NUM_BANDS);
   file_mem(0, Band_Dyn_DetWidth, NUM_BANDS);
   file_var(0, UI_Size);
+  file_mem(0, Band_ShapeSlope, NUM_BANDS);
 );
 
 flag_filter_update_all();
@@ -1915,7 +1936,7 @@ filters_to_sliders();
  * stereo band runs directly (0: none); grp, its placement
  */
 function band_block(b) instance(filter, dact, proc, quick, grp) (
-  dact = Band_Dyn_On[b] && Band_Enabled[b] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[b]);
+  dact = Band_Dyn_On[b] && Band_Enabled[b] == BAND_STATE_ENABLED && band_dyn_ok(b);
   dact ? (this.band_dyn_block(b); Dyn_Any = 1) : (Band_Dyn_Gain[b] = 0; Band_Dyn_Level[b] = -150);
   proc = filter.nrun>0 || !filter.ri_resting();
   quick = Band_Group[b]===0?filter.ri_fast_kind():0;
@@ -1948,7 +1969,7 @@ play_state != la_play ? (
   la_len > 0 ? memset(Dyn_LaBuf, 0, 4 * LA_MAX);
 );
 
-Dyn_Active_Listen = Dyn_Listen >= 0 && Band_Dyn_On[Dyn_Listen] && Band_Enabled[Dyn_Listen] == BAND_STATE_ENABLED && band_dyn_capable(Band_Type[Dyn_Listen]);
+Dyn_Active_Listen = Dyn_Listen >= 0 && Band_Dyn_On[Dyn_Listen] && Band_Enabled[Dyn_Listen] == BAND_STATE_ENABLED && band_dyn_ok(Dyn_Listen);
 
 Listen_Process = do_listen || listen_node != -1 || !listen_filter.ivf_is_resting();
 
@@ -2879,6 +2900,15 @@ function ui_is_cut(t) (
   t == FILTER_LOW_CUT || t == FILTER_LOW_CUT_BUTTERWORTH || t == FILTER_HIGH_CUT || t == FILTER_HIGH_CUT_BUTTERWORTH;
 );
 
+// Shapes with a slope: the cuts, and (from 2.3) bells and shelves
+function ui_is_shelf(t) (
+  t == FILTER_LOW_SHELF || t == FILTER_HIGH_SHELF;
+);
+
+function ui_has_slope(t) (
+  ui_is_cut(t) || t == FILTER_PEAK || ui_is_shelf(t);
+);
+
 // The Butterworth cuts (with resonance); the other two cuts are the legacy resonant ones
 function ui_is_bw_cut(t) (
   t == FILTER_LOW_CUT_BUTTERWORTH || t == FILTER_HIGH_CUT_BUTTERWORTH;
@@ -2892,14 +2922,29 @@ function cut_q_max(k) (
   min(MAX_Q, ivf_cut_r(MAX_Q * 100, k + 1) / sqrt(2));
 );
 
-// A band's Q as heard: a Butterworth cut's within its slope's range (automation can set it higher)
+// A band's highest Q: a Butterworth cut's, or a steeper shelf's, where its sharpest section reaches the fit's
+// limit; a steeper bell's where, at the gain heard, its shelves would need more than twice it (ri_bell_q_max)
+function band_q_max(b) local(t, k) (
+  t = Band_Type[b];
+  k = ri_slope_step(t, band_slope(b));
+  ui_is_bw_cut(t) && k > 0 ? cut_q_max(k) :
+    t == FILTER_PEAK && k > 1 ? ri_bell_q_max(k + 1, Band_Gain[b] * Scale / 100) :
+      (t == FILTER_LOW_SHELF || t == FILTER_HIGH_SHELF) && k > 1 ? cut_q_max(k) : MAX_Q;
+);
+
+// A band's Q as heard, within that (automation or a slope change can leave it higher)
 function band_q_heard(b) (
-  ui_is_bw_cut(Band_Type[b]) && Band_Slope[b] > 0 ? min(Band_Q[b], cut_q_max(Band_Slope[b])) : Band_Q[b];
+  min(Band_Q[b], band_q_max(b));
 );
 
 // The ten slopes the menus offer, in dB/oct
 function ui_slope_db(i) (
   i < 6 ? 6 * (i + 1) : i == 6 ? 48 : i == 7 ? 72 : i == 8 ? 96 : 120;
+);
+
+// Whether shape t offers the menus' slope k (of the ten): cuts all, bells and shelves their own steps
+function ui_slope_avail(t, k) (
+  ui_is_cut(t) || ri_slope_step(t, ui_slope_db(k) / 6 - 1) == ui_slope_db(k) / 6 - 1;
 );
 
 // Nearest of the ten slopes to a band's slope step (step k is 6 * (k + 1) dB/oct)
@@ -2911,6 +2956,11 @@ function ui_slope_index(k) local(db, i, best, d) (
     i += 1;
   );
   best;
+);
+
+// The slope a band of shape t with slope step s shows, in dB/oct
+function ui_slope_shown(t, s) (
+  ui_is_cut(t) ? ui_slope_db(ui_slope_index(s)) : 6 * (ri_slope_step(t, s) + 1);
 );
 
 gfx_mode = 0;
@@ -2970,7 +3020,7 @@ compact_width || compact_height ? BOTTOM_MARGIN = 0;
 // Node panel: 560 x 146pt, centred above the toolbar. A dynamic band's panel is wider, 700pt, for its
 // dynamics block and header; in a narrow window it fits the window (its dials closer together, and
 // below about 620pt its header drops the band navigation).
-ui_dyn_panel = selected_node >= 0 && Band_Dyn_On[selected_node] && band_dyn_capable(Band_Type[selected_node]);
+ui_dyn_panel = selected_node >= 0 && Band_Dyn_On[selected_node] && band_dyn_ok(selected_node);
 panel_w = floor(ui_dyn_panel ? max(ui_pt(560), min(ui_pt(700), gfx_w - ui_pt(8))) : ui_pt(560));
 panel_h = floor(ui_pt(146));
 panel_x = floor(gfx_w / 2 - panel_w / 2);
@@ -3285,7 +3335,7 @@ function draw_thick_line(x1, y1, x2, y2)
  */
 function draw_dyn_curve(t, f, g, qv, dash, gap) local(s, xf, step, freq, m, scy, xo, yo, bottom, period) (
   s = ui_pt(1);
-  dyn_curve.band_set_visual(t, f, g, qv, 0);
+  dyn_curve.band_set_visual(t, f, g, qv, 1);  // (a dynamic band is 12 dB/oct)
 
   bottom = gfx_h - BOTTOM_MARGIN - gfx_texth;
   step = max(2, floor(2 * s));
@@ -3308,7 +3358,7 @@ function draw_dyn_static() local(b, t) (
   b = 0;
   loop(NUM_BANDS,
     t = Band_Type[b];
-    Band_Dyn_On[b] && band_dyn_capable(t) && Band_Enabled[b] == BAND_STATE_ENABLED && abs(Band_Dyn_Gain[b]) > 0.1 ? (
+    Band_Dyn_On[b] && band_dyn_ok(b) && Band_Enabled[b] == BAND_STATE_ENABLED && abs(Band_Dyn_Gain[b]) > 0.1 ? (
       gfx_r = Band_Red[b]; gfx_g = Band_Green[b]; gfx_b = Band_Blue[b]; gfx_a = 0.55;
       draw_dyn_curve(t, Band_Frequency[b], Band_Gain[b] * Scale / 100, Band_Q[b], 1.5, 2.5);
     );
@@ -3320,7 +3370,7 @@ function draw_dyn_static() local(b, t) (
  * Whether band b (or -1) can show a ghost spectrum: dynamic, enabled, and hearing a sidechain or unlinked
  */
 function dyn_ghost_ok(b) (
-  b >= 0 && Band_Dyn_On[b] && band_dyn_capable(Band_Type[b]) && Band_Enabled[b] == BAND_STATE_ENABLED &&
+  b >= 0 && Band_Dyn_On[b] && band_dyn_ok(b) && Band_Enabled[b] == BAND_STATE_ENABLED &&
     (Band_Dyn_Source[b] > 0 || !Band_Dyn_Link[b]);
 );
 
@@ -3328,7 +3378,7 @@ function dyn_ghost_ok(b) (
  * Unlinked detectors: whether a band has one, and where its node sits (at its frequency, low in the graph)
  */
 function dyn_det_on(b) (
-  Band_Dyn_On[b] && band_dyn_capable(Band_Type[b]) && Band_Enabled[b] != BAND_STATE_OFF && !Band_Dyn_Link[b];
+  Band_Dyn_On[b] && band_dyn_ok(b) && Band_Enabled[b] != BAND_STATE_OFF && !Band_Dyn_Link[b];
 );
 
 function dyn_det_nx(b) (
@@ -3457,7 +3507,7 @@ function draw_dyn_range() local(s, b, t, x, y, hy, ly, nr, bottom, hov) (
   b = selected_node;
   b >= 0 && !UI_EMBED ? (
     t = Band_Type[b];
-    Band_Dyn_On[b] && band_dyn_capable(t) && Band_Enabled[b] == BAND_STATE_ENABLED ? (
+    Band_Dyn_On[b] && band_dyn_ok(b) && Band_Enabled[b] == BAND_STATE_ENABLED ? (
       gfx_r = Band_Red[b]; gfx_g = Band_Green[b]; gfx_b = Band_Blue[b]; gfx_a = 0.7;
       draw_dyn_curve(t, Band_Frequency[b], (Band_Gain[b] + Band_Dynamic_Range[b]) * Scale / 100, Band_Q[b], 6, 4);
 
@@ -3915,10 +3965,12 @@ function draw_info_panel(note_select)
         ) : t != FILTER_LOW_CUT_ANALOG && t != FILTER_HIGH_CUT_ANALOG ? (
           (t == FILTER_NOTCH || t == FILTER_BAND_PASS || t == FILTER_ALL_PASS) ? strcpy(line2, "");
           strlen(line2) > 0 ? strcat(line2, " · ");
-          strcat(line2, sprintf(#, "Q %.2f", Band_Q[band]));
+          // (a 6 dB/oct shelf has no Q)
+          !(ui_is_shelf(t) && ri_slope_step(t, band_slope(band)) == 0) ? strcat(line2, sprintf(#, "Q %.2f", band_q_heard(band)));
+          !ui_is_cut(t) && ui_has_slope(t) && ui_slope_shown(t, band_slope(band)) != 12 ? strcat(line2, sprintf(#, " · %d dB/oct", ui_slope_shown(t, band_slope(band))));
         );
         // A dynamic band's live change
-        Band_Dyn_On[band] && band_dyn_capable(t) && Band_Enabled[band] == BAND_STATE_ENABLED ?
+        Band_Dyn_On[band] && band_dyn_ok(band) && Band_Enabled[band] == BAND_STATE_ENABLED ?
           strcat(line2, sprintf(#, " · %s dB dyn", ui_fmt_db(#, Band_Dyn_Gain[band])));
       );
 
@@ -3993,7 +4045,7 @@ function draw_listen_helper()
     listen_node != -1 ? node = listen_node;
 
     listen_freq = Band_Frequency[node];
-    listen_q = Band_Q[node];
+    listen_q = band_q_heard(node);
     listen_group = Band_Group[node];
     width = ivf_qtobw(listen_q);
 
@@ -4015,12 +4067,12 @@ function draw_listen_helper()
 
       Band_Type[node] == FILTER_PEAK ? (
         gain = Band_Enabled[node] == BAND_STATE_ENABLED ? Band_Gain[node] : 0;
-        listen_filter.ivf_listen_bell(lfreq, rfreq, Band_Frequency[node], Band_Q[node], gain);
+        listen_filter.ivf_listen_bell(lfreq, rfreq, Band_Frequency[node], band_q_heard(node), gain);
       ) : (
         Band_Type[node] == FILTER_BAND_PASS ? (
-          listen_filter.ivf_listen_notch(lfreq, rfreq, Band_Frequency[node], Band_Q[node]);
+          listen_filter.ivf_listen_notch(lfreq, rfreq, Band_Frequency[node], band_q_heard(node));
         ) : ( 
-          listen_filter.ivf_band_pass(listen_freq, Band_Q[node]);
+          listen_filter.ivf_band_pass(listen_freq, band_q_heard(node));
         );
       );
 
@@ -4032,10 +4084,10 @@ function draw_listen_helper()
       lx = spectrum.freq_to_x(listen_freq);
 
       Band_Type[node] == FILTER_LOW_CUT ? (
-        listen_filter.ivf_high_cut(listen_freq, Band_Q[node], Band_Slope[node]);
+        listen_filter.ivf_high_cut(listen_freq, band_q_heard(node), Band_Slope[node]);
       );
       Band_Type[node] == FILTER_LOW_CUT_BUTTERWORTH ? (
-        listen_filter.ivf_high_cut_bwq(listen_freq, Band_Q[node], Band_Slope[node]);
+        listen_filter.ivf_high_cut_bwq(listen_freq, band_q_heard(node), Band_Slope[node]);
       );
 
       Band_Type[node] == FILTER_LOW_CUT_ANALOG ? (
@@ -4057,10 +4109,10 @@ function draw_listen_helper()
       );
 
       Band_Type[node] == FILTER_HIGH_CUT ? (
-        listen_filter.ivf_low_cut(listen_freq, Band_Q[node], Band_Slope[node]);
+        listen_filter.ivf_low_cut(listen_freq, band_q_heard(node), Band_Slope[node]);
       );
       Band_Type[node] == FILTER_HIGH_CUT_BUTTERWORTH ? (
-        listen_filter.ivf_low_cut_bwq(listen_freq, Band_Q[node], Band_Slope[node]);
+        listen_filter.ivf_low_cut_bwq(listen_freq, band_q_heard(node), Band_Slope[node]);
       );
 
       Band_Type[node] == FILTER_TILT_SHELF || Band_Type[node] == FILTER_ALL_PASS ? (
@@ -4143,6 +4195,7 @@ function create_band(band, x, y) local (m, g, f, i, enabledBands) (
   Band_Gain[band] = g;
   Band_Q[band] = 0.7071;
   Band_Slope[band] = 1; //12db
+  Band_ShapeSlope[band] = 1;
   band_dyn_defaults(band);
 
   // Select band type based on frequency
@@ -4183,6 +4236,7 @@ function copy_band(band, other, split) (
   Band_Gain[band] = Band_Gain[other];
   Band_Q[band] = Band_Q[other];
   Band_Slope[band] = Band_Slope[other];
+  Band_ShapeSlope[band] = Band_ShapeSlope[other];
   band_dyn_copy(band, other);
   split ? Band_Group[other] = 2;
 
@@ -4321,7 +4375,7 @@ function update_drag_nodes_Q(x, y, diffx, diffy, md) local(i, mmx, mmy, posx, po
         && Band_Type[i] != FILTER_LOW_CUT_ANALOG && Band_Type[i] != FILTER_HIGH_CUT_ANALOG ? (
         scalar = 0.5 / max(gfx_ext_retina, 1);
 
-        Band_Q[i] = max(0.10, min(40, per_to_q(q_to_per(Band_Q[i], 100) + md * scalar, 100)));
+        Band_Q[i] = max(0.10, min(band_q_max(i), per_to_q(q_to_per(Band_Q[i], 100) + md * scalar, 100)));
 
         // Notify Reaper that a parameter change has happened
         notify_touched_Q(i);
@@ -4339,7 +4393,7 @@ function update_drag_nodes_Q(x, y, diffx, diffy, md) local(i, mmx, mmy, posx, po
 function update_node_scroll_Q(band, md) local(i) (
     Band_Type[band] != FILTER_LOW_CUT && Band_Type[band] != FILTER_LOW_CUT_BUTTERWORTH && Band_Type[band] != FILTER_HIGH_CUT && Band_Type[band] != FILTER_HIGH_CUT_BUTTERWORTH
       && Band_Type[band] != FILTER_LOW_CUT_ANALOG && Band_Type[band] != FILTER_HIGH_CUT_ANALOG ? (
-      Band_Q[band] = max(0.10, min(40, per_to_q(q_to_per(Band_Q[band], 1) + md * 0.008, 1)));
+      Band_Q[band] = max(0.10, min(band_q_max(band), per_to_q(q_to_per(Band_Q[band], 1) + md * 0.008, 1)));
 
       // Notify Reaper that a parameter change has happened
       notify_touched_Q(band);
@@ -4360,15 +4414,28 @@ function update_selected_nodes_scroll_Q(md) local(i) (
   filters_to_sliders();
 );
 
-function update_node_scroll_slope(band, md) local(k, qx, qy) (
-  ui_is_cut(Band_Type[band]) ? (
+function update_node_scroll_slope(band, md) local(k, j, n, dir, qx, qy) (
+  ui_has_slope(Band_Type[band]) ? (
     // The first of the ten slopes at or above the band's (the first if none), then md steps down the list
     k = 0;
     while (k < NumFilterSlopes && ui_slope_db(k) / 6 - 1 < Band_Slope[band]) (k += 1);
     k == NumFilterSlopes ? k = 0;
-    k = max(min(k - md, 9), 0);
+    !ui_is_cut(Band_Type[band]) ? (
+      // A bell or shelf: from its own slope, md of its own steps
+      k = ui_slope_index(ui_slope_shown(Band_Type[band], Band_ShapeSlope[band]) / 6 - 1);
+      n = abs(md); dir = md > 0 ? -1 : 1;
+      while (n > 0) (
+        j = k + dir;
+        while (j >= 0 && j <= 9 && !ui_slope_avail(Band_Type[band], j)) (j += dir);
+        j >= 0 && j <= 9 ? k = j;
+        n -= 1;
+      );
+    ) : k = max(min(k - md, 9), 0);
 
-    ui_is_bw_cut(Band_Type[band]) ? (
+    !ui_is_cut(Band_Type[band]) ? (
+      Band_ShapeSlope[band] = ui_slope_db(k) / 6 - 1;
+      flag_filter_update(band);
+    ) : ui_is_bw_cut(Band_Type[band]) ? (
       // A Butterworth cut keeps its Q, within the new slope's range
       Band_Slope[band] = ui_slope_db(k) / 6 - 1;
       Band_Slope[band] > 0 ? Band_Q[band] = min(Band_Q[band], cut_q_max(Band_Slope[band]));
@@ -4414,7 +4481,7 @@ function toggle_nodes_enabled(band) local(i, toggle) (
 function dyn_selected_nodes(on) local(i) (
   i = 0;
   while (i < NUM_BANDS) (
-    Band_Selected[i] && band_dyn_capable(Band_Type[i]) ? (
+    Band_Selected[i] && band_dyn_ok(i) ? (
       Band_Dyn_On[i] = on;
       flag_filter_update(i);
       notify_touched_dyn(i, 0);
@@ -4507,8 +4574,11 @@ function set_shape_selected_nodes(newshape, has_slope) local(i) (
 
   i = 0;
   while (i < NUM_BANDS) (
-    Band_Selected[i] ? (
-      !has_slope ? Band_Slope[i] = 1;
+    // (a band already of this shape is left as it is)
+    Band_Selected[i] && Band_Type[i] != newshape ? (
+      // A cut entered from another shape starts at 12 dB/oct; so does a bell or shelf, except between shelves
+      !ui_is_cut(Band_Type[i]) ? Band_Slope[i] = 1;
+      !(ui_is_shelf(newshape) && ui_is_shelf(Band_Type[i])) ? Band_ShapeSlope[i] = 1;
 
       // Q is kept between a low and a high cut of the same kind (Butterworth, or legacy)
       !(ui_is_cut(newshape) && ui_is_cut(Band_Type[i]) && ui_is_bw_cut(newshape) == ui_is_bw_cut(Band_Type[i])) ? (
@@ -4534,7 +4604,10 @@ function set_shape_selected_nodes(newshape, has_slope) local(i) (
 );
 
 function set_node_slope(band, slope) (
-  ui_is_bw_cut(Band_Type[band]) ? (
+  !ui_is_cut(Band_Type[band]) ? (
+    // A bell or shelf: its gain, Q and frequency stay as they are
+    Band_ShapeSlope[band] = slope;
+  ) : ui_is_bw_cut(Band_Type[band]) ? (
     // A Butterworth cut keeps its Q, within the new slope's range
     Band_Slope[band] = slope;
     slope > 0 ? Band_Q[band] = min(Band_Q[band], cut_q_max(slope));
@@ -4549,10 +4622,12 @@ function set_node_slope(band, slope) (
   flag_filter_update(band);
 );
 
-function set_slopes_selected_nodes(slope) local(i, x, y) (
+function set_slopes_selected_nodes(slope) local(i, t) (
   i = 0;
   while (i < NUM_BANDS) (
-    Band_Selected[i] ? (
+    // Only to bands whose shape takes this slope: any cut, a bell's or shelf's own steps
+    t = Band_Type[i];
+    Band_Selected[i] && (ui_is_cut(t) || (ui_has_slope(t) && ri_slope_step(t, slope) == slope)) ? (
       set_node_slope(i, slope);
     );
     i += 1;
@@ -4665,7 +4740,8 @@ function ui_gain_inert(t) (
 
 function ui_q_inert(b) local(t) (
   t = Band_Type[b];
-  t == FILTER_LOW_CUT_ANALOG || t == FILTER_HIGH_CUT_ANALOG || (ui_is_cut(t) && Band_Slope[b] == 0);
+  t == FILTER_LOW_CUT_ANALOG || t == FILTER_HIGH_CUT_ANALOG || (ui_is_cut(t) && Band_Slope[b] == 0)
+    || ((t == FILTER_LOW_SHELF || t == FILTER_HIGH_SHELF) && ri_slope_step(t, band_slope(b)) == 0);
 );
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -4681,7 +4757,7 @@ function sv_spec(id, b) (
   strcpy(#sv_unit, "dB"); sv_def = 0;
   id == SV_FREQ ? (sv_min = MIN_FREQ; sv_max = MAX_FREQ; sv_int = 5; sv_dec = 1; sv_def = 500; strcpy(#sv_lab, "Frequency"); strcpy(#sv_unit, "Hz")) :
   id == SV_GAIN ? (sv_min = -BAND_GAIN_MAX; sv_max = BAND_GAIN_MAX; sv_int = 2; sv_dec = 1; strcpy(#sv_lab, "Gain")) :
-  id == SV_Q ? (sv_min = MIN_Q; sv_max = ui_is_bw_cut(Band_Type[b]) ? cut_q_max(Band_Slope[b]) : MAX_Q; sv_int = 2; sv_dec = 2; sv_def = 0.7071; strcpy(#sv_lab, ui_is_cut(Band_Type[b]) ? "Resonance" : "Q"); strcpy(#sv_unit, "")) :
+  id == SV_Q ? (sv_min = MIN_Q; sv_max = band_q_max(b); sv_int = 2; sv_dec = 2; sv_def = 0.7071; strcpy(#sv_lab, ui_is_cut(Band_Type[b]) ? "Resonance" : "Q"); strcpy(#sv_unit, "")) :
   id == SV_THRESH ? (sv_min = DYN_THRESH_MIN; sv_max = 0; sv_int = 2; sv_dec = 1; sv_def = -24; strcpy(#sv_lab, "Threshold")) :
   id == SV_RATIO ? (sv_min = 1; sv_max = DYN_RATIO_MAX; sv_int = 2; sv_dec = 1; sv_def = 4; strcpy(#sv_lab, "Ratio"); strcpy(#sv_unit, ":1")) :
   id == SV_RANGE ? (sv_min = -DYN_RANGE_MAX; sv_max = DYN_RANGE_MAX; sv_int = 2; sv_dec = 1; sv_def = -6; strcpy(#sv_lab, "Range")) :
@@ -4710,7 +4786,7 @@ function sv_get(id, b) (
 function sv_put(id, b, v) (
   id <= SV_RELEASE ? (
     id == SV_FREQ ? Band_Frequency[b] = v : id == SV_GAIN ? Band_Gain[b] = v :
-      id == SV_Q ? Band_Q[b] = ui_is_bw_cut(Band_Type[b]) ? min(v, cut_q_max(Band_Slope[b])) : v :
+      id == SV_Q ? Band_Q[b] = min(v, band_q_max(b)) :
       id == SV_THRESH ? Band_Dyn_Thresh[b] = v : id == SV_RATIO ? Band_Dyn_Ratio[b] = v : id == SV_RANGE ? Band_Dynamic_Range[b] = v :
       id == SV_ATTACK ? Band_Dyn_Attack[b] = v : Band_Dyn_Release[b] = v;
     // The dials reshape the band's filter; the dynamics settings are read as they run
@@ -4913,8 +4989,10 @@ function ui_group_name(g) (
 function ui_set_shape(b, nt) local(ot) (
   ot = Band_Type[b];
   nt != ot ? (
-    // As the node menu does: entering a cut from another shape starts at 12 dB, otherwise the slope is kept
+    // As the node menu does: a cut entered from another shape starts at 12 dB/oct; so does a bell or shelf,
+    // except between shelves
     !ui_is_cut(ot) ? Band_Slope[b] = 1;
+    !(ui_is_shelf(nt) && ui_is_shelf(ot)) ? Band_ShapeSlope[b] = 1;
 
     // Q is kept between a low and a high cut of the same kind (Butterworth, or legacy)
     !(ui_is_cut(nt) && ui_is_cut(ot) && ui_is_bw_cut(nt) == ui_is_bw_cut(ot)) ? Band_Q[b] = 0.7071;
@@ -5284,25 +5362,34 @@ function ui_band_tile(x, y, w, h, r, b, fa) (
 );
 
 /*
- * The ten slope chips from x, each cw wide and h high, 3pt apart: band b's slope lit, all dimmed unless
- * the band is a cut. Returns the chip pressed (pr), or -1.
+ * The slope chips from x, in the row ten chips cw wide and 3pt apart would take, h high, band b's slope lit:
+ * only the slopes its shape takes. Returns the chip pressed (pr, its index of the ten), or -1.
  */
-function ui_slope_chips(x, y, cw, h, b, pr) local(s, cut, cur, k, chip, hov, hit) (
+function ui_slope_chips(x, y, cw, h, b, pr) local(s, t, live, n, w, cur, k, j, chip, hov, hit) (
   s = ui_pt(1);
-  cut = ui_is_cut(Band_Type[b]);
-  cur = cut ? ui_slope_index(Band_Slope[b]) : -1;
+  t = Band_Type[b];
+  live = ui_has_slope(t);
+  cur = live ? ui_slope_index(ui_slope_shown(t, band_slope(b)) / 6 - 1) : -1;
+  // A shape with a slope shows only its own (all ten for a cut; a bell's or shelf's steps spread across the
+  // row); a shape without one, all ten dimmed
+  n = 0; k = 0;
+  loop(10, !live || ui_slope_avail(t, k) ? n += 1; k += 1);
+  w = n == 10 ? cw : (10 * cw + 27 * s - (n - 1) * 3 * s) / n;
   hit = -1;
-  k = 0;
+  k = 0; j = 0;
   loop(10,
-    chip = floor(x + k * (cw + 3 * s));
-    hov = cut && ui_in(chip, y, cw, h);
-    k == cur ? ui_band_tile(chip, y, cw, h, 4 * s, b, 0.14)
-             : (ui_col_a(hov ? T_CONTROL_HOVER : T_CONTROL, cut ? 1 : 0.35); ui_fill_rrect(chip, y, cw, h, 4 * s);
-                ui_col_a(T_BORDER, cut ? 1 : 0.35); gfx_roundrect(chip, y, cw - 1, h - 1, 4 * s, 1));
-    gfx_setfont(k == cur ? FONT_BODY_B : FONT_BODY);
-    ui_col_a(k == cur ? T_SELECTED : hov ? T_TEXT : T_TEXT_SECONDARY, k == cur || cut ? 1 : 0.35);
-    ui_text_c(chip, y, cw, h, sprintf(#, "%d", ui_slope_db(k)));
-    pr && hov ? hit = k;
+    !live || ui_slope_avail(t, k) ? (
+      chip = floor(x + j * (w + 3 * s));
+      hov = live && ui_in(chip, y, w, h);
+      k == cur ? ui_band_tile(chip, y, w, h, 4 * s, b, 0.14)
+               : (ui_col_a(hov ? T_CONTROL_HOVER : T_CONTROL, live ? 1 : 0.35); ui_fill_rrect(chip, y, w, h, 4 * s);
+                  ui_col_a(T_BORDER, live ? 1 : 0.35); gfx_roundrect(chip, y, w - 1, h - 1, 4 * s, 1));
+      gfx_setfont(k == cur ? FONT_BODY_B : FONT_BODY);
+      ui_col_a(k == cur ? T_SELECTED : hov ? T_TEXT : T_TEXT_SECONDARY, k == cur || live ? 1 : 0.35);
+      ui_text_c(chip, y, w, h, sprintf(#, "%d", ui_slope_db(k)));
+      pr && hov ? hit = k;
+      j += 1;
+    );
     k += 1;
   );
   gfx_a = 1;
@@ -5310,7 +5397,7 @@ function ui_slope_chips(x, y, cw, h, b, pr) local(s, cut, cur, k, chip, hov, hit
 );
 
 /*
- * Shape picker: 7 x 2 icon tiles and, for cuts, a slope row
+ * Shape picker: 7 x 2 icon tiles and a slope row (for cuts, bells and shelves)
  */
 function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on, hov, lg, ax, cut, k, dy, inpop, pr) (
   s = ui_pt(1);
@@ -5345,7 +5432,7 @@ function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on,
     ui_text_c(tx, ty + th - 18 * s, tw, 14 * s, ui_shape_name(t));
     pr && hov ? (
       ui_set_shape(b, t);
-      !ui_is_cut(t) ? ui_popup = 0;
+      !ui_has_slope(t) ? ui_popup = 0;
     );
     i += 1;
   );
@@ -5354,7 +5441,7 @@ function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on,
   dy = py + 8 * s + th * 2 + 4 * s + 8 * s;
   ui_col(T_BORDER_SUBTLE); gfx_line(px + 8 * s, dy, px + pw - 8 * s, dy, 0);
   dy += 1 + 8 * s;
-  cut = ui_is_cut(Band_Type[b]);
+  cut = ui_has_slope(Band_Type[b]);
   gfx_setfont(FONT_CAP); ui_col_a(T_TEXT_DIM, cut ? 1 : 0.35);
   ui_text_l(px + 8 * s, dy, 22 * s, "SLOPE");
   gfx_setfont(FONT_CAP); ui_col_a(T_TEXT_FAINT, cut ? 1 : 0.35);
@@ -5457,7 +5544,8 @@ function ui_draw_node_card()
   ui_text_at(x + 8 * s, y + 11 * s, sprintf(#, "%d", b + 1));
   cut = ui_is_cut(Band_Type[b]);
   lab = #;
-  cut ? sprintf(lab, "%s · %d", ui_shape_label(Band_Type[b]), ui_slope_db(ui_slope_index(Band_Slope[b]))) : strcpy(lab, ui_shape_label(Band_Type[b]));
+  cut || (ui_has_slope(Band_Type[b]) && ui_slope_shown(Band_Type[b], band_slope(b)) != 12) ?
+    sprintf(lab, "%s · %d", ui_shape_label(Band_Type[b]), ui_slope_shown(Band_Type[b], band_slope(b))) : strcpy(lab, ui_shape_label(Band_Type[b]));
   gfx_setfont(FONT_BODY_B); ui_col(T_TEXT);
   ui_text_l(x + 24 * s, y, 22 * s, lab);
   k = x + 24 * s + ui_text_w(lab) + 8 * s;
@@ -5478,7 +5566,7 @@ function ui_draw_node_card()
   ui_icon_button_draw(tx, y, bw, bh, 2, Band_Enabled[b] == BAND_STATE_DISABLED ? 1 : 0, hov);
   pr && hov ? toggle_nodes_enabled(b);
   // DYN, for bells and shelves
-  band_dyn_capable(Band_Type[b]) ? (
+  band_dyn_ok(b) ? (
     gfx_setfont(FONT_BODY_B); k = ui_text_w("DYN") + 18 * s;
     tx -= k + 8 * s;
     hov = ui_in(tx, y, k, bh);
@@ -5516,8 +5604,8 @@ function ui_draw_node_card()
   );
   y += th * 2 + 3 * s + 8 * s;
 
-  // Slope row, for cuts
-  cut = ui_is_cut(Band_Type[b]);
+  // Slope row, for cuts, bells and shelves
+  cut = ui_has_slope(Band_Type[b]);
   gfx_setfont(FONT_CAP); ui_col_a(T_TEXT_DIM, cut ? 1 : 0.35);
   ui_text_l(x, y, 20 * s, "SLOPE");
   gfx_setfont(FONT_CAP); ui_col_a(T_TEXT_FAINT, cut ? 1 : 0.35);
@@ -6394,7 +6482,8 @@ function ui_draw_panel()
   ui_text_at(x + 21 * s, y + 18 * s, sprintf(#, "%d", b + 1));
 
   lab = #;
-  cut ? sprintf(lab, "%s · %d", ui_shape_label(t), ui_slope_db(ui_slope_index(Band_Slope[b]))) : strcpy(lab, ui_shape_label(t));
+  cut || (ui_has_slope(t) && ui_slope_shown(t, band_slope(b)) != 12) ?
+    sprintf(lab, "%s · %d", ui_shape_label(t), ui_slope_shown(t, band_slope(b))) : strcpy(lab, ui_shape_label(t));
   gfx_setfont(FONT_BODY);
   sw = ui_text_w(lab) + 33 * s; sx = x + 38 * s;
   ui_dropdown(sx, hy, sw, hh, lab, ui_popup == 1) ? (ui_popup = 1; ui_pop_skip = 1; ui_block = 1; ui_pop_x = sx; ui_pop_y = hy; ui_pop_w = sw);
@@ -6407,7 +6496,7 @@ function ui_draw_panel()
   // (the detector's signal, an ear, so it isn't mistaken for the band solo's headphones). le is where
   // the left-hand controls end.
   le = gx2 + gw2;
-  band_dyn_capable(t) ? (
+  band_dyn_ok(b) ? (
     dx = gx2 + gw2 + 8 * s;
     ui_col(T_BORDER);
     gfx_line(dx, hy + 3 * s, dx, hy + hh - 3 * s, 0);
@@ -6509,7 +6598,7 @@ function ui_draw_panel()
     t = Band_Type[b]; cut = ui_is_cut(t);
     // A dynamic band's dials move left for its dynamics block (the block is 327pt from the hairline to
     // the right edge), closer together in a narrow panel
-    dyn = ui_dyn_panel && Band_Dyn_On[b] && band_dyn_capable(t);
+    dyn = ui_dyn_panel && Band_Dyn_On[b] && band_dyn_ok(b);
     dyn ? (
       hl = x + w - 327 * s;
       sp = min(max((hl - x - 131 * s) * 0.5, 76 * s), 116 * s);
@@ -6889,14 +6978,17 @@ do_general_mouse ? (
             #menu += ui_shape_label(Menu_Shape[menu_i]); #menu += "|";
             menu_i += 1;
           );
-          has_slope_menu = ui_is_cut(Band_Type[band]);
+          has_slope_menu = ui_has_slope(Band_Type[band]);
           has_slope_menu ? (
+            // Only the slopes the shape takes (into Menu_Slope)
             #menu += ">Slope|";
+            menu_sn = 0; menu_i = 0;
+            loop(NumFilterSlopes, ui_slope_avail(Band_Type[band], menu_i) ? (Menu_Slope[menu_sn] = menu_i; menu_sn += 1); menu_i += 1);
             menu_i = 0;
-            loop(NumFilterSlopes,
-              Band_Slope[band] == ui_slope_db(menu_i) / 6 - 1 ? #menu += "!";
-              menu_i == NumFilterSlopes - 1 ? #menu += "<";
-              #menu += FilterSlopes[menu_i]; #menu += "|";
+            loop(menu_sn,
+              ui_slope_shown(Band_Type[band], band_slope(band)) == ui_slope_db(Menu_Slope[menu_i]) ? #menu += "!";
+              menu_i == menu_sn - 1 ? #menu += "<";
+              #menu += FilterSlopes[Menu_Slope[menu_i]]; #menu += "|";
               menu_i += 1;
             );
           );
@@ -6923,8 +7015,8 @@ do_general_mouse ? (
           menu_i = 4 + menu_n;
           last_clicked_item >= 4 && last_clicked_item < menu_i ? set_shape_selected_nodes(Menu_Shape[last_clicked_item - 4], has_slope_menu);
           has_slope_menu ? (
-            last_clicked_item >= menu_i && last_clicked_item < menu_i + 10 ? set_slopes_selected_nodes(ui_slope_db(last_clicked_item - menu_i) / 6 - 1);
-            menu_i += 10;
+            last_clicked_item >= menu_i && last_clicked_item < menu_i + menu_sn ? set_slopes_selected_nodes(ui_slope_db(Menu_Slope[last_clicked_item - menu_i]) / 6 - 1);
+            menu_i += menu_sn;
           );
           last_clicked_item >= menu_i && last_clicked_item < menu_i + 5 ? stereo_selected_nodes(last_clicked_item - menu_i);
           last_clicked_item == menu_i + 5 ? copy_selected_nodes(1);
@@ -7274,7 +7366,7 @@ box_region_drag_mode ? (
 (ui_popup == 1 || ui_popup == 2 || ui_popup == 7) && (!ShowPanel || selected_node < 0 || Band_Enabled[selected_node] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
 ui_popup == 7 && !ui_dyn_panel ? ui_popup = 0;
 // Listen to a detector only while its band is dynamic
-Dyn_Listen >= 0 && !(Band_Dyn_On[Dyn_Listen] && band_dyn_capable(Band_Type[Dyn_Listen]) && Band_Enabled[Dyn_Listen] != BAND_STATE_OFF) ? Dyn_Listen = -1;
+Dyn_Listen >= 0 && !(Band_Dyn_On[Dyn_Listen] && band_dyn_ok(Dyn_Listen) && Band_Enabled[Dyn_Listen] != BAND_STATE_OFF) ? Dyn_Listen = -1;
 ui_popup == 3 && (compact_width || compact_height || Band_Enabled[ui_card_band] == BAND_STATE_OFF || ui_key == 27) ? ui_popup = 0;
 (ui_popup == 4 || ui_popup == 5) && (compact_height || compact_width || ui_key == 27) ? ui_popup = 0;
 ui_popup == 6 && (compact_width || compact_height || ui_key == 27) ? ui_popup = 0;

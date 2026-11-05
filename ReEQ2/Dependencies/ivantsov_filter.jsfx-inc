@@ -816,11 +816,15 @@ function ivf_sec_amag(f)
 );
 
 function ivf_op_amag(f)
-  instance(aT, aF)
+  instance(aT, aF, aG)
   local(o)
 (
   o = f / aF;
-  aT == 1 ? 1 / sqrt(1 + o*o) : o / sqrt(1 + o*o);
+  // First-order shelves (3 high, 4 low; aG is the gain's 4th root of power): the zero and pole aG either
+  // side of aF
+  aT == 4 ? sqrt((o*o + aG*aG) / (o*o + 1 / (aG*aG))) :
+    aT == 3 ? aG*aG * sqrt((o*o + 1 / (aG*aG)) / (o*o + aG*aG)) :
+      aT == 1 ? 1 / sqrt(1 + o*o) : o / sqrt(1 + o*o);
 );
 
 /*
