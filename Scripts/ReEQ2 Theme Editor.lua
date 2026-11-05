@@ -1,9 +1,10 @@
 -- @description ReEQ2: theme editor
 -- @author Justin Johnson
--- @version 1.0.1
+-- @version 1.1.0
 -- @about
 --   Edits ReEQ2's colours on a preview of ReEQ2, saves themes used by every ReEQ2, and sets the size
---   new ReEQ2 windows open at. Open ReEQ2 windows follow the edits as you make them.
+--   new ReEQ2 windows open at and ReEQ2's default UI size. Open ReEQ2 windows follow the edits as you
+--   make them.
 
 local r = reaper
 
@@ -15,11 +16,12 @@ local RES = r.GetResourcePath()
 local DATA_DIR = RES .. "/Data/ReEQ2"
 local THEMES_DIR = DATA_DIR .. "/Themes"
 local THEME_FILE = DATA_DIR .. "/theme.txt"
+local SETTINGS_FILE = DATA_DIR .. "/settings.txt"
 local JSFX_FILE = RES .. "/Effects/ReJJ/ReEQ2/ReEQ2.jsfx"
 
 -- gmem layout shared with ReEQ2 (options:gmem=ReEQ2): magic, change counter, token count, editor
--- heartbeat, then r, g, b, a per token from GM_TOKENS
-local GM_NAME, GM_MAGIC, GM_TOKENS = "ReEQ2", 20261031, 8
+-- heartbeat, the default UI size (word GM_UI_SIZE), then r, g, b, a per token from GM_TOKENS
+local GM_NAME, GM_MAGIC, GM_UI_SIZE, GM_TOKENS = "ReEQ2", 20261031, 4, 8
 
 -- The version of ReEQ2 the preview was translated from
 local PREVIEW_FROM = "2.2.0"
@@ -254,6 +256,51 @@ local function save_theme(t, path)
   return write_file(path, theme_text(t))
 end
 
+----------------------------------------------------------------------------------------------------
+-- Settings: Data/ReEQ2/settings.txt, "ui_size = 125" and "#" comments, read by every ReEQ2. The UI
+-- size is the default for ReEQ2 windows; one set in a ReEQ2's own Settings keeps its size. As in ReEQ2
+-- (UI_SIZE_INITIAL), no file or a size other than these is 125.
+----------------------------------------------------------------------------------------------------
+
+local UI_SIZES = { 100, 125, 150, 175, 200 }
+local UI_SIZE_INITIAL = 125
+
+local function valid_ui_size(v)
+  for _, s in ipairs(UI_SIZES) do
+    if v == s then return true end
+  end
+  return false
+end
+
+local function parse_settings(text)
+  local ui = UI_SIZE_INITIAL
+  for line in text:gmatch("[^\r\n]+") do
+    line = trim(line)
+    if line ~= "" and line:sub(1, 1) ~= "#" then
+      local k, v = line:match("^([^=]-)%s*=%s*(.-)$")
+      if k and trim(k) == "ui_size" then
+        local n = tonumber(v:match("^%d+$") or "")
+        ui = (n and valid_ui_size(n)) and n or UI_SIZE_INITIAL
+      end
+    end
+  end
+  return ui
+end
+
+local function load_settings()
+  local s = read_file(SETTINGS_FILE)
+  return s and parse_settings(s) or UI_SIZE_INITIAL
+end
+
+local function settings_text(ui)
+  return "# ReEQ2 settings, written by the ReEQ2 Theme Editor\n" .. string.format("ui_size = %d\n", ui)
+end
+
+local function save_settings(ui)
+  r.RecursiveCreateDirectory(DATA_DIR, 0)
+  return write_file(SETTINGS_FILE, settings_text(ui))
+end
+
 -- Theme files in Themes/, sorted by name
 local function list_themes()
   local list, i = {}, 0
@@ -281,6 +328,8 @@ end
 ----------------------------------------------------------------------------------------------------
 
 local gm_counter = 0
+-- The default UI size, as settings.txt holds it (saved as soon as it's picked)
+local ui_size = UI_SIZE_INITIAL
 -- Moves on every colour change; the preview draws itself again when it does
 local preview_version = 0
 
@@ -298,6 +347,7 @@ local function send_live(t)
     local b = GM_TOKENS + tok.id * 4
     r.gmem_write(b, cr); r.gmem_write(b + 1, cg); r.gmem_write(b + 2, cb); r.gmem_write(b + 3, c.a)
   end
+  r.gmem_write(GM_UI_SIZE, ui_size)
   r.gmem_write(0, GM_MAGIC)
   r.gmem_write(2, #TOKENS)
   r.gmem_write(3, r.time_precise())
@@ -504,7 +554,7 @@ local function font(size, bold)
 end
 
 local function text(s, x, y, w, h, align, hex, size, bold)
-  font(size or 12, bold)
+  font(size or 13, bold)
   rgb(hex or 0xDFE6E9)
   gfx.x, gfx.y = x, y
   gfx.drawstr(s, (align or 0) | 4, x + w, y + h)
@@ -564,12 +614,12 @@ end
 local function button(label, x, y, w, h, on)
   local hov = inside(x, y, w, h)
   box(x, y, w, h, on and 0x0F2A33 or hov and 0x1F2427 or 0x1A1F22, on and 0x1D5A6D or 0x2C3438)
-  text(label, x, y, w, h, 1, on and 0x5CC8EA or hov and 0xDFE6E9 or 0xC8D0D4, 11)
+  text(label, x, y, w, h, 1, on and 0x5CC8EA or hov and 0xDFE6E9 or 0xC8D0D4, 12)
   return hov and mouse.press and not mouse.capture
 end
 
 local function button_w(label)
-  font(11)
+  font(12)
   return gfx.measurestr(label) + pt(18)
 end
 
@@ -587,7 +637,7 @@ local function hslider(id, x, y, w, v, lo, hi)
 end
 
 local function caption(s, x, y)
-  font(10)
+  font(11)
   rgb(0x848F95)
   gfx.x, gfx.y = x, y
   gfx.drawstr(s)
@@ -629,7 +679,7 @@ local function picker(x, y, w)
   local ix, iw = x + pad, w - 2 * pad
   local cy = y + pad
   caption("EDITING", ix, cy); cy = cy + pt(14)
-  text(tok.label, ix, cy, iw, pt(18), 0, 0xDFE6E9, 14, true); cy = cy + pt(24)
+  text(tok.label, ix, cy, iw, pt(18), 0, 0xDFE6E9, 15, true); cy = cy + pt(24)
 
   -- Saturation (across) and brightness (down) for the current hue
   local fh = pt(130)
@@ -685,17 +735,17 @@ local function picker(x, y, w)
   local hx = ix + pt(42)
   local hov = inside(hx, cy, pt(150), pt(26))
   box(hx, cy, pt(84), pt(26), 0x0D1012, hov and 0x5CC8EA or 0x2C3438)
-  text(hex_string(c.hex), hx, cy, pt(84), pt(26), 1, 0xDFE6E9, 12)
+  text(hex_string(c.hex), hx, cy, pt(84), pt(26), 1, 0xDFE6E9, 13)
   box(hx + pt(90), cy, pt(54), pt(26), 0x0D1012, hov and 0x5CC8EA or 0x2C3438)
-  text(string.format("%d%%", math.floor(c.a * 100 + 0.5)), hx + pt(90), cy, pt(54), pt(26), 1, c.a < 1 and 0x5CC8EA or 0xDFE6E9, 12)
+  text(string.format("%d%%", math.floor(c.a * 100 + 0.5)), hx + pt(90), cy, pt(54), pt(26), 1, c.a < 1 and 0x5CC8EA or 0xDFE6E9, 13)
   if hov and mouse.press and not mouse.capture then ask_hex() end
   cy = cy + pt(32)
 
   -- Text colours: their contrast on the surface they sit on
   if tok.on then
     local ratio = contrast(c.hex, theme.c[tok.on].hex)
-    text(string.format("Contrast on %s", by_key[tok.on].label:lower()), ix, cy, iw, pt(16), 0, 0x848F95, 11)
-    text(string.format("%.1f:1", ratio), ix, cy, iw, pt(16), 2, ratio >= 4.5 and 0x6CC28E or 0xE8875F, 11, true)
+    text(string.format("Contrast on %s", by_key[tok.on].label:lower()), ix, cy, iw, pt(16), 0, 0x848F95, 12)
+    text(string.format("%.1f:1", ratio), ix, cy, iw, pt(16), 2, ratio >= 4.5 and 0x6CC28E or 0xE8875F, 12, true)
   end
   cy = cy + pt(22)
 
@@ -786,10 +836,10 @@ local function token_lists(x, y, w, h, cols)
           local hov = inside(gx + pt(4), ry, cw - pt(8), rh) and inside(x, y, w, h)
           if t.key == sel or hov then box(gx + pt(4), ry, cw - pt(8), rh, t.key == sel and 0x0F2A33 or 0x1A1F22) end
           swatch(gx + pt(8), ry + pt(3), pt(14), pt(14), c)
-          text(t.label, gx + pt(28), ry, cw - pt(100), rh, 0, 0xDFE6E9, 11)
-          text(hex_string(c.hex):sub(2), gx + cw - pt(96), ry, pt(56), rh, 2, 0x848F95, 10)
+          text(t.label, gx + pt(28), ry, cw - pt(100), rh, 0, 0xDFE6E9, 12)
+          text(hex_string(c.hex):sub(2), gx + cw - pt(96), ry, pt(56), rh, 2, 0x848F95, 11)
           text(string.format("%d%%", math.floor(c.a * 100 + 0.5)), gx + cw - pt(40), ry, pt(30), rh, 2,
-            c.a < 1 and 0x5CC8EA or 0x4A5257, 10)
+            c.a < 1 and 0x5CC8EA or 0x4A5257, 11)
           if hov and mouse.press and not mouse.capture then select_token(t.key) end
           ry = ry + rh
         end
@@ -820,8 +870,8 @@ local function size_popover(x, y)
   local w, h = pt(440), pt(250)
   box(x, y, w, h, 0x121618, 0x2C3438, pt(8))
   local ix, cy = x + pt(12), y + pt(12)
-  text("Opening size for new ReEQ2 windows", ix, cy, w, pt(18), 0, 0xDFE6E9, 13, true); cy = cy + pt(20)
-  text("Windows you've already opened keep their own size.", ix, cy, w, pt(14), 0, 0x848F95, 11); cy = cy + pt(24)
+  text("Opening size for new ReEQ2 windows", ix, cy, w, pt(18), 0, 0xDFE6E9, 14, true); cy = cy + pt(20)
+  text("Windows you've already opened keep their own size.", ix, cy, w, pt(14), 0, 0x848F95, 12); cy = cy + pt(24)
 
   -- The size to scale, against a 1920 x 1080 screen
   local fw, fh = pt(150), pt(90)
@@ -830,7 +880,7 @@ local function size_popover(x, y)
   local rw, rh = size.w * k, size.h * k
   rgb(0x0F2A33); gfx.rect(ix + (fw - rw) / 2, cy + (fh - rh) / 2, rw, rh, 1)
   rgb(0x5CC8EA); gfx.rect(ix + (fw - rw) / 2, cy + (fh - rh) / 2, rw, rh, 0)
-  text(string.format("%d × %d", size.w, size.h), ix, cy + fh + pt(2), fw, pt(16), 1, 0x9AA5AA, 11)
+  text(string.format("%d × %d", size.w, size.h), ix, cy + fh + pt(2), fw, pt(16), 1, 0x9AA5AA, 12)
 
   local px = ix + fw + pt(14)
   caption("PRESETS", px, cy)
@@ -856,8 +906,12 @@ local function size_popover(x, y)
   end
 
   cy = y + h - pt(64)
-  text(size.msg or "Saved into ReEQ2.jsfx. A ReEQ2 update puts it back to 922 × 564; this offers to apply your size again.",
-    ix, cy, w - pt(24), pt(28), 0, size.msg and 0xE8875F or 0x707A7F, 11)
+  if size.msg then
+    text(size.msg, ix, cy, w - pt(24), pt(28), 0, 0xE8875F, 12)
+  else
+    text("Saved into ReEQ2.jsfx. A ReEQ2 update puts it back to 922 × 564;", ix, cy, w - pt(24), pt(14), 0, 0x707A7F, 12)
+    text("this offers to apply your size again.", ix, cy + pt(14), w - pt(24), pt(14), 0, 0x707A7F, 12)
+  end
   cy = y + h - pt(34)
   local ax = x + w - pt(12)
   ax = ax - button_w("Apply")
@@ -887,7 +941,7 @@ local gallery_scroll = 0  -- pixels
 
 local function gallery_view(x, y, w, h)
   if #gallery == 0 then
-    text("No themes yet. Save one with Save as, and it appears here.", x, y, w, pt(20), 0, 0x848F95, 12)
+    text("No themes yet. Save one with Save as, and it appears here.", x, y, w, pt(20), 0, 0x848F95, 13)
     return
   end
   local bar = pt(10)                 -- the scrollbar's lane
@@ -939,9 +993,9 @@ local function gallery_view(x, y, w, h)
         gfx.blit(THUMB_IMG + i - 1, 1, 0, 0, 0, tw, th, gx + pt(6), gy + pt(6), tw, th)
       else
         box(gx + pt(6), gy + pt(6), tw, th, 0x0D1012, nil, pt(4))
-        text("Drawing...", gx + pt(6), gy + pt(6), tw, th, 1, 0x707A7F, 11)
+        text("Drawing...", gx + pt(6), gy + pt(6), tw, th, 1, 0x707A7F, 12)
       end
-      text(t.name, gx + pt(10), gy + th + pt(8), cw - pt(20), pt(24), 0, 0xDFE6E9, 12)
+      text(t.name, gx + pt(10), gy + th + pt(8), cw - pt(20), pt(24), 0, 0xDFE6E9, 13)
       if hov and mouse.press then picked = t end
     end
   end
@@ -2130,12 +2184,12 @@ local function preview_module()
   ------------------------------------------------------------------------------------------------
 
   local draw_grid, draw_filter_bands, draw_filter_response, draw_dyn_static, draw_dyn_range, draw_nodes = (function()
-    -- from ReEQ2 2.1.0: draw_grid()
+    -- from ReEQ2 2.2.0: draw_grid()
     local function draw_grid()
       local gb = gfx_h - BOTTOM_MARGIN - ui_pt(20)
 
-      -- Frequency lines, brighter at each decade, and labels
-      gfx.setfont(FONT_CAP)
+      -- Frequency lines, brighter at each decade, and labels (Body, for legibility at 1x)
+      gfx.setfont(FONT_BODY)
       local f = 10
       repeat
         local x = floor(freq_to_scx(f)) + 0.5
@@ -3435,7 +3489,7 @@ local function preview_module()
       gfx.setfont(FONT_BASE)
     end
 
-    -- from ReEQ2 2.1.0: ui_draw_header()
+    -- from ReEQ2 2.2.0: ui_draw_header()
     local function ui_draw_header()
       local s = ui_pt(1)
       if HEADER_H > 0 then
@@ -3475,14 +3529,15 @@ local function preview_module()
         local ui_dbb_w, ui_dbb_h = 40 * s, 20 * s
         local ui_dbb_x = gfx_w - 4 * s - ui_dbb_w
         local ui_dbb_y = floor(ui_dbb_cy - ui_dbb_h * 0.5)
-        gfx.setfont(FONT_CAP)
+        gfx.setfont(FONT_BODY)
         if ui_popup == 6 then
           ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, 5 * s, T.ACCENT_FILL, 1, T.ACCENT_BORDER)
         else
           ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, 5 * s, T.CONTROL, 1, T.BORDER)
         end
         ui_cola(T.DB_LABEL, 1)
-        ui_text_l(ui_dbb_x + 8 * s, ui_dbb_y, ui_dbb_h, ui_dbb_lab)
+        -- 7pt in, so "+30" clears the chevron
+        ui_text_l(ui_dbb_x + 7 * s, ui_dbb_y, ui_dbb_h, ui_dbb_lab)
         ui_cola(T.DB_LABEL, 0.7)
         ui_chevron(ui_dbb_x + ui_dbb_w - 10 * s, ui_dbb_y + ui_dbb_h * 0.5, 3 * s, 1)
       end
@@ -3938,9 +3993,9 @@ end
 local function top_bar(x, y, w)
   local h = pt(26)
   local title = "ReEQ2 Theme Editor"
-  font(13, true)
+  font(14, true)
   local nx = x + gfx.measurestr(title) + pt(14)
-  text(title, x, y, nx - x, h, 0, 0xDFE6E9, 13, true)
+  text(title, x, y, nx - x, h, 0, 0xDFE6E9, 14, true)
   local label = theme.name .. (dirty() and "  •" or "")
   if button(label, nx, y, button_w(label), h) then
     local ok, name = r.GetUserInputs("Rename ReEQ2 theme", 1, "Theme name,extrawidth=120", theme.name)
@@ -3993,7 +4048,7 @@ local function whole_bar(x, y, w)
   local function slider(id, label, i, v, lo, hi, fmt)
     local sx = x + pt(12) + (i - 1) * (sw + pt(16))
     caption(label, sx, y + pt(8))
-    text(string.format(fmt, v), sx, y + pt(4), sw, pt(14), 2, 0x9AA5AA, 10)
+    text(string.format(fmt, v), sx, y + pt(4), sw, pt(14), 2, 0x9AA5AA, 11)
     local nv = hslider(id, sx, y + pt(24), sw, v, lo, hi)
     if nv ~= v then
       if not whole.base then push_undo(); whole.base = copy_colours(theme.c) end
@@ -4016,6 +4071,15 @@ local function whole_bar(x, y, w)
   return h
 end
 
+-- Saves the default UI size, and sends it to the open ReEQ2 windows on the default
+local function set_ui_size(v)
+  if not save_settings(v) then say("Couldn't write " .. SETTINGS_FILE .. "."); return end
+  ui_size = v
+  r.gmem_attach(GM_NAME)
+  r.gmem_write(GM_UI_SIZE, v)
+  say(string.format("ReEQ2 windows on the default UI size show at %d%%.", v))
+end
+
 local function window_bar(x, y, w)
   caption("WINDOW", x, y + pt(7))
   local cw, ch = chosen_size()
@@ -4027,16 +4091,35 @@ local function window_bar(x, y, w)
   local tx = x + pt(66) + button_w(label)
   if cw and size.file_w and (cw ~= size.file_w or ch ~= size.file_h) then
     local again = string.format("Apply %d × %d again", cw, ch)
-    text("An update reset the size.", tx, y, pt(150), pt(24), 0, 0xE8875F, 11)
+    text("An update reset the size.", tx, y, pt(150), pt(24), 0, 0xE8875F, 12)
     if button(again, tx + pt(150), y, button_w(again), pt(24)) then
       local ok, why = set_jsfx_size(cw, ch)
       if ok then read_size(); say(string.format("New ReEQ2 windows open at %d × %d.", cw, ch)) else say(why) end
     end
   else
-    text("new ReEQ2 windows open at this size", tx, y, pt(300), pt(24), 0, 0x707A7F, 11)
+    text("new ReEQ2 windows open at this size", tx, y, pt(300), pt(24), 0, 0x707A7F, 12)
   end
+
+  -- The default UI size for ReEQ2 windows
+  local ux = tx + pt(310)
+  caption("UI SIZE", ux, y + pt(7))
+  local bx = ux + pt(56)
+  for _, v in ipairs(UI_SIZES) do
+    local lab = tostring(v)
+    if button(lab, bx, y, button_w(lab), pt(24), ui_size == v) and ui_size ~= v then set_ui_size(v) end
+    bx = bx + button_w(lab) + pt(4)
+  end
+  -- The version note is right-aligned; in a narrow window the trailing note gives way to it
+  local note = "% default UI size for ReEQ2"
+  local right = x + w
   if size.version and size.version ~= PREVIEW_FROM then
-    text(string.format("Preview from ReEQ2 %s (installed: %s)", PREVIEW_FROM, size.version), x, y, w, pt(24), 2, 0x707A7F, 11)
+    local vnote = string.format("Preview from ReEQ2 %s (installed: %s)", PREVIEW_FROM, size.version)
+    text(vnote, x, y, w, pt(24), 2, 0x707A7F, 12)
+    right = x + w - gfx.measurestr(vnote) - pt(16)
+  end
+  font(12)
+  if bx + pt(4) + gfx.measurestr(note) <= right then
+    text(note, bx + pt(4), y, pt(200), pt(24), 0, 0x707A7F, 12)
   end
 end
 
@@ -4106,10 +4189,10 @@ local function frame()
   end
 
   if note and r.time_precise() - note_t < 4 then
-    font(12)
+    font(13)
     local nw = gfx.measurestr(note) + pt(24)
     box((gfx.w - nw) / 2, gfx.h - pt(80), nw, pt(30), 0x1F2427, 0x2C3438, pt(8))
-    text(note, (gfx.w - nw) / 2, gfx.h - pt(80), nw, pt(30), 1, 0xDFE6E9, 12)
+    text(note, (gfx.w - nw) / 2, gfx.h - pt(80), nw, pt(30), 1, 0xDFE6E9, 13)
   end
 
   -- The heartbeat that tells ReEQ2 the editor is running, and any change still waiting to go
@@ -4141,6 +4224,7 @@ local function main()
   local t = load_theme(THEME_FILE)
   if t then saved = t end
   theme = { name = saved.name, c = copy_colours(saved.c) }
+  ui_size = load_settings()
   read_size()
   select_token(TOKENS[1].key)
   push_live(theme)

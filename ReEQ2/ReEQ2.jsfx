@@ -330,8 +330,15 @@ T_AN_LISTEN = 70;
 T_WORDMARK_RE = 71; T_WORDMARK_EQ = 72;
 PAL_N = 73;
 
-// The editor's gmem layout (see theme_live)
-GM_MAGIC = 20261031; GM_TOKENS = 8;
+// The editor's gmem layout (see theme_live): words 0-3 the header, 4 the default UI size, tokens from 8
+GM_MAGIC = 20261031; GM_UI_SIZE = 4; GM_TOKENS = 8;
+
+// The smallest window, in points, that holds the full layout and every popover. The UI size is never
+// zoomed past it, so a small window can't push the UI into compact mode or hide the size control.
+UI_W_FULL = 620; UI_H_FULL = 420;
+
+// The default UI size, in %, until the Theme Editor saves one
+UI_SIZE_INITIAL = 125;
 
 /*
  * Initialise memory allocator
@@ -729,6 +736,44 @@ function theme_live() local(i, n) (
     );
     apply_palette();
   );
+);
+
+/*
+ * The UI size, in %. Data/ReEQ2/settings.txt, written by the ReEQ2 Theme Editor, holds the default for
+ * every instance as "ui_size = 125", with "#" comments. Sizes are 100, 125, 150, 175 and 200; with no
+ * file, or anything else, it's UI_SIZE_INITIAL. An instance on the default has UI_Size 0; one set in its
+ * Settings keeps that size.
+ */
+function ui_size_valid(v) (
+  v == 100 || v == 125 || v == 150 || v == 175 || v == 200;
+);
+
+function settings_load() local(h, v) (
+  UI_Size_Default = UI_SIZE_INITIAL;
+  h = file_open("ReEQ2/settings.txt");
+  h >= 0 ? (
+    file_text(h) ? while (file_avail(h) > 0) (
+      #st_line = ""; file_string(h, #st_line); str_trim(#st_line);
+      str_getchar(#st_line, 0) != '#' && match("%s=%s", #st_line, #st_key, #st_val) ? (
+        str_trim(#st_key); str_trim(#st_val);
+        !strcmp(#st_key, "ui_size") ? (
+          v = 0;
+          UI_Size_Default = match("%d", #st_val, v) && ui_size_valid(v) ? v : UI_SIZE_INITIAL;
+        );
+      );
+    );
+    file_close(h);
+  );
+);
+
+/*
+ * The default UI size, live from the editor while it runs (gmem word GM_UI_SIZE), with the same checks
+ * as the colours. It waits while a mouse button is down (drags keep their offsets in pixels) and while
+ * the value stepper is open (a scale change would close it mid-entry).
+ */
+function ui_size_live() local(v) (
+  v = gmem[GM_UI_SIZE];
+  gmem[0] == GM_MAGIC && time_precise() - gmem[3] < 2 && ui_size_valid(v) && !(mouse_cap & 3) && ui_popup != 9 ? UI_Size_Default = v;
 );
 
 /*
@@ -2019,6 +2064,7 @@ init_rate != srate ? (
   pal_defaults();
   theme_load();
   apply_palette();
+  settings_load();
 
   // Auto gain
   AG_POINTS = 61;               // 1/6 octave from 20Hz to 20kHz
@@ -2411,6 +2457,8 @@ update_state();
 file_avail(handle) >= 0 ? (
   // Read mode
   file_var(0, version);
+  // Files before 112 have no UI size: they follow the default
+  UI_Size = 0;
 
   version >= 100 ? (
     file_var(0, numBands);
@@ -2449,6 +2497,14 @@ file_avail(handle) >= 0 ? (
       loop(NUM_BANDS, band_dyn_defaults(band); band += 1);
     );
 
+    // The UI size, from 112: 0 follows the default, else this instance's size in %. Changing it doesn't
+    // mark the project modified (that takes a slider change, and an undo point per click): it's saved
+    // with the next save, and presets, undo and A/B carry it with the rest of the state.
+    version >= 112 ? (
+      file_var(0, UI_Size);
+      !ui_size_valid(UI_Size) ? UI_Size = 0;
+    );
+
   ) : (
     // Old version that has no version number
     // We've already read the first value and it wasn't a version
@@ -2474,7 +2530,7 @@ file_avail(handle) >= 0 ? (
   // Write mode
   // The version number should reflect the ReEQ version when the file
   // format changed.
-  version = 111;
+  version = 112;
 
   file_var(0, version);
   file_var(0, NUM_BANDS);
@@ -2499,6 +2555,7 @@ file_avail(handle) >= 0 ? (
   file_mem(0, Band_Dyn_Link, NUM_BANDS);
   file_mem(0, Band_Dyn_DetFreq, NUM_BANDS);
   file_mem(0, Band_Dyn_DetWidth, NUM_BANDS);
+  file_var(0, UI_Size);
 );
 
 flag_filter_update_all();
@@ -3057,18 +3114,39 @@ out_pk1 = max(out_pk1, abs(spl1));
 
 @gfx 922 564
 
+// Embedded in the track or mixer panel (gfx_ext_flags bit 1, REAPER 6.30+): curves, fills, nodes and the
+// analyser only, with no header, toolbar, panel, labels or hover card
+UI_EMBED = gfx_ext_flags & 1;
+
 /*
- * Retina scaling. gfx_ext_retina is 2 on a Mac Retina display, and on Windows it
- * follows the display scaling (1.25, 1.5...). Sizes were tuned at 1x and 2x, so
- * interpolate between the two, and scale up beyond 2x.
+ * The UI scale: pixels per point. gfx_ext_retina is 2 on a Mac Retina display, and on Windows it follows
+ * the display scaling (1.25, 1.5...). The UI size zooms on top of it: this instance's size, else the
+ * default, held back so the full layout still fits the window (never below 1, in 1/16 steps so resizing
+ * doesn't shimmer). The embedded panel ignores the UI size.
  */
-function rscale(v1, v2) local(s) (
-  s = max(gfx_ext_retina, 1);
-  s <= 2 ? v1 + (v2 - v1) * (s - 1) : v2 * s * 0.5;
+ui_size_live();
+ui_r = max(gfx_ext_retina, 1);
+ui_zoom = UI_EMBED ? 1 : (UI_Size ? UI_Size : UI_Size_Default) / 100;
+ui_zoom = floor(max(1, min(ui_zoom, min(gfx_w / (ui_r * UI_W_FULL), gfx_h / (ui_r * UI_H_FULL)))) * 16) / 16;
+UI_SCALE = ui_r * ui_zoom;
+// Last frame's geometry (buttons, dials, popover anchors) is stale for one frame when the scale changes.
+// Only the window tracks it: the embedded panel shares these variables at its own scale, and would flip
+// the window's last scale every frame.
+!UI_EMBED ? (
+  ui_scale_changed = UI_SCALE != ui_last_scale;
+  ui_last_scale = UI_SCALE;
+) : ui_scale_changed = 0;
+
+/*
+ * Sizes tuned at 1x and 2x displays: interpolate between the two, scale up beyond 2x, then zoom by the
+ * UI size in proportion
+ */
+function rscale(v1, v2) (
+  (ui_r <= 2 ? v1 + (v2 - v1) * (ui_r - 1) : v2 * ui_r * 0.5) * ui_zoom;
 );
 
 // Draw the extra strokes meant for high resolution displays
-HIDPI = gfx_ext_retina >= 1.5;
+HIDPI = UI_SCALE >= 1.5;
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // UI: theme, drawing helpers and widgets
@@ -3078,7 +3156,7 @@ HIDPI = gfx_ext_retina >= 1.5;
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 function ui_pt(v) (
-  v * max(gfx_ext_retina, 1);
+  v * UI_SCALE;
 );
 
 // Sets font slot to Arial at pt points, flags 'b' for bold or 0
@@ -3501,8 +3579,8 @@ gfx_set(1,1,1,1);
 
 gfx_x = 100; gfx_y = 100;
 
-actual_width = gfx_w / gfx_ext_retina;
-actual_height = gfx_h / gfx_ext_retina;
+actual_width = gfx_w / UI_SCALE;
+actual_height = gfx_h / UI_SCALE;
 
 // This is necessary!
 // Without this, the mouse_caps don't register key presses until the
@@ -3512,6 +3590,15 @@ ui_key = gfx_getchar();
 // A fresh left press this frame; held presses never count
 ui_press = (mouse_cap & 1) && !(ui_prev_cap & 1);
 ui_rpress = (mouse_cap & 2) && !(ui_prev_cap & 2);
+
+// When the scale changes, a press would be tested against last frame's geometry: ignore it (and a held
+// one until release, since dials and number buttons take a held press), and close the popovers anchored
+// to controls (the top popovers follow their buttons; the credits are centred)
+ui_scale_changed ? (
+  ui_press = ui_rpress = 0;
+  ui_popup != 4 && ui_popup != 5 && ui_popup != 8 ? ui_popup = 0;
+  mouse_cap & 1 ? ui_block = 1;
+);
 
 // A press that closed a popover stays ignored until it is released
 !(mouse_cap & 1) ? ui_block = 0;
@@ -3527,9 +3614,7 @@ compact_height = actual_height < 320;
 very_compact_width = actual_width < 300;
 very_compact_height = actual_height < 160;
 
-// Embedded in the track or mixer panel (gfx_ext_flags bit 1, REAPER 6.30+): curves, fills, nodes and the
-// analyser only, with no header, toolbar, panel, labels or hover card
-UI_EMBED = gfx_ext_flags & 1;
+// Embedded (UI_EMBED, set at the top of @gfx): the compact layout throughout
 UI_EMBED ? (compact_width = compact_height = very_compact_width = very_compact_height = 1);
 
 // A header strip holds the logo and the top buttons; the graph starts below it. Compact sizes keep
@@ -3537,8 +3622,8 @@ UI_EMBED ? (compact_width = compact_height = very_compact_width = very_compact_h
 HEADER_H = very_compact_height ? 0 : compact_height ? floor(ui_pt(24)) : floor(ui_pt(34));
 TOP_MARGIN = HEADER_H == 0 ? floor(ui_pt(10)) : HEADER_H + floor(compact_width || compact_height ? ui_pt(10) : ui_pt(16));
 // The bottom toolbar is 40pt, and the node panel sits about 176pt above it
-BOTTOM_MARGIN = 40 * max(gfx_ext_retina, 1);
-RAISED_BOTTOM = 176 * max(gfx_ext_retina, 1);
+BOTTOM_MARGIN = 40 * UI_SCALE;
+RAISED_BOTTOM = 176 * UI_SCALE;
 
 compact_width || compact_height ? BOTTOM_MARGIN = 0;
 
@@ -3718,9 +3803,6 @@ function draw_node(band, freq, db, enabled, selected) local(x, y, m, scy, transf
   //jj
   x = get_filter_x(band);
   y = get_filter_y(band);
-
-  //gfx_ext_retina == 2 ? size = 12 : size = 6;
-  size = rscale(9, 18);
 
   y > gfx_h - gfx_texth - BOTTOM_MARGIN - (RAISED_BOTTOM * ENABLE_RAISED_BOTTOM) ? (
     node_alpha = 0.5;
@@ -4341,8 +4423,8 @@ function draw_grid() local (db, y, x, f, gb, major, lab, k, s, lw) (
   s = ui_pt(1);
   gb = gfx_h - BOTTOM_MARGIN - ui_pt(20);
 
-  // Frequency lines, brighter at each decade, and labels
-  gfx_setfont(FONT_CAP);
+  // Frequency lines, brighter at each decade, and labels (Body, for legibility at 1x)
+  gfx_setfont(FONT_BODY);
   f = 10;
   while (
     x = floor(freq_to_scx(f)) + 0.5;
@@ -4394,7 +4476,7 @@ function is_node_selected(band) local (x, y, d) (
   x = get_filter_x(band);
   y = get_filter_y(band);
   d = sqrt((x - mouse_x)^2 + (y - mouse_y)^2);
-  d < 12;
+  d < ui_pt(12);
 );
 
 /*
@@ -4440,7 +4522,7 @@ function get_nearby_node()
 function get_nearest_node()
   local(band, found, founddist, dist, x, y, d)
 (
-  get_node_in_range(dist = rscale(12, 24));
+  get_node_in_range(dist = ui_pt(12));
 );
 
 /*
@@ -5002,7 +5084,7 @@ function update_drag_nodes_Q(x, y, diffx, diffy, md) local(i, mmx, mmy, posx, po
 
       Band_Type[i] != FILTER_LOW_CUT && Band_Type[i] != FILTER_LOW_CUT_BUTTERWORTH && Band_Type[i] != FILTER_HIGH_CUT && Band_Type[i] != FILTER_HIGH_CUT_BUTTERWORTH
         && Band_Type[i] != FILTER_LOW_CUT_ANALOG && Band_Type[i] != FILTER_HIGH_CUT_ANALOG ? (
-        scalar = 0.5 / gfx_ext_retina;
+        scalar = 0.5 / max(gfx_ext_retina, 1);
 
         Band_Q[i] = max(0.10, min(40, per_to_q(q_to_per(Band_Q[i], 100) + md * scalar, 100)));
 
@@ -5933,13 +6015,14 @@ function ui_draw_header() local(s, x, i) (
   // The top scale label as the dB range button, on its own line (its menu is handled with the toolbar)
   !compact_width && !compact_height ? (
     ui_dbb_w = 40 * s; ui_dbb_h = 20 * s; ui_dbb_x = gfx_w - 4 * s - ui_dbb_w; ui_dbb_y = floor(ui_dbb_cy - ui_dbb_h * 0.5);
-    gfx_setfont(FONT_CAP);
+    gfx_setfont(FONT_BODY);
     ui_popup == 6 ? ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, 5 * s, T_ACCENT_FILL, 1, T_ACCENT_BORDER) :
       ui_hover(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h) ?
         ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, 5 * s, T_CONTROL_HOVER, 1, T_BORDER_HOVER) :
         ui_box(ui_dbb_x, ui_dbb_y, ui_dbb_w, ui_dbb_h, 5 * s, T_CONTROL, 1, T_BORDER);
     ui_cola(T_DB_LABEL, 1);
-    ui_text_l(ui_dbb_x + 8 * s, ui_dbb_y, ui_dbb_h, #ui_dbb_lab);
+    // 7pt in, so "+30" clears the chevron
+    ui_text_l(ui_dbb_x + 7 * s, ui_dbb_y, ui_dbb_h, #ui_dbb_lab);
     ui_cola(T_DB_LABEL, 0.7);
     ui_chevron(ui_dbb_x + ui_dbb_w - 10 * s, ui_dbb_y + ui_dbb_h * 0.5, 3 * s, 1);
   );
@@ -6007,7 +6090,10 @@ function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on,
   s = ui_pt(1);
   // The press that opened the picker is not a pick
   pr = ui_press && !ui_pop_skip; ui_pop_skip = 0;
-  pw = 496 * s; tw = (pw - 16 * s - 24 * s) / 7; th = 58 * s;
+  // Tiles wide enough for the longest name in Body, with 5pt either side
+  gfx_setfont(FONT_BODY);
+  tw = max((560 * s - 16 * s - 24 * s) / 7, ui_text_w("High Cut BW") + 10 * s); th = 58 * s;
+  pw = 16 * s + 24 * s + tw * 7;
   ph = 8 * s + th * 2 + 4 * s + 8 * s + 1 + 8 * s + 22 * s + 8 * s;
   px = max(4 * s, min(panel_x + 8 * s, gfx_w - pw - 4 * s));
   py = ui_pop_frame(px, pw, ph);
@@ -6023,7 +6109,7 @@ function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on,
        : hov ? ui_box(tx, ty, tw, th, 5 * s, T_CONTROL_HOVER, 1, T_BORDER_HOVER);
     on ? ui_band_col(b) : ui_col(T_TEXT_SECONDARY);
     ui_shape_icon(t, tx + tw * 0.5 - 20 * s, ty + 7 * s, 1);
-    gfx_setfont(FONT_CAP);
+    gfx_setfont(FONT_BODY);
     ui_col(on ? T_SELECTED : hov ? T_TEXT : T_TEXT_DIM);
     ui_text_c(tx, ty + th - 18 * s, tw, 14 * s, ui_shape_name(t));
     pr && hov ? (
@@ -6106,7 +6192,7 @@ function ui_draw_stereo_pop(b) local(s, pw, ph, px, py, tw, th, g, tx, ty, on, h
 
     on ? ui_band_col(b) : ui_col(T_TEXT_SECONDARY);
     ui_stereo_glyph(g, tx + tw * 0.5, ty + 16 * s, 1);
-    gfx_setfont(FONT_CAP);
+    gfx_setfont(FONT_BODY);
     ui_col(on ? T_SELECTED : hov ? T_TEXT : T_TEXT_DIM);
     ui_text_c(tx, ty + th - 18 * s, tw, 14 * s, ui_group_name(g));
     pr && hov ? (
@@ -6367,6 +6453,8 @@ function ui_draw_analyzer_pop() local(s, pad, pw, ph, px, py, x, y, w, tw, th, i
   s = ui_pt(1);
   skip = ui_pop_skip; ui_pop_skip = 0;
   pr = ui_press && !skip;
+  // Follows its button, which moves when the UI size changes
+  ui_pop_x = ui_top_ax; ui_pop_y = ui_top_y; ui_pop_w = ui_top_aw;
   pad = 11 * s; pw = 276 * s;
   ph = 30 * s + 10 * s + 10 * s + 6 * s + 46 * s + 8 * s + 34 * s + 8 * s + 10 * s + 6 * s + 44 * s * 2 + 4 * s + 11 * s;
   px = floor(max(4 * s, gfx_w - 8 * s - pw));
@@ -6468,20 +6556,51 @@ function ui_draw_analyzer_pop() local(s, pad, pw, ph, px, py, x, y, w, tw, th, i
 );
 
 /*
- * Settings popover: the analyser's range, response and FFT
+ * Settings popover, in two columns: the UI size, dynamics and the analyser's range on the left; the
+ * analyser's response and FFT, and the theme, on the right
  */
-function ui_draw_settings_pop() local(s, pad, pw, ph, px, py, x, y, w, r, pr, skip) (
+function ui_draw_settings_pop() local(s, pad, cw, gap, pw, ph, px, py, x, y, y0, w, r, pr, skip, lw, hov) (
   s = ui_pt(1);
   skip = ui_pop_skip; ui_pop_skip = 0;
   pr = ui_press && !skip;
-  pad = 11 * s; pw = 304 * s;
-  ph = 30 * s + 10 * s + (10 * s + 8 * s + 22 * s + 4 * s + 14 * s) + (10 * s + 8 * s + 22 * s + 8 * s + 22 * s) * 3 + (8 * s + 1 + 8 * s) * 3
-       + 8 * s + 16 * s + 14 * s + 11 * s + (8 * s + 1 + 8 * s + 18 * s + 16 * s + 14 * s);
+  // Follows its button, which moves when the UI size changes
+  ui_pop_x = ui_top_gx; ui_pop_y = ui_top_y; ui_pop_w = ui_top_gw;
+  // 588pt wide, so it fits the narrowest full-layout window (600pt) at any size
+  pad = 11 * s; cw = 272 * s; gap = 22 * s;
+  pw = pad + cw + gap + cw + pad;
+  // The taller right column: response, FFT (two rows and two notes) and theme, with two dividers
+  ph = 30 * s + 10 * s + (18 * s + 22 * s + 8 * s + 22 * s) + (18 * s + 22 * s + 8 * s + 22 * s + 8 * s + 30 * s) + (18 * s + 30 * s)
+       + (8 * s + 1 + 8 * s) * 2 + 11 * s;
   px = floor(max(4 * s, gfx_w - 8 * s - pw));
   py = ui_pop_frame(px, pw, ph);
   ui_pop_head(px, py, pw, "Settings", sprintf(#, "ReEQ² %s", #VERSION));
 
-  x = px + pad; w = pw - 2 * pad; y = py + 30 * s + 10 * s;
+  y0 = py + 30 * s + 10 * s;
+  ui_col(T_BORDER_SUBTLE); gfx_line(floor(px + pad + cw + gap * 0.5), y0, floor(px + pad + cw + gap * 0.5), py + ph - pad, 0);
+
+  // Left column
+  x = px + pad; w = cw; y = y0;
+
+  // The UI size, held back by the window (see UI_SCALE). Set here, it's this instance's; "Use default"
+  // goes back to the Theme Editor's default.
+  gfx_setfont(FONT_CAP); ui_col(T_TEXT_DIM); ui_text_l(x, y, 10 * s, "DISPLAY");
+  y += 18 * s;
+  r = ui_setrow(x, y, w, "UI size", "%", 5, ((UI_Size ? UI_Size : UI_Size_Default) - 100) / 25, pr, "100", "125", "150", "175", "200");
+  r >= 0 ? UI_Size = 100 + r * 25;
+  y += 22 * s + 4 * s;
+  gfx_setfont(FONT_CAP); ui_col(T_TEXT_DIM);
+  ui_text_l(x, y, 14 * s, ui_zoom * 100 < (UI_Size ? UI_Size : UI_Size_Default) - 0.5 ? sprintf(#, "Shown at %d%% to fit the window", floor(ui_zoom * 100 + 0.5)) :
+    UI_Size ? "Set for this instance" : "The default, from the Theme Editor");
+  UI_Size ? (
+    lw = ui_text_w("Use default");
+    hov = ui_in(x + w - lw - 4 * s, y, lw + 4 * s, 14 * s);
+    ui_col(hov ? T_TEXT : T_ACCENT);
+    ui_text_l(x + w - lw, y, 14 * s, "Use default");
+    pr && hov ? UI_Size = 0;
+  );
+  y += 14 * s + 8 * s;
+  ui_col(T_BORDER_SUBTLE); gfx_line(x, y, x + w, y, 0);
+  y += 1 + 8 * s;
 
   gfx_setfont(FONT_CAP); ui_col(T_TEXT_DIM); ui_text_l(x, y, 10 * s, "DYNAMICS");
   y += 18 * s;
@@ -6501,9 +6620,9 @@ function ui_draw_settings_pop() local(s, pad, pw, ph, px, py, x, y, w, r, pr, sk
   y += 30 * s;
   r = ui_setrow(x, y, w, "Floor", "dB", 3, Floor_Value, pr, "−90", "−140", "−200", "", "");
   r >= 0 ? (Floor_Value = r; update_state());
-  y += 22 * s + 8 * s;
-  ui_col(T_BORDER_SUBTLE); gfx_line(x, y, x + w, y, 0);
-  y += 1 + 8 * s;
+
+  // Right column
+  x = px + pad + cw + gap; y = y0;
 
   gfx_setfont(FONT_CAP); ui_col(T_TEXT_DIM); ui_text_l(x, y, 10 * s, "RESPONSE");
   y += 18 * s;
@@ -6538,7 +6657,7 @@ function ui_draw_settings_pop() local(s, pad, pw, ph, px, py, x, y, w, r, pr, sk
   y += 18 * s;
   gfx_setfont(FONT_BODY); ui_col(T_TEXT_SECONDARY); ui_text_l(x, y, 16 * s, #theme_name);
   gfx_setfont(FONT_CAP); ui_col(T_TEXT_DIM);
-  ui_text_l(x, y + 16 * s, 14 * s, "Colours and window size: the ReEQ2 Theme Editor action");
+  ui_text_l(x, y + 16 * s, 14 * s, "Colours and sizes: the ReEQ2 Theme Editor action");
 
   ui_top_pop_close(px, py, pw, ph, pr, skip);
   gfx_setfont(FONT_BASE);
@@ -6731,8 +6850,8 @@ function ui_knob_small(cx, cy, v, bipolar, grey, dim) local(s, t0, t1, th) (
 
 /*
  * Vertical drag over a small knob's cell (id is the cell's number). Shift or Alt drags finely. Returns
- * the new 0..1 value. (Double clicks are the general mouse code's, as for the dials: Cmd resets, a plain
- * one opens the value stepper.)
+ * the new 0..1 value. (Double clicks are the general mouse code's, as for the dials: a plain one resets,
+ * Alt opens the value stepper.)
  */
 function ui_knob_drag(id, x, y, w, h, v) (
   ui_press && ui_hover(x, y, w, h) ? (
@@ -7275,8 +7394,9 @@ theme_live();
   gfx_setfont(FONT_BASE, "Arial", floor(rscale(12, 20) + 0.5), 'b');
   ui_th1 = gfx_texth;
 
-  // The type scale, in points: Caption 10 (small caps, axes, tile and grid labels), Body 12 (labels, buttons,
-  // fields), Emphasis 13 bold (values, titles, badges), Display 15 (the wordmark, the stepper's digits)
+  // The type scale, in points: Caption 10 (small caps, notes, small tile labels), Body 12 (labels, buttons,
+  // fields, the graph's axes, the picker tiles), Emphasis 13 bold (values, titles, badges), Display 15 (the
+  // wordmark, the stepper's digits)
   ui_font(FONT_CAP, 10, 0);
   ui_font(FONT_CAP_B, 10, 'b');
   ui_font(FONT_BODY, 12, 0);
@@ -7659,18 +7779,16 @@ do_general_mouse ? (
 
       // Double click?
       tm - click_time < 0.4 ? (
-        // On a value, Cmd resets it to its default (the slope too); otherwise its stepper opens
-        mouse_cap & 4 && ((mouse_y >= gfx_h - BOTTOM_MARGIN - gfx_texth) || (selected_node != -1 && mouse_within_panel())) ? (
-          ui_sv_hit >= 0 && ui_sv_hit == ui_sv_click ? (
+        // On a value, a double click resets it to its default (the slope too); Alt opens its stepper
+        ui_sv_hit >= 0 && ui_sv_hit == ui_sv_click ? (
+          mouse_cap & 16 ? sv_open(ui_sv_hit) : (
             sv_spec(ui_sv_hit, selected_node);
             sv_set(ui_sv_hit, selected_node, sv_def);
-          ) : selected_node != -1 && mouse_within_panel() && dial_slope.is_mouse_number_dial() ? (
-            set_node_slope(selected_node, 1);
-            filters_to_sliders();
-            flag_filter_update_all();
           );
-        ) : ui_sv_hit >= 0 && ui_sv_hit == ui_sv_click ? (
-          sv_open(ui_sv_hit);
+        ) : !(mouse_cap & 16) && selected_node != -1 && mouse_within_panel() && dial_slope.is_mouse_number_dial() ? (
+          set_node_slope(selected_node, 1);
+          filters_to_sliders();
+          flag_filter_update_all();
         ) : (
           // Handle general double click cases
           !mouse_within_panel() ? (
