@@ -1770,12 +1770,13 @@ function band_gfx_gain(b) (
 );
 
 /*
- * Whether a band's drawing filter needs setting: flagged, or its drawn gain has moved
+ * Whether a band's drawing filter needs setting: flagged, or its drawn gain has moved. When it does, its
+ * version moves on, which tells the curve caches in @gfx to recompute it.
  */
 function band_gfx_due(b) local(g) (
   g = band_gfx_gain(b);
   abs(g - Band_GfxGain[b]) > 0.02 ? Band_GfxUpdate[b] = 1;
-  Band_GfxUpdate[b] ? Band_GfxGain[b] = g;
+  Band_GfxUpdate[b] ? (Band_GfxGain[b] = g; Band_GfxVer[b] = Gfx_VerClock += 1);
   Band_GfxUpdate[b];
 );
 
@@ -2017,6 +2018,26 @@ init_rate != srate ? (
   Band_GfxUpdate = MEMORY.alloc_memory(NUM_BANDS);
   // The gain each drawing filter was last set to (a dynamic band's moves with its live gain)
   Band_GfxGain = MEMORY.alloc_memory(NUM_BANDS);
+  // Each drawing filter's version, moved on whenever it's set
+  Band_GfxVer = MEMORY.alloc_memory(NUM_BANDS);
+  memset(Band_GfxVer, 0, NUM_BANDS);
+
+  // Curve caches, one set per view slot (see ui_view_slot): each band's dB at the points
+  // draw_filter_bands draws, and each group's dB per pixel column for draw_filter_response. Each keeps
+  // the band versions and the width it was made at (-1: none yet).
+  NUM_VIEWS = 3; CURVE_POINTS = 1001; CURVE_COLS = 16384;
+  View_W = MEMORY.alloc_memory(NUM_VIEWS); View_H = MEMORY.alloc_memory(NUM_VIEWS); View_T = MEMORY.alloc_memory(NUM_VIEWS);
+  memset(View_W, -1, NUM_VIEWS); memset(View_H, -1, NUM_VIEWS); memset(View_T, 0, NUM_VIEWS);
+  Curve_Db = MEMORY.alloc_memory(NUM_VIEWS * NUM_BANDS * CURVE_POINTS);
+  Curve_Ver = MEMORY.alloc_memory(NUM_VIEWS * NUM_BANDS);
+  Curve_W = MEMORY.alloc_memory(NUM_VIEWS);
+  Resp_Db = MEMORY.alloc_memory(NUM_VIEWS * 5 * CURVE_COLS);
+  Resp_Ver = MEMORY.alloc_memory(NUM_VIEWS * 5 * NUM_BANDS);
+  Resp_W = MEMORY.alloc_memory(NUM_VIEWS * 5);
+  // Which bands are in the group being drawn, read once per draw_filter_response
+  Resp_On = MEMORY.alloc_memory(NUM_BANDS);
+  memset(Curve_Ver, -1, NUM_VIEWS * NUM_BANDS); memset(Curve_W, -1, NUM_VIEWS);
+  memset(Resp_Ver, -1, NUM_VIEWS * 5 * NUM_BANDS); memset(Resp_W, -1, NUM_VIEWS * 5);
   Band_Enabled = MEMORY.alloc_memory(NUM_BANDS);
   Band_Group = MEMORY.alloc_memory(NUM_BANDS);
   Band_Type = MEMORY.alloc_memory(NUM_BANDS);
@@ -3119,6 +3140,22 @@ out_pk1 = max(out_pk1, abs(spl1));
 UI_EMBED = gfx_ext_flags & 1;
 
 /*
+ * The cache slot this view draws with: 0 the window, 1 or 2 an embedded view (the track and the mixer
+ * panels can both show one, at different sizes): the one last used at this size, else the one used
+ * longer ago. The views share these variables, so each keeps its curve caches and background in its own.
+ */
+function ui_view_slot() local(s) (
+  !UI_EMBED ? 0 : (
+    s = View_W[1] === gfx_w && View_H[1] === gfx_h ? 1 :
+        View_W[2] === gfx_w && View_H[2] === gfx_h ? 2 :
+        View_T[1] <= View_T[2] ? 1 : 2;
+    View_W[s] = gfx_w; View_H[s] = gfx_h; View_T[s] = View_Clock += 1;
+    s;
+  );
+);
+UI_VIEW = ui_view_slot();
+
+/*
  * The UI scale: pixels per point. gfx_ext_retina is 2 on a Mac Retina display, and on Windows it follows
  * the display scaling (1.25, 1.5...). The UI size zooms on top of it: this instance's size, else the
  * default, held back so the full layout still fits the window (never below 1, in 1/16 steps so resizing
@@ -4152,17 +4189,42 @@ function draw_dyn_range() local(s, b, t, x, y, hy, ly, nr, bottom, hov) (
 );
 
 /*
+ * A band's drawing filter's magnitude at freq
+ */
+function band_vis_mag(b, freq) (
+  b == 0 ? gfx_band1.filter.ivf_analog_magnitude(freq) :
+  b == 1 ? gfx_band2.filter.ivf_analog_magnitude(freq) :
+  b == 2 ? gfx_band3.filter.ivf_analog_magnitude(freq) :
+  b == 3 ? gfx_band4.filter.ivf_analog_magnitude(freq) :
+  b == 4 ? gfx_band5.filter.ivf_analog_magnitude(freq) :
+  b == 5 ? gfx_band6.filter.ivf_analog_magnitude(freq) :
+  b == 6 ? gfx_band7.filter.ivf_analog_magnitude(freq) :
+  b == 7 ? gfx_band8.filter.ivf_analog_magnitude(freq) :
+  b == 8 ? gfx_band9.filter.ivf_analog_magnitude(freq) :
+  b == 9 ? gfx_band10.filter.ivf_analog_magnitude(freq) :
+  b == 10 ? gfx_band11.filter.ivf_analog_magnitude(freq) :
+  b == 11 ? gfx_band12.filter.ivf_analog_magnitude(freq) :
+  b == 12 ? gfx_band13.filter.ivf_analog_magnitude(freq) :
+  b == 13 ? gfx_band14.filter.ivf_analog_magnitude(freq) :
+  b == 14 ? gfx_band15.filter.ivf_analog_magnitude(freq) :
+  gfx_band16.filter.ivf_analog_magnitude(freq);
+);
+
+/*
  * Draw the colored filter bands
  */
 function draw_filter_bands()
-  local(xf, step, point, xo1, yo1, freq, m, scy, midp, tx0, lx0, x0, y0, x1, y1, bottom, yc, fh)
+  local(xf, step, point, xo1, yo1, scy, midp, tx0, lx0, x0, y0, x1, y1, bottom, yc, fh, cd, cv)
 (
   // Band fill opacity at the curve and at the 0dB line
   FILL_ALPHA_CURVE = Pal[T_BAND_AREA * 4 + 3];
   FILL_ALPHA_LINE = FILL_ALPHA_CURVE * 0.1;
 
+  // A new width moves every point: this view's cache starts again
+  Curve_W[UI_VIEW] !== gfx_w ? (memset(Curve_Ver + UI_VIEW * NUM_BANDS, -1, NUM_BANDS); Curve_W[UI_VIEW] = gfx_w);
+
   // Go across the screen in these steps
-  step = gfx_w / 1000;
+  step = gfx_w / (CURVE_POINTS - 1);
   gfx_x = 0;
   gfx_y = (gfx_h / 2) - gfx_texth;
 
@@ -4178,43 +4240,31 @@ function draw_filter_bands()
       state = Band_Enabled[band];
       state != BAND_STATE_OFF ? ( 
 
+        // The band's dB at each point, worked out again only when its drawing filter has changed
+        cd = Curve_Db + (UI_VIEW * NUM_BANDS + band) * CURVE_POINTS;
+        cv = Curve_Ver + UI_VIEW * NUM_BANDS + band;
+        cv[] !== Band_GfxVer[band] ? (
+          cv[] = Band_GfxVer[band];
+          point = 0;
+          loop(CURVE_POINTS,
+            xf = point === CURVE_POINTS - 1 ? gfx_w : point * step;
+            // Kept from blowing up, then in dB
+            cd[point] = 20 * log10(max(band_vis_mag(band, scx_to_freq(xf)), 0.001));
+            point += 1;
+          );
+        );
+
         gfx_r = Band_Red[band]; gfx_g = Band_Green[band]; gfx_b = Band_Blue[band];
 
         xo1 = 0;
         yo1 = (gfx_h - gfx_texth)*0.5;
         point = 0;
         // Fill spans up to the exclusive right boundary of the graph.
-        loop(1001,
-          xf = point === 1000 ? gfx_w : point * step;
-          freq = scx_to_freq(xf);
-
-          transfer = (
-            band == 0 ? gfx_band1.filter.ivf_analog_magnitude(freq) :
-              band == 1 ? gfx_band2.filter.ivf_analog_magnitude(freq) :
-                band == 2 ? gfx_band3.filter.ivf_analog_magnitude(freq) :
-                  band == 3 ? gfx_band4.filter.ivf_analog_magnitude(freq) :
-                    band == 4 ? gfx_band5.filter.ivf_analog_magnitude(freq) :
-                      band == 5 ? gfx_band6.filter.ivf_analog_magnitude(freq) :
-                        band == 6 ? gfx_band7.filter.ivf_analog_magnitude(freq) :
-                          band == 7 ? gfx_band8.filter.ivf_analog_magnitude(freq) :
-                            band == 8 ? gfx_band9.filter.ivf_analog_magnitude(freq) :
-                              band == 9 ? gfx_band10.filter.ivf_analog_magnitude(freq) :
-                                band == 10 ? gfx_band11.filter.ivf_analog_magnitude(freq) :
-                                  band == 11 ? gfx_band12.filter.ivf_analog_magnitude(freq) :
-                                    band == 12 ? gfx_band13.filter.ivf_analog_magnitude(freq) :
-                                      band == 13 ? gfx_band14.filter.ivf_analog_magnitude(freq) :
-                                        band == 14 ? gfx_band15.filter.ivf_analog_magnitude(freq) :
-                                          band == 15 ? gfx_band16.filter.ivf_analog_magnitude(freq);
-          );
-
-          // Prevent magnitude from blowing up
-          transfer < 0.001 ? transfer = 0.001;
-
-          // Convert from scalar to db
-          m = 20 * log10(transfer);
+        loop(CURVE_POINTS,
+          xf = point === CURVE_POINTS - 1 ? gfx_w : point * step;
 
           // Convert db to screen y
-          scy = db_to_y(m);
+          scy = db_to_y(cd[point]);
 
           point > 0 ? (
             x0 = xo1; y0 = yo1;
@@ -4276,36 +4326,51 @@ function draw_filter_bands()
 );
 
 /*
+ * The response in dB at column xf of the bands marked in Resp_On: their magnitudes multiplied, in band order
+ */
+function resp_col_db(xf) local(freq, m, b) (
+  freq = scx_to_freq(xf);
+  m = 1.0;
+  b = 0;
+  loop(NUM_BANDS,
+    Resp_On[b] ? m *= band_vis_mag(b, freq);
+    b += 1;
+  );
+  // Kept from blowing up, then in dB
+  20 * log10(max(m, 0.001));
+);
+
+/*
  * Draw the response for all filters
  */
 function draw_filter_response(group, tc)
-  local(xf, step, xo1, yo1, freq, m, scy, midp, tx0, lx0, x0, y0, x1, y1, delta, bottom,
-    be0, be1, be2, be3, be4, be5, be6, be7, be8, be9, be10, be11, be12, be13, be14, be15,
-    bg0, bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8, bg9, bg10, bg11, bg12, bg13, bg14, bg15)
+  local(xf, step, xo1, yo1, scy, midp, tx0, lx0, x0, y0, x1, y1, delta, bottom, rc, rd, rv, due, b, v)
 (
-  // Go across the screen in these steps
-  step = 1; //gfx_w / 1000;
+  // Go across the screen a pixel column at a time
+  step = 1;
   gfx_x = 0;
   gfx_y = (gfx_h / 2) - gfx_texth;
 
   ui_cola(tc, 1);
 
-  be0 = (Band_Enabled[0] == BAND_STATE_ENABLED) && (Band_Group[0] == group);
-  be1 = (Band_Enabled[1] == BAND_STATE_ENABLED) && (Band_Group[1] == group);
-  be2 = (Band_Enabled[2] == BAND_STATE_ENABLED) && (Band_Group[2] == group);
-  be3 = (Band_Enabled[3] == BAND_STATE_ENABLED) && (Band_Group[3] == group);
-  be4 = (Band_Enabled[4] == BAND_STATE_ENABLED) && (Band_Group[4] == group);
-  be5 = (Band_Enabled[5] == BAND_STATE_ENABLED) && (Band_Group[5] == group);
-  be6 = (Band_Enabled[6] == BAND_STATE_ENABLED) && (Band_Group[6] == group);
-  be7 = (Band_Enabled[7] == BAND_STATE_ENABLED) && (Band_Group[7] == group);
-  be8 = (Band_Enabled[8] == BAND_STATE_ENABLED) && (Band_Group[8] == group);
-  be9 = (Band_Enabled[9] == BAND_STATE_ENABLED) && (Band_Group[9] == group);
-  be10 = (Band_Enabled[10] == BAND_STATE_ENABLED) && (Band_Group[10] == group);
-  be11 = (Band_Enabled[11] == BAND_STATE_ENABLED) && (Band_Group[11] == group);
-  be12 = (Band_Enabled[12] == BAND_STATE_ENABLED) && (Band_Group[12] == group);
-  be13 = (Band_Enabled[13] == BAND_STATE_ENABLED) && (Band_Group[13] == group);
-  be14 = (Band_Enabled[14] == BAND_STATE_ENABLED) && (Band_Group[14] == group);
-  be15 = (Band_Enabled[15] == BAND_STATE_ENABLED) && (Band_Group[15] == group);
+  // This view's cache of the group's dB per column, worked out again when the width changes, a band in
+  // the group changes, or a band joins or leaves it. Columns past CURVE_COLS are worked out each frame.
+  rc = UI_VIEW * 5 + group;
+  rd = Resp_Db + rc * CURVE_COLS;
+  rv = Resp_Ver + rc * NUM_BANDS;
+  due = Resp_W[rc] !== gfx_w;
+  Resp_W[rc] = gfx_w;
+  b = 0;
+  loop(NUM_BANDS,
+    Resp_On[b] = Band_Enabled[b] == BAND_STATE_ENABLED && Band_Group[b] == group;
+    v = Resp_On[b] ? Band_GfxVer[b] : -2;
+    rv[b] !== v ? (rv[b] = v; due = 1);
+    b += 1;
+  );
+  due ? (
+    xf = 0;
+    loop(min(ceil(gfx_w), CURVE_COLS), rd[xf] = resp_col_db(xf); xf += 1);
+  );
 
   bottom = gfx_h - BOTTOM_MARGIN - gfx_texth;
 
@@ -4313,36 +4378,8 @@ function draw_filter_response(group, tc)
   yo1 = (gfx_h - gfx_texth)*0.5;
   xf = 0;
   while (
-    freq = scx_to_freq(xf);
-    
-    // Apply the filters
-    m = 1.0;
-
-    be0 ? m *= gfx_band1.filter.ivf_analog_magnitude(freq);
-    be1 ? m *= gfx_band2.filter.ivf_analog_magnitude(freq);
-    be2 ? m *= gfx_band3.filter.ivf_analog_magnitude(freq);
-    be3 ? m *= gfx_band4.filter.ivf_analog_magnitude(freq);
-    be4 ? m *= gfx_band5.filter.ivf_analog_magnitude(freq);
-    be5 ? m *= gfx_band6.filter.ivf_analog_magnitude(freq);
-    be6 ? m *= gfx_band7.filter.ivf_analog_magnitude(freq);
-    be7 ? m *= gfx_band8.filter.ivf_analog_magnitude(freq);
-    be8 ? m *= gfx_band9.filter.ivf_analog_magnitude(freq);
-    be9 ? m *= gfx_band10.filter.ivf_analog_magnitude(freq);
-    be10 ? m *= gfx_band11.filter.ivf_analog_magnitude(freq);
-    be11 ? m *= gfx_band12.filter.ivf_analog_magnitude(freq);
-    be12 ? m *= gfx_band13.filter.ivf_analog_magnitude(freq);
-    be13 ? m *= gfx_band14.filter.ivf_analog_magnitude(freq);
-    be14 ? m *= gfx_band15.filter.ivf_analog_magnitude(freq);
-    be15 ? m *= gfx_band16.filter.ivf_analog_magnitude(freq);
-
-    // Prevent magnitude from blowing up
-    m < 0.001 ? m = 0.001;
-
-    // Convert from scalar to db
-    m = 20 * log10(m);
-
     // Convert db to screen y
-    scy = db_to_y(m);
+    scy = db_to_y(xf < CURVE_COLS ? rd[xf] : resp_col_db(xf));
 
     xo1 > 0 && !(yo1 > bottom && scy > bottom) ? (
       x0 = xo1; y0 = yo1;
@@ -7419,11 +7456,40 @@ update_visual_filters();
 
 // Draw everything
 
-// Background: a faint vertical gradient over the graph
-ui_bg_h = max(gfx_h - BOTTOM_MARGIN, 1);
-ui_bgi = T_GRAPH_BG * 4; ui_bgj = T_GRAPH_BG_LOW * 4;
-gfx_gradrect(0, 0, gfx_w, ui_bg_h, Pal[ui_bgi] / 255, Pal[ui_bgi + 1] / 255, Pal[ui_bgi + 2] / 255, Pal[ui_bgi + 3], 0, 0, 0, 0,
-  (Pal[ui_bgj] - Pal[ui_bgi]) / 255 / ui_bg_h, (Pal[ui_bgj + 1] - Pal[ui_bgi + 1]) / 255 / ui_bg_h, (Pal[ui_bgj + 2] - Pal[ui_bgi + 2]) / 255 / ui_bg_h, 0);
+/*
+ * Background: a faint vertical gradient over the graph. A full-window gfx_gradrect is slow (about 5 ms
+ * at 2x), so it's drawn once into an image and copied each frame without source alpha (gfx_mode 2),
+ * which keeps its pixels exactly. Each view slot keeps its own image, redrawn when its size or the
+ * theme's colours change.
+ */
+function ui_draw_graph_bg(img) instance(w, h, r0, g0, b0, a0, r1, g1, b1) local(i, j, bh, ga)
+(
+  bh = max(gfx_h - BOTTOM_MARGIN, 1);
+  i = T_GRAPH_BG * 4; j = T_GRAPH_BG_LOW * 4;
+  w !== gfx_w || h !== bh || r0 !== Pal[i] || g0 !== Pal[i + 1] || b0 !== Pal[i + 2] || a0 !== Pal[i + 3] ||
+    r1 !== Pal[j] || g1 !== Pal[j + 1] || b1 !== Pal[j + 2] ? (
+    w = gfx_w; h = bh;
+    r0 = Pal[i]; g0 = Pal[i + 1]; b0 = Pal[i + 2]; a0 = Pal[i + 3];
+    r1 = Pal[j]; g1 = Pal[j + 1]; b1 = Pal[j + 2];
+    // Cleared as the window is under the gradient (gfx_clear: black, alpha 0), since a resized image's
+    // contents are undefined
+    gfx_setimgdim(img, w, h);
+    gfx_dest = img;
+    gfx_r = gfx_g = gfx_b = 0; gfx_a = 1; gfx_a2 = 0; gfx_mode = 0;
+    gfx_rect(0, 0, w, h);
+    gfx_a2 = 1;
+    gfx_gradrect(0, 0, w, h, r0 / 255, g0 / 255, b0 / 255, a0, 0, 0, 0, 0,
+      (r1 - r0) / 255 / h, (g1 - g0) / 255 / h, (b1 - b0) / 255 / h, 0);
+    gfx_dest = -1;
+  );
+  ga = gfx_a;
+  gfx_x = gfx_y = 0; gfx_a = 1; gfx_mode = 2;
+  gfx_blit(img, 1, 0);
+  gfx_mode = 0; gfx_a = ga;
+);
+
+// Images 101 to 103, one per view slot
+UI_VIEW == 0 ? ui_bg0.ui_draw_graph_bg(101) : UI_VIEW == 1 ? ui_bg1.ui_draw_graph_bg(102) : ui_bg2.ui_draw_graph_bg(103);
 
 Display_Mode != 2 ? (
   spectrum.draw(0);
@@ -7459,12 +7525,55 @@ Ghost_Band >= 0 ? (
   ui_ghost_a > 0.01 ? draw_dyn_ghost(Ghost_Band, ui_ghost_a);
 );
 
+/*
+ * x rounded to single precision (to nearest, ties to even), as gfx_gradrect takes its parameters
+ */
+function ui_f32(x) local(e, s, q, r) (
+  x === 0 ? 0 : (
+    e = floor(log(abs(x)) / log(2));
+    2 ^ e > abs(x) ? e -= 1 : 2 ^ (e + 1) <= abs(x) ? e += 1;
+    s = 2 ^ (23 - e);
+    q = abs(x) * s;
+    r = floor(q + 0.5);
+    r - q === 0.5 && r % 2 ? r -= 1;
+    sign(x) * r / s;
+  );
+);
 
-ht = (gfx_h - BOTTOM_MARGIN - gfx_texth) + 2;
+/*
+ * The shade over the lower half of the graph: the token's colour at an alpha rising from 0 to the token's
+ * at the bottom. A half-window gfx_gradrect is slow (about 2 ms at 2x), so it's drawn a row at a time with
+ * gfx_rect, at the colour and alpha gfx_gradrect gives each row: it takes single-precision parameters and
+ * steps alpha in 16.16 fixed point. gfx_rect mixes alphas of 64, 128 and 192 (of 256) by a shortcut that
+ * can round differently, so those rows stay one-row gradrects, and every pixel is the same.
+ */
+function ui_draw_shade() local(i, ht, y0, h, w, da, k, aa, ga) (
+  i = T_GRAPH_SHADE * 4;
+  ht = (gfx_h - BOTTOM_MARGIN - gfx_texth) + 2;
+  y0 = floor(ht / 2); h = floor(ht / 2); w = floor(gfx_w);
+  // gfx_gradrect's alpha step per row, in 16.16 fixed point of 256ths
+  da = floor(ui_f32(Pal[i + 3] / ht * 2) * 16777216);
+  ga = gfx_a;
+  // Its colour, which the row rects take as is
+  gfx_r = (floor(ui_f32(ui_f32(Pal[i] / 255) * 255)) + 0.5) / 255;
+  gfx_g = (floor(ui_f32(ui_f32(Pal[i + 1] / 255) * 255)) + 0.5) / 255;
+  gfx_b = (floor(ui_f32(ui_f32(Pal[i + 2] / 255) * 255)) + 0.5) / 255;
+  k = 0;
+  loop(h,
+    aa = floor(k * da / 65536);
+    aa == 64 || aa == 128 || aa == 192 ? (
+      gfx_gradrect(0, y0 + k, w, 1, Pal[i] / 255, Pal[i + 1] / 255, Pal[i + 2] / 255, aa / 256);
+    ) : aa > 0 ? (
+      // gradrect blends each pixel's alpha channel towards aa too
+      gfx_a = aa / 256; gfx_a2 = (aa + 0.5) / 255;
+      gfx_rect(0, y0 + k, w, 1);
+    );
+    k += 1;
+  );
+  gfx_a = ga; gfx_a2 = 1;
+);
 
-ui_bgi = T_GRAPH_SHADE * 4;
-dst_a = Pal[ui_bgi + 3] / ht;
-gfx_gradrect(0, ht/2, gfx_w, ht/2, Pal[ui_bgi] / 255, Pal[ui_bgi + 1] / 255, Pal[ui_bgi + 2] / 255, 0,    0, 0, 0, 0, 0, 0, 0, dst_a*2); 
+ui_draw_shade();
 
 // Draw the lined grid
 !very_compact_height && !very_compact_width ? (
