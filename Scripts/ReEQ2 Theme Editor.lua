@@ -1114,7 +1114,7 @@ local function preview_module()
     Band_Enabled[b] = BAND_STATE_ENABLED; Band_Type[b] = t; Band_Frequency[b] = f; Band_Gain[b] = g; Band_Slope[b] = slope
   end
   -- All four in Stereo placement, Q 0.71
-  example_band(0, FILTER_LOW_CUT, 18.5, 0, 0)     -- slope 0: 6 dB/oct
+  example_band(0, FILTER_LOW_CUT_BUTTERWORTH, 18.5, 0, 0)     -- slope 0: 6 dB/oct
   example_band(1, FILTER_PEAK, 101, -4, 0)
   example_band(2, FILTER_PEAK, 690, 5, 0)
   example_band(3, FILTER_HIGH_SHELF, 7000, -3, 0)
@@ -1530,15 +1530,31 @@ local function preview_module()
     local function ivf_low_cut(f, freq, q, slope) ivf_cut(f, 0, freq, q, slope) end
     local function ivf_high_cut(f, freq, q, slope) ivf_cut(f, 1, freq, q, slope) end
 
-    -- ivf_cut_bw(), ivf_low_cut_bw(), ivf_high_cut_bw()
-    local function ivf_cut_bw(f, t, freq, slope)
-      ivf_put_butterworth(f, 1, t, freq, slope + 1)
+    -- ivf_cut_r(): a Butterworth cut's resonance for band Q q, the factor its highest-Q section's Q is
+    -- multiplied by (1 at Q 0.7071; the section kept at Q 30 or less)
+    local function ivf_cut_r(q, order)
+      local m, odd = floor(order / 2), order % 2
+      if m < 1 or math.abs(q - 0.7071) < 0.0005 then return 1 end
+      return math.min(q * math.sqrt(2), 60 * cos(PI * (2 * (m - 1 + odd) + 1 - odd) / (2 * order)))
+    end
+
+    -- ivf_cut_bw(), ivf_low_cut_bw(), ivf_high_cut_bw(), ivf_low_cut_bwq(), ivf_high_cut_bwq(): the
+    -- highest-Q section's Q multiplied by r
+    local function ivf_cut_bw(f, t, freq, slope, r)
+      local order = slope + 1
+      local odd = order % 2
+      local n = ivf_put_butterworth(f, 1, t, freq, order) - 1
+      if r ~= 1 and n >= 1 then
+        ivf_put(f, n, t, freq, cos(PI * (2 * (n - 1 + odd) + 1 - odd) / (2 * order)) / r, 1)
+      end
       if slope % 2 == 0 then ivf_op_calc(f, t, freq) end
       ivf_commit(f, floor((slope + 1) / 2), slope % 2 == 0)
     end
 
-    local function ivf_low_cut_bw(f, freq, slope) ivf_cut_bw(f, 0, freq, slope) end
-    local function ivf_high_cut_bw(f, freq, slope) ivf_cut_bw(f, 1, freq, slope) end
+    local function ivf_low_cut_bw(f, freq, slope) ivf_cut_bw(f, 0, freq, slope, 1) end
+    local function ivf_high_cut_bw(f, freq, slope) ivf_cut_bw(f, 1, freq, slope, 1) end
+    local function ivf_low_cut_bwq(f, freq, q, slope) ivf_cut_bw(f, 0, freq, slope, ivf_cut_r(q, slope + 1)) end
+    local function ivf_high_cut_bwq(f, freq, q, slope) ivf_cut_bw(f, 1, freq, slope, ivf_cut_r(q, slope + 1)) end
 
     -- ivf_tilt()
     local function ivf_tilt(f, freq, q, db)
@@ -1677,11 +1693,11 @@ local function preview_module()
     local function band_set_filter(f, t, freq, g, qval, slope)
       if t == 0 then ivf_bell(f, freq, qval, g)
       elseif t == 1 then ivf_low_cut(f, freq, qval, slope)
-      elseif t == 2 then ivf_low_cut_bw(f, freq, slope)
+      elseif t == 2 then ivf_low_cut_bwq(f, freq, qval, slope)
       elseif t == 3 then ivf_low_shelf(f, freq, qval, g)
       elseif t == 4 then ivf_high_shelf(f, freq, qval, g)
       elseif t == 5 then ivf_high_cut(f, freq, qval, slope)
-      elseif t == 6 then ivf_high_cut_bw(f, freq, slope)
+      elseif t == 6 then ivf_high_cut_bwq(f, freq, qval, slope)
       elseif t == 7 then ivf_notch(f, freq, qval)
       elseif t == 8 then ivf_band_pass(f, freq, qval)
       elseif t == 9 then ivf_tilt(f, freq, qval, g)
@@ -1701,6 +1717,8 @@ local function preview_module()
     methods.ivf_high_cut = ivf_high_cut
     methods.ivf_low_cut_bw = ivf_low_cut_bw
     methods.ivf_high_cut_bw = ivf_high_cut_bw
+    methods.ivf_low_cut_bwq = ivf_low_cut_bwq
+    methods.ivf_high_cut_bwq = ivf_high_cut_bwq
     methods.ivf_listen_bell = ivf_listen_bell
     methods.ivf_listen_notch = ivf_listen_notch
     methods.ivf_magnitude = ivf_magnitude
@@ -1796,11 +1814,27 @@ local function preview_module()
     return freq_to_scx(Band_Frequency[band])
   end
 
-  -- from ReEQ2 2.1.0: get_filter_y()
+  -- from ReEQ2 2.3.0: cut_q_max(), a Butterworth cut's highest Q at slope step k
+  local function cut_q_max(k)
+    local n = k + 1
+    local m, odd = math.floor(n / 2), n % 2
+    if m < 1 then return math.sqrt(0.5) end
+    return math.min(40, 60 * math.cos(math.pi * (2 * (m - 1 + odd) + 1 - odd) / (2 * n)) / math.sqrt(2))
+  end
+
+  -- from ReEQ2 2.3.0: get_filter_y()
   local function get_filter_y(band)
     local y
     local t = Band_Type[band]
-    if t == FILTER_HIGH_CUT or t == FILTER_LOW_CUT then
+    if t == FILTER_LOW_CUT_BUTTERWORTH or t == FILTER_HIGH_CUT_BUTTERWORTH then
+      -- A Butterworth cut's node is 3 dB above its curve at its frequency, so at Q 0.7071 (and at 6 dB/oct)
+      -- it sits on the 0 dB line: 20 log10(Q sqrt 2) dB
+      if Band_Slope[band] == 0 then
+        y = db_to_y(0)
+      else
+        y = db_to_y(20 * math.log(math.min(Band_Q[band], cut_q_max(Band_Slope[band])) * math.sqrt(2), 10))
+      end
+    elseif t == FILTER_HIGH_CUT or t == FILTER_LOW_CUT then
       if Band_Slope[band] == 0 then
         y = db_to_y(0)
       else
@@ -1808,8 +1842,8 @@ local function preview_module()
         local s = floor(((Band_Slope[band] + 1) * 6) / 12)
         y = db_to_y(((6 * s * log(Band_Q[band])) / log(2)) + (3 * s))
       end
-    elseif t == 2 or t == 6 or t == 7 or t == 8 or t == 11 then
-      -- Butterworth, notch, bandpass and allpass don't have gain
+    elseif t == 7 or t == 8 or t == 11 then
+      -- Notch, bandpass and allpass don't have gain
       y = db_to_y(0)
     else
       y = db_to_y(Band_Gain[band])
@@ -2790,8 +2824,10 @@ local function preview_module()
           local t = Band_Type[band]
           if ui_is_cut(t) then
             line2 = string.format("%d dB/oct", ui_slope_db(ui_slope_index(Band_Slope[band])))
-            if (t == FILTER_LOW_CUT or t == FILTER_HIGH_CUT) and Band_Slope[band] > 0 then
-              line2 = line2 .. string.format(" · Res %.2f", Band_Q[band])
+            if Band_Slope[band] > 0 then
+              local q = Band_Q[band]
+              if t == FILTER_LOW_CUT_BUTTERWORTH or t == FILTER_HIGH_CUT_BUTTERWORTH then q = math.min(q, cut_q_max(Band_Slope[band])) end
+              line2 = line2 .. string.format(" · Res %.2f", q)
             end
           elseif t == FILTER_PULTEC_LOW_SHELF then
             line2 = line2 .. string.format(" · Cut %.2f", Band_Q[band] / 40)
@@ -2894,7 +2930,7 @@ local function preview_module()
         lx = spectrum.freq_to_x(listen_freq)
 
         if t == FILTER_LOW_CUT then listen_filter:ivf_high_cut(listen_freq, Band_Q[node], Band_Slope[node]) end
-        if t == FILTER_LOW_CUT_BUTTERWORTH then listen_filter:ivf_high_cut_bw(listen_freq, Band_Slope[node]) end
+        if t == FILTER_LOW_CUT_BUTTERWORTH then listen_filter:ivf_high_cut_bwq(listen_freq, Band_Q[node], Band_Slope[node]) end
 
         if t == FILTER_LOW_CUT_ANALOG then listen_filter:ivf_high_cut(listen_freq, 0.701, 3) end
         if t == FILTER_HIGH_CUT_ANALOG then listen_filter:ivf_low_cut(listen_freq, 0.701, 3) end
@@ -2911,7 +2947,7 @@ local function preview_module()
         end
 
         if t == FILTER_HIGH_CUT then listen_filter:ivf_low_cut(listen_freq, Band_Q[node], Band_Slope[node]) end
-        if t == FILTER_HIGH_CUT_BUTTERWORTH then listen_filter:ivf_low_cut_bw(listen_freq, Band_Slope[node]) end
+        if t == FILTER_HIGH_CUT_BUTTERWORTH then listen_filter:ivf_low_cut_bwq(listen_freq, Band_Q[node], Band_Slope[node]) end
 
         if t == FILTER_TILT_SHELF or t == FILTER_ALL_PASS then listen_filter:ivf_bypass() end
 
@@ -2946,22 +2982,21 @@ local function preview_module()
     local LimitOutput, AutoGainEnabled, MidPolarity, SidePolarity, AG_Target = 0, 0, 0, 0, 1
     local ui_ipk0, ui_ipk1, ui_pk0, ui_pk1, ui_clip_in, ui_clip_out = 0, 0, 0, 0, 0, 0
 
-    -- from ReEQ2 2.1.0: ui_shape_name()
+    -- from ReEQ2 2.3.0: ui_shape_name() (types 1 and 5 are the legacy resonant cuts)
     local function ui_shape_name(t)
-      local names = { [0] = "Bell", "Low Cut", "Low Cut BW", "Low Shelf", "High Shelf", "High Cut", "High Cut BW", "Notch",
+      local names = { [0] = "Bell", "Low Cut", "Low Cut", "Low Shelf", "High Shelf", "High Cut", "High Cut", "Notch",
         "Band Pass", "Tilt Shelf", "Pultec Low", "All Pass", "Vintage Lo" }
       return names[t] or "Vintage Hi"
     end
 
-    -- from ReEQ2 2.1.0: ui_gain_inert(), ui_q_inert(), ui_group_name()
+    -- from ReEQ2 2.1.0: ui_gain_inert(), ui_group_name(); from 2.3.0: ui_q_inert()
     local function ui_gain_inert(t)
       return t == FILTER_NOTCH or t == FILTER_BAND_PASS or t == FILTER_ALL_PASS
     end
 
     local function ui_q_inert(b)
       local t = Band_Type[b]
-      return t == FILTER_LOW_CUT_BUTTERWORTH or t == FILTER_HIGH_CUT_BUTTERWORTH or t == FILTER_LOW_CUT_ANALOG or t == FILTER_HIGH_CUT_ANALOG
-        or ((t == FILTER_LOW_CUT or t == FILTER_HIGH_CUT) and Band_Slope[b] == 0)
+      return t == FILTER_LOW_CUT_ANALOG or t == FILTER_HIGH_CUT_ANALOG or (ui_is_cut(t) and Band_Slope[b] == 0)
     end
 
     local function ui_group_name(g)

@@ -10,13 +10,15 @@ function ri_bind(plan_address, curve_address, band_index, role)
 function ri_record(plan,slot,kind,ord,hz,q,db) local(r)(
   r=plan+4+slot*24;r[0]=kind;r[1]=ord;r[2]=hz/srate;r[3]=q;r[4]=db;
 );
-function ri_recipe(plan,type,hz,q,db,slope,dynamic) local(n,i,ord,k,qq,cut,t)(
+function ri_recipe(plan,type,hz,q,db,slope,dynamic) local(n,i,ord,k,qq,cut,t,r)(
   n=0;
   type===0 || type===3 || type===4 ? (
     dynamic || db!==0?(k=type===0?7:type===3?4:3;ri_record(plan,0,k,2,hz,q,db);n=1;);
   ):type===1 || type===2 || type===5 || type===6 ? (
-    ord=min(20,max(1,floor(slope)+1));k=type<=2?0:1;i=0;
-    loop(floor(ord/2),qq=(type===2 || type===6)?.5/cos($pi*(2*i+1+(ord&1))/(2*ord)):q;
+    // Types 2 and 6: Butterworth, the highest-Q (last) section's Q times r for the band's Q (ivf_cut_r).
+    // Types 1 and 5 (legacy): every section at the band's Q.
+    ord=min(20,max(1,floor(slope)+1));k=type<=2?0:1;i=0;r=ivf_cut_r(q,ord);
+    loop(floor(ord/2),qq=(type===2 || type===6)?.5/cos($pi*(2*i+1+(ord&1))/(2*ord))*(i===floor(ord/2)-1?r:1):q;
       ri_record(plan,i,k,2,hz,qq,0);i+=1;);
     n=i;ord&1?(ri_record(plan,n,k,1,hz,1,0);n+=1;);
   ):type===7 || type===8 || type===11 ? (

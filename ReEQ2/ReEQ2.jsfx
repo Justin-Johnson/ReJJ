@@ -29,7 +29,7 @@ slider135:Smoothing_Value=1<0,4,1{Off,1/48 Oct,1/24 Oct,1/12 Oct,1/6 Oct}>-Spect
 // each: band_slider and dyn_slider (@init) rely on these numbers
 slider18:Node1_Enabled=<0,2,1{Off,Disabled,Enabled}>-Filter1 Mode
 slider19:Node1_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter1 Group
-slider20:Node1_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter1 Type
+slider20:Node1_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter1 Type
 slider21:Node1_Frequency=50.81<0,104,0.01>-Filter1 Frequency
 slider22:Node1_Gain=8.0<-18.0,18.0,0.01>-Filter1 Gain
 slider23:Node1_Q=32.647<0,100.0,0.01>-Filter1 Q
@@ -37,7 +37,7 @@ slider24:Node1_Slope=0<0,19,1>-Filter1 Slope
 
 slider25:Node2_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter2 Mode
 slider26:Node2_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter2 Group
-slider27:Node2_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter2 Type
+slider27:Node2_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter2 Type
 slider28:Node2_Frequency=30<0,104,0.01>-Filter2 Frequency
 slider29:Node2_Gain=0.0<-18.0,18.0,0.01>-Filter2 Gain
 slider30:Node2_Q=32.647<0,100.0,0.01>-Filter2 Q
@@ -45,7 +45,7 @@ slider31:Node2_Slope=0<0,19,1>-Filter2 Slope
 
 slider32:Node3_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter3 Mode
 slider33:Node3_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter3 Group
-slider34:Node3_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter3 Type
+slider34:Node3_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter3 Type
 slider35:Node3_Frequency=40<0,104,0.01>-Filter3 Frequency
 slider36:Node3_Gain=0.0<-18.0,18.0,0.01>-Filter3 Gain
 slider37:Node3_Q=32.647<0,100.0,0.01>-Filter3 Q
@@ -53,7 +53,7 @@ slider38:Node3_Slope=0<0,19,1>-Filter3 Slope
 
 slider39:Node4_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter4 Mode
 slider40:Node4_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter4 Group
-slider41:Node4_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter4 Type
+slider41:Node4_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter4 Type
 slider42:Node4_Frequency=70<0,104,0.01>-Filter4 Frequency
 slider43:Node4_Gain=0.0<-18.0,18.0,0.01>-Filter4 Gain
 slider44:Node4_Q=32.647<0,100.0,0.01>-Filter4 Q
@@ -61,7 +61,7 @@ slider45:Node4_Slope=0<0,19,1>-Filter4 Slope
 
 slider46:Node5_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter5 Mode
 slider47:Node5_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter5 Group
-slider48:Node5_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter5 Type
+slider48:Node5_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter5 Type
 slider49:Node5_Frequency=70<0,104,0.01>-Filter5 Frequency
 slider50:Node5_Gain=0.0<-18.0,18.0,0.01>-Filter5 Gain
 slider51:Node5_Q=32.647<0,100.0,0.01>-Filter5 Q
@@ -75,7 +75,7 @@ slider57:PanelEnabled=1<0,1,1>-Panel Enabled
 
 slider58:Node6_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter6 Mode
 slider59:Node6_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter6 Group
-slider60:Node6_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter6 Type
+slider60:Node6_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter6 Type
 slider61:Node6_Frequency=50<0,104,0.01>-Filter6 Frequency
 slider62:Node6_Gain=0.0<-18.0,18.0,0.01>-Filter6 Gain
 slider63:Node6_Q=32.647<0,100.0,0.01>-Filter6 Q
@@ -83,7 +83,7 @@ slider64:Node6_Slope=0<0,19,1>-Filter6 Slope
 
 slider65:Node7_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter7 Mode
 slider66:Node7_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter7 Group
-slider67:Node7_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter7 Type
+slider67:Node7_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter7 Type
 slider68:Node7_Frequency=50<0,104,0.01>-Filter7 Frequency
 slider69:Node7_Gain=0.0<-18.0,18.0,0.01>-Filter7 Gain
 slider70:Node7_Q=32.647<0,100.0,0.01>-Filter7 Q
@@ -91,7 +91,7 @@ slider71:Node7_Slope=0<0,19,1>-Filter7 Slope
 
 slider72:Node8_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter8 Mode
 slider73:Node8_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter8 Group
-slider74:Node8_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter8 Type
+slider74:Node8_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter8 Type
 slider75:Node8_Frequency=50<0,104,0.01>-Filter8 Frequency
 slider76:Node8_Gain=0.0<-18.0,18.0,0.01>-Filter8 Gain
 slider77:Node8_Q=32.647<0,100.0,0.01>-Filter8 Q
@@ -99,7 +99,7 @@ slider78:Node8_Slope=0<0,19,1>-Filter8 Slope
 
 slider79:Node9_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter9 Mode
 slider80:Node9_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter9 Group
-slider81:Node9_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter9 Type
+slider81:Node9_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter9 Type
 slider82:Node9_Frequency=50<0,104,0.01>-Filter9 Frequency
 slider83:Node9_Gain=0.0<-18.0,18.0,0.01>-Filter9 Gain
 slider84:Node9_Q=32.647<0,100.0,0.01>-Filter9 Q
@@ -107,7 +107,7 @@ slider85:Node9_Slope=0<0,19,1>-Filter9 Slope
 
 slider86:Node10_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter10 Mode
 slider87:Node10_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter10 Group
-slider88:Node10_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter10 Type
+slider88:Node10_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter10 Type
 slider89:Node10_Frequency=50<0,104,0.01>-Filter10 Frequency
 slider90:Node10_Gain=0.0<-18.0,18.0,0.01>-Filter10 Gain
 slider91:Node10_Q=32.647<0,100.0,0.01>-Filter10 Q
@@ -115,7 +115,7 @@ slider92:Node10_Slope=0<0,19,1>-Filter10 Slope
 
 slider93:Node11_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter11 Mode
 slider94:Node11_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter11 Group
-slider95:Node11_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter11 Type
+slider95:Node11_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter11 Type
 slider96:Node11_Frequency=50<0,104,0.01>-Filter11 Frequency
 slider97:Node11_Gain=0.0<-18.0,18.0,0.01>-Filter11 Gain
 slider98:Node11_Q=32.647<0,100.0,0.01>-Filter11 Q
@@ -123,7 +123,7 @@ slider99:Node11_Slope=0<0,19,1>-Filter11 Slope
 
 slider100:Node12_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter12 Mode
 slider101:Node12_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter12 Group
-slider102:Node12_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter12 Type
+slider102:Node12_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter12 Type
 slider103:Node12_Frequency=50<0,104,0.01>-Filter12 Frequency
 slider104:Node12_Gain=0.0<-18.0,18.0,0.01>-Filter12 Gain
 slider105:Node12_Q=32.647<0,100.0,0.01>-Filter12 Q
@@ -131,7 +131,7 @@ slider106:Node12_Slope=0<0,19,1>-Filter12 Slope
 
 slider107:Node13_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter13 Mode
 slider108:Node13_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter13 Group
-slider109:Node13_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter13 Type
+slider109:Node13_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter13 Type
 slider110:Node13_Frequency=50<0,104,0.01>-Filter13 Frequency
 slider111:Node13_Gain=0.0<-18.0,18.0,0.01>-Filter13 Gain
 slider112:Node13_Q=32.647<0,100.0,0.01>-Filter13 Q
@@ -139,7 +139,7 @@ slider113:Node13_Slope=0<0,19,1>-Filter13 Slope
 
 slider114:Node14_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter14 Mode
 slider115:Node14_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter14 Group
-slider116:Node14_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter14 Type
+slider116:Node14_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter14 Type
 slider117:Node14_Frequency=50<0,104,0.01>-Filter14 Frequency
 slider118:Node14_Gain=0.0<-18.0,18.0,0.01>-Filter14 Gain
 slider119:Node14_Q=32.647<0,100.0,0.01>-Filter14 Q
@@ -147,7 +147,7 @@ slider120:Node14_Slope=0<0,19,1>-Filter14 Slope
 
 slider121:Node15_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter15 Mode
 slider122:Node15_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter15 Group
-slider123:Node15_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter15 Type
+slider123:Node15_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter15 Type
 slider124:Node15_Frequency=50<0,104,0.01>-Filter15 Frequency
 slider125:Node15_Gain=0.0<-18.0,18.0,0.01>-Filter15 Gain
 slider126:Node15_Q=32.647<0,100.0,0.01>-Filter15 Q
@@ -155,7 +155,7 @@ slider127:Node15_Slope=0<0,19,1>-Filter15 Slope
 
 slider128:Node16_Enabled=0<0,2,1{Off,Disabled,Enabled}>-Filter16 Mode
 slider129:Node16_Group=0<0,4,1{Stereo,Mid,Side,Left,Right}>-Filter16 Group
-slider130:Node16_Type=0<0,13,1{Bell,Low Cut,Low Cut BW,Low Shelf,High Shelf,High Cut,High Cut BW,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter16 Type
+slider130:Node16_Type=0<0,13,1{Bell,Low Cut (legacy),Low Cut,Low Shelf,High Shelf,High Cut (legacy),High Cut,Notch,Band Pass,Tilt Shelf,Pultec Low,All Pass,Vintage Lo,Vintage Hi}>-Filter16 Type
 slider131:Node16_Frequency=50<0,104,0.01>-Filter16 Frequency
 slider132:Node16_Gain=0.0<-18.0,18.0,0.01>-Filter16 Gain
 slider133:Node16_Q=32.647<0,100.0,0.01>-Filter16 Q
@@ -1089,6 +1089,25 @@ function q_to_per(q, range) (
 
 
 /*
+ * State from before 113, when the Butterworth cuts had no resonance: their Q goes back to 0.7071, so they
+ * sound as they did. Legacy resonant cuts that are the same filter as a Butterworth cut become one:
+ * 6 dB/oct, and 12 dB/oct with Q up to 30 (one section at the band's Q either way).
+ */
+function cuts_from_old_state() local(b, t) (
+  b = 0;
+  loop(NUM_BANDS,
+    t = Band_Type[b];
+    (t == FILTER_LOW_CUT || t == FILTER_HIGH_CUT) && (Band_Slope[b] == 0 || (Band_Slope[b] == 1 && Band_Q[b] <= 30)) ? (
+      Band_Type[b] = t == FILTER_LOW_CUT ? FILTER_LOW_CUT_BUTTERWORTH : FILTER_HIGH_CUT_BUTTERWORTH;
+      Band_Slope[b] == 0 ? Band_Q[b] = 0.7071;
+    ) : t == FILTER_LOW_CUT_BUTTERWORTH || t == FILTER_HIGH_CUT_BUTTERWORTH ? (
+      Band_Q[b] = 0.7071;
+    );
+    b += 1;
+  );
+);
+
+/*
  * Dynamics defaults for a band: off, -24dB threshold, 4:1, -6dB range, Auto timing, detecting its own
  * input, linked to the band
  */
@@ -1679,6 +1698,8 @@ init_rate != srate ? (
 
   // Define mapping from display order to index
   FilterMappingTo = MEMORY.alloc_memory(14);
+  // The native menu's shapes as last listed (legacy cuts only while in use)
+  Menu_Shape = MEMORY.alloc_memory(14);
   FilterMappingTo[0] = 0;
   FilterMappingTo[1] = 1;
   FilterMappingTo[2] = 2;
@@ -1847,11 +1868,14 @@ file_avail(handle) >= 0 ? (
     loop(NUM_BANDS, band_dyn_defaults(band); band += 1);
   );
 
+  // Before 113 the Butterworth cuts had no resonance
+  version < 113 ? cuts_from_old_state();
+
 ) : (
   // Write mode
   // The version number should reflect the ReEQ version when the file
   // format changed.
-  version = 112;
+  version = 113;
 
   file_var(0, version);
   file_var(0, NUM_BANDS);
@@ -2834,13 +2858,43 @@ function ui_fmt_db(s, v) (
 );
 
 function ui_shape_name(t) (
-  t == 0 ? "Bell" : t == 1 ? "Low Cut" : t == 2 ? "Low Cut BW" : t == 3 ? "Low Shelf" : t == 4 ? "High Shelf" :
-    t == 5 ? "High Cut" : t == 6 ? "High Cut BW" : t == 7 ? "Notch" : t == 8 ? "Band Pass" : t == 9 ? "Tilt Shelf" :
+  t == 0 ? "Bell" : t == 1 ? "Low Cut" : t == 2 ? "Low Cut" : t == 3 ? "Low Shelf" : t == 4 ? "High Shelf" :
+    t == 5 ? "High Cut" : t == 6 ? "High Cut" : t == 7 ? "Notch" : t == 8 ? "Band Pass" : t == 9 ? "Tilt Shelf" :
       t == 10 ? "Pultec Low" : t == 11 ? "All Pass" : t == 12 ? "Vintage Lo" : "Vintage Hi";
+);
+
+/*
+ * The legacy resonant cuts (types 1 and 5), kept so old projects sound as they did: offered only while a
+ * band uses one, and named as legacy wherever a name stands alone
+ */
+function ui_is_legacy(t) (
+  t == FILTER_LOW_CUT || t == FILTER_HIGH_CUT;
+);
+
+function ui_shape_label(t) (
+  t == FILTER_LOW_CUT ? "Low Cut (legacy)" : t == FILTER_HIGH_CUT ? "High Cut (legacy)" : ui_shape_name(t);
 );
 
 function ui_is_cut(t) (
   t == FILTER_LOW_CUT || t == FILTER_LOW_CUT_BUTTERWORTH || t == FILTER_HIGH_CUT || t == FILTER_HIGH_CUT_BUTTERWORTH;
+);
+
+// The Butterworth cuts (with resonance); the other two cuts are the legacy resonant ones
+function ui_is_bw_cut(t) (
+  t == FILTER_LOW_CUT_BUTTERWORTH || t == FILTER_HIGH_CUT_BUTTERWORTH;
+);
+
+/*
+ * A Butterworth cut's highest Q at slope step k: where its sharpest section reaches the analog fit's
+ * limit (ivf_cut_r), 30 at 12 dB/oct down to 3.3 at 120 dB/oct
+ */
+function cut_q_max(k) (
+  min(MAX_Q, ivf_cut_r(MAX_Q * 100, k + 1) / sqrt(2));
+);
+
+// A band's Q as heard: a Butterworth cut's within its slope's range (automation can set it higher)
+function band_q_heard(b) (
+  ui_is_bw_cut(Band_Type[b]) && Band_Slope[b] > 0 ? min(Band_Q[b], cut_q_max(Band_Slope[b])) : Band_Q[b];
 );
 
 // The ten slopes the menus offer, in dB/oct
@@ -2968,6 +3022,15 @@ function y_to_db(y) local(m) (
 
 function set_filter_from_xy(band, x, y) local(gain, s) (
     Band_Frequency[band] = scx_to_freq(x);
+    // A Butterworth cut: the height is 3 dB above its level at its frequency, 20 log10(Q sqrt 2) dB (6 dB/oct
+    // has no Q)
+    ui_is_bw_cut(Band_Type[band]) ? (
+      Band_Gain[band] = 0;
+      Band_Slope[band] > 0 ? (
+        Band_Q[band] = min(max(10 ^ (y_to_db(y) / 20) / sqrt(2), MIN_Q), cut_q_max(Band_Slope[band]));
+        notify_touched_Q(band);
+      );
+    ) :
     Band_Type[band] == FILTER_HIGH_CUT || Band_Type[band] == FILTER_LOW_CUT ? (
       Band_Slope[band] == 0 ? (
         Band_Q[band] = 0.707;
@@ -2981,8 +3044,7 @@ function set_filter_from_xy(band, x, y) local(gain, s) (
       notify_touched_Q(band);
     ) : (
       // Normal
-      Band_Type[band] == FILTER_NOTCH || Band_Type[band] == FILTER_BAND_PASS || Band_Type[band] == FILTER_ALL_PASS
-        || Band_Type[band] == FILTER_LOW_CUT_BUTTERWORTH || Band_Type[band] == FILTER_HIGH_CUT_BUTTERWORTH ? Band_Gain[band] = 0 
+      Band_Type[band] == FILTER_NOTCH || Band_Type[band] == FILTER_BAND_PASS || Band_Type[band] == FILTER_ALL_PASS ? Band_Gain[band] = 0 
         : Band_Gain[band] = y_to_db(y);
       // Notify Reaper that a parameter change has happened
       notify_touched_gain(band);
@@ -2997,6 +3059,11 @@ function get_filter_x(band) (
 );
 
 function get_filter_y(band) local(y, s) (
+    // A Butterworth cut's node is 3 dB above its curve at its frequency, so at Q 0.7071 (and at 6 dB/oct)
+    // it sits on the 0 dB line: 20 log10(Q sqrt 2) dB
+    ui_is_bw_cut(Band_Type[band]) ? (
+      y = db_to_y(Band_Slope[band] == 0 ? 0 : 20 * log10(min(Band_Q[band], cut_q_max(Band_Slope[band])) * sqrt(2)));
+    ) :
     Band_Type[band] == FILTER_HIGH_CUT || Band_Type[band] == FILTER_LOW_CUT ? (
       Band_Slope[band] == 0 ? y = db_to_y(0) : (
         // Convert Q to dB, then to screen Y
@@ -3004,8 +3071,8 @@ function get_filter_y(band) local(y, s) (
         y = db_to_y(((6 * s * log(Band_Q[band])) / log(2)) + (3 * s));
       );
     ) : (
-      // Butterworth, notch, bandpass and allpass don't have gain
-      Band_Type[band] == 2 || Band_Type[band] == 6 || Band_Type[band] == 7 || Band_Type[band] == 8 || Band_Type[band] == 11 ?  (
+      // Notch, band pass and all pass don't have gain
+      Band_Type[band] == FILTER_NOTCH || Band_Type[band] == FILTER_BAND_PASS || Band_Type[band] == FILTER_ALL_PASS ? (
         y = db_to_y(0);
       ) : (
         // Normal
@@ -3842,7 +3909,7 @@ function draw_info_panel(note_select)
         ui_is_cut(t) ? (
           strcpy(line2, "");
           sprintf(line2, "%d dB/oct", ui_slope_db(ui_slope_index(Band_Slope[band])));
-          (t == FILTER_LOW_CUT || t == FILTER_HIGH_CUT) && Band_Slope[band] > 0 ? strcat(line2, sprintf(#, " · Res %.2f", Band_Q[band]));
+          Band_Slope[band] > 0 ? strcat(line2, sprintf(#, " · Res %.2f", band_q_heard(band)));
         ) : t == FILTER_PULTEC_LOW_SHELF ? (
           strcat(line2, sprintf(#, " · Cut %.2f", Band_Q[band] / 40));
         ) : t != FILTER_LOW_CUT_ANALOG && t != FILTER_HIGH_CUT_ANALOG ? (
@@ -3968,7 +4035,7 @@ function draw_listen_helper()
         listen_filter.ivf_high_cut(listen_freq, Band_Q[node], Band_Slope[node]);
       );
       Band_Type[node] == FILTER_LOW_CUT_BUTTERWORTH ? (
-        listen_filter.ivf_high_cut_bw(listen_freq, Band_Slope[node]);
+        listen_filter.ivf_high_cut_bwq(listen_freq, Band_Q[node], Band_Slope[node]);
       );
 
       Band_Type[node] == FILTER_LOW_CUT_ANALOG ? (
@@ -3993,7 +4060,7 @@ function draw_listen_helper()
         listen_filter.ivf_low_cut(listen_freq, Band_Q[node], Band_Slope[node]);
       );
       Band_Type[node] == FILTER_HIGH_CUT_BUTTERWORTH ? (
-        listen_filter.ivf_low_cut_bw(listen_freq, Band_Slope[node]);
+        listen_filter.ivf_low_cut_bwq(listen_freq, Band_Q[node], Band_Slope[node]);
       );
 
       Band_Type[node] == FILTER_TILT_SHELF || Band_Type[node] == FILTER_ALL_PASS ? (
@@ -4080,7 +4147,7 @@ function create_band(band, x, y) local (m, g, f, i, enabledBands) (
 
   // Select band type based on frequency
   f < 20 ? ( 
-    Band_Type[band] = FILTER_LOW_CUT;
+    Band_Type[band] = FILTER_LOW_CUT_BUTTERWORTH;
     Band_Gain[band] = 0;
   ) : f < 30 ? ( 
     Band_Type[band] = FILTER_LOW_SHELF;
@@ -4091,11 +4158,13 @@ function create_band(band, x, y) local (m, g, f, i, enabledBands) (
     Band_Type[band] = FILTER_HIGH_SHELF;
     Band_Q[band] = 0.36;
   ) : ( 
-    Band_Type[band] = FILTER_HIGH_CUT;
+    Band_Type[band] = FILTER_HIGH_CUT_BUTTERWORTH;
     Band_Gain[band] = 0;
   );
 
   set_filter_from_xy(band, x, y);
+  // A new cut starts flat (Butterworth), wherever it was clicked
+  ui_is_bw_cut(Band_Type[band]) ? Band_Q[band] = 0.7071;
 
   flag_filter_update(band);
 
@@ -4223,7 +4292,13 @@ function update_drag_nodes_position(x, y, diffx, diffy) local(i, mmx, mmy, posx,
       mmx = posx - Band_Drag_OffsetX[i];
       mmy = posy - Band_Drag_OffsetY[i];
 
-      set_filter_from_xy(i, mmx, mmy);
+      // Until the pointer moves up or down, a Butterworth cut keeps its Q (its node may sit at the graph's
+      // edge, below a higher Q)
+      ui_is_bw_cut(Band_Type[i]) && diffy == 0 ? (
+        Band_Frequency[i] = scx_to_freq(mmx);
+        notify_touched_frequency(i);
+        flag_filter_update(i);
+      ) : set_filter_from_xy(i, mmx, mmy);
     );
     i += 1;
   );
@@ -4293,10 +4368,18 @@ function update_node_scroll_slope(band, md) local(k, qx, qy) (
     k == NumFilterSlopes ? k = 0;
     k = max(min(k - md, 9), 0);
 
-    qx = get_filter_x(band);
-    qy = get_filter_y(band);
-    Band_Slope[band] = ui_slope_db(k) / 6 - 1;
-    set_filter_from_xy(band, qx, qy);
+    ui_is_bw_cut(Band_Type[band]) ? (
+      // A Butterworth cut keeps its Q, within the new slope's range
+      Band_Slope[band] = ui_slope_db(k) / 6 - 1;
+      Band_Slope[band] > 0 ? Band_Q[band] = min(Band_Q[band], cut_q_max(Band_Slope[band]));
+      notify_touched_Q(band);
+      flag_filter_update(band);
+    ) : (
+      qx = get_filter_x(band);
+      qy = get_filter_y(band);
+      Band_Slope[band] = ui_slope_db(k) / 6 - 1;
+      set_filter_from_xy(band, qx, qy);
+    );
     filters_to_sliders();
   );
 );
@@ -4420,16 +4503,15 @@ function stereo_selected_nodes(stereo) local(i) (
   filters_to_sliders();
 );
 
-function set_shape_selected_nodes(shape, has_slope) local(i, newshape) (
-  newshape = FilterMappingTo[shape];
+function set_shape_selected_nodes(newshape, has_slope) local(i) (
 
   i = 0;
   while (i < NUM_BANDS) (
     Band_Selected[i] ? (
       !has_slope ? Band_Slope[i] = 1;
 
-      // Preserve Q when switching between normal low/high cuts
-      !((newshape == FILTER_LOW_CUT || newshape == FILTER_HIGH_CUT) && (Band_Type[i] == FILTER_LOW_CUT || Band_Type[i] == FILTER_HIGH_CUT)) ? (
+      // Q is kept between a low and a high cut of the same kind (Butterworth, or legacy)
+      !(ui_is_cut(newshape) && ui_is_cut(Band_Type[i]) && ui_is_bw_cut(newshape) == ui_is_bw_cut(Band_Type[i])) ? (
         Band_Q[i] = 0.7071;
       );
 
@@ -4452,12 +4534,17 @@ function set_shape_selected_nodes(shape, has_slope) local(i, newshape) (
 );
 
 function set_node_slope(band, slope) (
-  x = get_filter_x(band);
-  y = get_filter_y(band);
-
-  Band_Slope[band] = slope;
-
-  set_filter_from_xy(band, x, y);
+  ui_is_bw_cut(Band_Type[band]) ? (
+    // A Butterworth cut keeps its Q, within the new slope's range
+    Band_Slope[band] = slope;
+    slope > 0 ? Band_Q[band] = min(Band_Q[band], cut_q_max(slope));
+    notify_touched_Q(band);
+  ) : (
+    x = get_filter_x(band);
+    y = get_filter_y(band);
+    Band_Slope[band] = slope;
+    set_filter_from_xy(band, x, y);
+  );
 
   flag_filter_update(band);
 );
@@ -4578,8 +4665,7 @@ function ui_gain_inert(t) (
 
 function ui_q_inert(b) local(t) (
   t = Band_Type[b];
-  t == FILTER_LOW_CUT_BUTTERWORTH || t == FILTER_HIGH_CUT_BUTTERWORTH || t == FILTER_LOW_CUT_ANALOG || t == FILTER_HIGH_CUT_ANALOG
-    || ((t == FILTER_LOW_CUT || t == FILTER_HIGH_CUT) && Band_Slope[b] == 0);
+  t == FILTER_LOW_CUT_ANALOG || t == FILTER_HIGH_CUT_ANALOG || (ui_is_cut(t) && Band_Slope[b] == 0);
 );
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -4595,7 +4681,7 @@ function sv_spec(id, b) (
   strcpy(#sv_unit, "dB"); sv_def = 0;
   id == SV_FREQ ? (sv_min = MIN_FREQ; sv_max = MAX_FREQ; sv_int = 5; sv_dec = 1; sv_def = 500; strcpy(#sv_lab, "Frequency"); strcpy(#sv_unit, "Hz")) :
   id == SV_GAIN ? (sv_min = -BAND_GAIN_MAX; sv_max = BAND_GAIN_MAX; sv_int = 2; sv_dec = 1; strcpy(#sv_lab, "Gain")) :
-  id == SV_Q ? (sv_min = MIN_Q; sv_max = MAX_Q; sv_int = 2; sv_dec = 2; sv_def = 0.7071; strcpy(#sv_lab, ui_is_cut(Band_Type[b]) ? "Resonance" : "Q"); strcpy(#sv_unit, "")) :
+  id == SV_Q ? (sv_min = MIN_Q; sv_max = ui_is_bw_cut(Band_Type[b]) ? cut_q_max(Band_Slope[b]) : MAX_Q; sv_int = 2; sv_dec = 2; sv_def = 0.7071; strcpy(#sv_lab, ui_is_cut(Band_Type[b]) ? "Resonance" : "Q"); strcpy(#sv_unit, "")) :
   id == SV_THRESH ? (sv_min = DYN_THRESH_MIN; sv_max = 0; sv_int = 2; sv_dec = 1; sv_def = -24; strcpy(#sv_lab, "Threshold")) :
   id == SV_RATIO ? (sv_min = 1; sv_max = DYN_RATIO_MAX; sv_int = 2; sv_dec = 1; sv_def = 4; strcpy(#sv_lab, "Ratio"); strcpy(#sv_unit, ":1")) :
   id == SV_RANGE ? (sv_min = -DYN_RANGE_MAX; sv_max = DYN_RANGE_MAX; sv_int = 2; sv_dec = 1; sv_def = -6; strcpy(#sv_lab, "Range")) :
@@ -4609,7 +4695,7 @@ function sv_spec(id, b) (
 );
 
 function sv_get(id, b) (
-  id == SV_FREQ ? Band_Frequency[b] : id == SV_GAIN ? Band_Gain[b] : id == SV_Q ? Band_Q[b] :
+  id == SV_FREQ ? Band_Frequency[b] : id == SV_GAIN ? Band_Gain[b] : id == SV_Q ? band_q_heard(b) :
   id == SV_THRESH ? Band_Dyn_Thresh[b] : id == SV_RATIO ? Band_Dyn_Ratio[b] : id == SV_RANGE ? Band_Dynamic_Range[b] :
   id == SV_ATTACK ? Band_Dyn_Attack[b] : id == SV_RELEASE ? Band_Dyn_Release[b] :
   id == SV_IN ? InGain : id == SV_SCALE ? Scale : id == SV_MID ? MLGain : id == SV_SIDE ? SRGain : Gain;
@@ -4623,7 +4709,8 @@ function sv_get(id, b) (
  */
 function sv_put(id, b, v) (
   id <= SV_RELEASE ? (
-    id == SV_FREQ ? Band_Frequency[b] = v : id == SV_GAIN ? Band_Gain[b] = v : id == SV_Q ? Band_Q[b] = v :
+    id == SV_FREQ ? Band_Frequency[b] = v : id == SV_GAIN ? Band_Gain[b] = v :
+      id == SV_Q ? Band_Q[b] = ui_is_bw_cut(Band_Type[b]) ? min(v, cut_q_max(Band_Slope[b])) : v :
       id == SV_THRESH ? Band_Dyn_Thresh[b] = v : id == SV_RATIO ? Band_Dyn_Ratio[b] = v : id == SV_RANGE ? Band_Dynamic_Range[b] = v :
       id == SV_ATTACK ? Band_Dyn_Attack[b] = v : Band_Dyn_Release[b] = v;
     // The dials reshape the band's filter; the dynamics settings are read as they run
@@ -4797,10 +4884,23 @@ function ui_shape_icon(type, x, y, k) local(s, m, flip, i, n, t0, t1, y0, y1, ba
   );
 );
 
-// Picker tile order: tonal shapes, then cuts and all pass
+// Whether a band uses shape t
+function ui_legacy_used(t) local(b, u) (
+  u = 0; b = 0;
+  loop(NUM_BANDS, Band_Enabled[b] != BAND_STATE_OFF && Band_Type[b] == t ? u = 1; b += 1);
+  u;
+);
+
+// The pickers' tiles: twelve shapes, then each legacy cut a band uses
+function ui_tile_count() (
+  12 + ui_legacy_used(FILTER_LOW_CUT) + ui_legacy_used(FILTER_HIGH_CUT);
+);
+
+// Picker tile order: tonal shapes, then cuts and all pass, then any legacy cuts in use
 function ui_tile_type(i) (
   i == 0 ? 0 : i == 1 ? 3 : i == 2 ? 4 : i == 3 ? 9 : i == 4 ? 10 : i == 5 ? 7 : i == 6 ? 8 :
-    i == 7 ? 1 : i == 8 ? 2 : i == 9 ? 12 : i == 10 ? 5 : i == 11 ? 6 : i == 12 ? 13 : 11;
+    i == 7 ? 2 : i == 8 ? 12 : i == 9 ? 6 : i == 10 ? 13 : i == 11 ? 11 :
+      i == 12 && ui_legacy_used(FILTER_LOW_CUT) ? FILTER_LOW_CUT : FILTER_HIGH_CUT;
 );
 
 function ui_group_name(g) (
@@ -4816,8 +4916,8 @@ function ui_set_shape(b, nt) local(ot) (
     // As the node menu does: entering a cut from another shape starts at 12 dB, otherwise the slope is kept
     !ui_is_cut(ot) ? Band_Slope[b] = 1;
 
-    // Preserve Q when switching between normal low/high cuts
-    !((nt == FILTER_LOW_CUT || nt == FILTER_HIGH_CUT) && (ot == FILTER_LOW_CUT || ot == FILTER_HIGH_CUT)) ? Band_Q[b] = 0.7071;
+    // Q is kept between a low and a high cut of the same kind (Butterworth, or legacy)
+    !(ui_is_cut(nt) && ui_is_cut(ot) && ui_is_bw_cut(nt) == ui_is_bw_cut(ot)) ? Band_Q[b] = 0.7071;
 
     Band_Type[b] = nt;
     nt == FILTER_PULTEC_LOW_SHELF ? (Band_Q[b] = 20; Band_Slope[b] = 1);
@@ -5212,12 +5312,13 @@ function ui_slope_chips(x, y, cw, h, b, pr) local(s, cut, cur, k, chip, hov, hit
 /*
  * Shape picker: 7 x 2 icon tiles and, for cuts, a slope row
  */
-function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on, hov, ax, cut, k, dy, inpop, pr) (
+function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on, hov, lg, ax, cut, k, dy, inpop, pr) (
   s = ui_pt(1);
   // The press that opened the picker is not a pick
   pr = ui_press && !ui_pop_skip; ui_pop_skip = 0;
   // Tiles wide enough for the longest name in Body, with 5pt either side
   gfx_setfont(FONT_BODY);
+  // (Sized for "High Cut BW", the longest name the picker has shown, so it keeps its size)
   tw = max((560 * s - 16 * s - 24 * s) / 7, ui_text_w("High Cut BW") + 10 * s); th = 58 * s;
   pw = 16 * s + 24 * s + tw * 7;
   ph = 8 * s + th * 2 + 4 * s + 8 * s + 1 + 8 * s + 22 * s + 8 * s;
@@ -5226,17 +5327,21 @@ function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on,
   inpop = ui_in(px, py, pw, ph);
 
   i = 0;
-  loop(14,
+  loop(ui_tile_count(),
     t = ui_tile_type(i);
     tx = floor(px + 8 * s + (i % 7) * (tw + 4 * s)); ty = floor(py + 8 * s + floor(i / 7) * (th + 4 * s));
     on = t == Band_Type[b];
     hov = ui_in(tx, ty, tw, th);
+    lg = ui_is_legacy(t);
     on ? ui_band_tile(tx, ty, tw, th, 5 * s, b, 0.10)
        : hov ? ui_box(tx, ty, tw, th, 5 * s, T_CONTROL_HOVER, 1, T_BORDER_HOVER);
+    // A legacy cut: dimmed, a LEGACY caption above a smaller icon
+    lg ? (gfx_setfont(FONT_CAP); ui_col_a(T_TEXT_FAINT, on || hov ? 1 : 0.6); ui_text_c(tx, ty + 4 * s, tw, 9 * s, "LEGACY"));
     on ? ui_band_col(b) : ui_col(T_TEXT_SECONDARY);
-    ui_shape_icon(t, tx + tw * 0.5 - 20 * s, ty + 7 * s, 1);
+    lg && !on ? gfx_a *= 0.5;
+    lg ? ui_shape_icon(t, tx + tw * 0.5 - 16 * s, ty + 14 * s, 0.8) : ui_shape_icon(t, tx + tw * 0.5 - 20 * s, ty + 7 * s, 1);
     gfx_setfont(FONT_BODY);
-    ui_col(on ? T_SELECTED : hov ? T_TEXT : T_TEXT_DIM);
+    ui_col_a(on ? T_SELECTED : hov ? T_TEXT : T_TEXT_DIM, lg && !on && !hov ? 0.6 : 1);
     ui_text_c(tx, ty + th - 18 * s, tw, 14 * s, ui_shape_name(t));
     pr && hov ? (
       ui_set_shape(b, t);
@@ -5326,7 +5431,7 @@ function ui_draw_stereo_pop(b) local(s, pw, ph, px, py, tw, th, g, tx, ty, on, h
  * the header and the highlights describe the band that was right-clicked.
  */
 function ui_draw_node_card()
-  local(s, b, pad, W, H, x0, y0, x, y, tw, th, i, t, m, tx, ty, on, hov, cut, cw, k, g, bw, bh, inpop, pr, skip, close, lab)
+  local(s, b, pad, W, H, x0, y0, x, y, tw, th, i, t, tx, ty, on, hov, lg, cut, cw, k, g, bw, bh, inpop, pr, skip, close, lab)
 (
   s = ui_pt(1);
   b = ui_card_band;
@@ -5352,7 +5457,7 @@ function ui_draw_node_card()
   ui_text_at(x + 8 * s, y + 11 * s, sprintf(#, "%d", b + 1));
   cut = ui_is_cut(Band_Type[b]);
   lab = #;
-  cut ? sprintf(lab, "%s · %d", ui_shape_name(Band_Type[b]), ui_slope_db(ui_slope_index(Band_Slope[b]))) : strcpy(lab, ui_shape_name(Band_Type[b]));
+  cut ? sprintf(lab, "%s · %d", ui_shape_label(Band_Type[b]), ui_slope_db(ui_slope_index(Band_Slope[b]))) : strcpy(lab, ui_shape_label(Band_Type[b]));
   gfx_setfont(FONT_BODY_B); ui_col(T_TEXT);
   ui_text_l(x + 24 * s, y, 22 * s, lab);
   k = x + 24 * s + ui_text_w(lab) + 8 * s;
@@ -5390,24 +5495,23 @@ function ui_draw_node_card()
   ui_text_l(x, y, 10 * s, "SHAPE");
   y += 10 * s + 5 * s;
   i = 0;
-  loop(14,
+  loop(ui_tile_count(),
     t = ui_tile_type(i);
     tx = floor(x + (i % 7) * (tw + 3 * s)); ty = floor(y + floor(i / 7) * (th + 3 * s));
     on = t == Band_Type[b];
     hov = ui_in(tx, ty, tw, th);
+    lg = ui_is_legacy(t);
     on ? ui_band_tile(tx, ty, tw, th, 4 * s, b, 0.10)
        : ui_box(tx, ty, tw, th, 4 * s, hov ? T_CONTROL_HOVER : T_TILE, 1, hov ? T_BORDER_HOVER : T_BORDER_SUBTLE);
+    // A legacy cut: dimmed, a LEGACY caption above a smaller icon
+    lg ? (gfx_setfont(FONT_CAP); ui_col_a(T_TEXT_FAINT, on || hov ? 1 : 0.6); ui_text_c(tx, ty + 2 * s, tw, 9 * s, "LEGACY"));
     on ? ui_band_col(b) : ui_col(T_TEXT_SECONDARY);
-    ui_shape_icon(t, tx + tw * 0.5 - 17 * s, ty + 4 * s, 0.85);
+    lg && !on ? gfx_a *= 0.5;
+    lg ? ui_shape_icon(t, tx + tw * 0.5 - 13 * s, ty + 11 * s, 0.65) : ui_shape_icon(t, tx + tw * 0.5 - 17 * s, ty + 4 * s, 0.85);
     gfx_setfont(FONT_CAP);
-    ui_col(on ? T_SELECTED : hov ? T_TEXT : T_TEXT_DIM);
+    ui_col_a(on ? T_SELECTED : hov ? T_TEXT : T_TEXT_DIM, lg && !on && !hov ? 0.6 : 1);
     ui_text_c(tx, ty + th - 15 * s, tw, 13 * s, ui_shape_name(t));
-    pr && hov && !on ? (
-      // The old menu's item order: find this type's position in it
-      m = 0;
-      while (m < 13 && FilterMappingTo[m] != t ? (m += 1; 1) : 0);
-      set_shape_selected_nodes(m, cut);
-    );
+    pr && hov && !on ? set_shape_selected_nodes(t, cut);
     i += 1;
   );
   y += th * 2 + 3 * s + 8 * s;
@@ -6290,7 +6394,7 @@ function ui_draw_panel()
   ui_text_at(x + 21 * s, y + 18 * s, sprintf(#, "%d", b + 1));
 
   lab = #;
-  cut ? sprintf(lab, "%s · %d", ui_shape_name(t), ui_slope_db(ui_slope_index(Band_Slope[b]))) : strcpy(lab, ui_shape_name(t));
+  cut ? sprintf(lab, "%s · %d", ui_shape_label(t), ui_slope_db(ui_slope_index(Band_Slope[b]))) : strcpy(lab, ui_shape_label(t));
   gfx_setfont(FONT_BODY);
   sw = ui_text_w(lab) + 33 * s; sx = x + 38 * s;
   ui_dropdown(sx, hy, sw, hh, lab, ui_popup == 1) ? (ui_popup = 1; ui_pop_skip = 1; ui_block = 1; ui_pop_x = sx; ui_pop_y = hy; ui_pop_w = sw);
@@ -6455,12 +6559,12 @@ function ui_draw_panel()
     // Q, or resonance for the cuts
     dimq = ui_q_inert(b);
     dial_q.x = dimq ? -100000 : cx + sp; dial_q.y = cy; dial_q.r = 29 * s;
-    rv = q_to_per(Band_Q[b], 1.0);
+    rv = q_to_per(band_q_heard(b), 1.0);
     !dimq && ui_popup == 0 && !ui_block ? (
       v = dial_q.handle_number_dial(rv);
       v != rv ? sv_put(SV_Q, b, per_to_q(v, 1.0));
     );
-    ui_dial_face(cx + sp, cy, cut ? "RESONANCE" : "Q", q_to_per(Band_Q[b], 1.0), 0, 0, dimq, sprintf(#, "%.2f", Band_Q[b]), "");
+    ui_dial_face(cx + sp, cy, cut ? "RESONANCE" : "Q", q_to_per(band_q_heard(b), 1.0), 0, 0, dimq, sprintf(#, "%.2f", band_q_heard(b)), "");
 
     dyn ? ui_draw_dyn_block(b, hl, y, x + w);
 
@@ -6770,12 +6874,19 @@ do_general_mouse ? (
           #menu = "";
           Band_Enabled[band] == BAND_STATE_DISABLED ? #menu += "Enable" : #menu += "Disable";
           #menu += "|Invert Gain|Zero Gain||>Shape|";
-          // Shapes in their display order; slopes only for the cuts
-          menu_i = 0;
+          // Shapes in their display order (a legacy cut only while a band uses it, into Menu_Shape); slopes
+          // only for the cuts
+          menu_n = 0; menu_i = 0;
           loop(14,
-            Band_Type[band] == FilterMappingTo[menu_i] ? #menu += "!";
-            menu_i == 13 ? #menu += "<";
-            #menu += ui_shape_name(FilterMappingTo[menu_i]); #menu += "|";
+            menu_t = FilterMappingTo[menu_i];
+            !ui_is_legacy(menu_t) || ui_legacy_used(menu_t) ? (Menu_Shape[menu_n] = menu_t; menu_n += 1);
+            menu_i += 1;
+          );
+          menu_i = 0;
+          loop(menu_n,
+            Band_Type[band] == Menu_Shape[menu_i] ? #menu += "!";
+            menu_i == menu_n - 1 ? #menu += "<";
+            #menu += ui_shape_label(Menu_Shape[menu_i]); #menu += "|";
             menu_i += 1;
           );
           has_slope_menu = ui_is_cut(Band_Type[band]);
@@ -6808,15 +6919,17 @@ do_general_mouse ? (
           last_clicked_item == 1 ? toggle_nodes_enabled(band);
           last_clicked_item == 2 ? invert_nodes_gain();
           last_clicked_item == 3 ? zero_nodes_gain();
-          last_clicked_item >= 4 && last_clicked_item <= 17 ? set_shape_selected_nodes(last_clicked_item - 4, has_slope_menu);
-          // Without the Slope submenu, the items after Shape come 10 earlier
+          // Items 1 to 3, then the shapes, the slopes (for a cut), the placements, Split, Duplicate, Delete
+          menu_i = 4 + menu_n;
+          last_clicked_item >= 4 && last_clicked_item < menu_i ? set_shape_selected_nodes(Menu_Shape[last_clicked_item - 4], has_slope_menu);
           has_slope_menu ? (
-            last_clicked_item >= 18 && last_clicked_item <= 27 ? set_slopes_selected_nodes(ui_slope_db(last_clicked_item - 18) / 6 - 1);
-          ) : last_clicked_item += 10;
-          last_clicked_item >= 28 && last_clicked_item <= 32 ? stereo_selected_nodes(last_clicked_item - 28);
-          last_clicked_item == 33 ? copy_selected_nodes(1);
-          last_clicked_item == 34 ? copy_selected_nodes(0);
-          last_clicked_item == 35 ? delete_selected_nodes();
+            last_clicked_item >= menu_i && last_clicked_item < menu_i + 10 ? set_slopes_selected_nodes(ui_slope_db(last_clicked_item - menu_i) / 6 - 1);
+            menu_i += 10;
+          );
+          last_clicked_item >= menu_i && last_clicked_item < menu_i + 5 ? stereo_selected_nodes(last_clicked_item - menu_i);
+          last_clicked_item == menu_i + 5 ? copy_selected_nodes(1);
+          last_clicked_item == menu_i + 6 ? copy_selected_nodes(0);
+          last_clicked_item == menu_i + 7 ? delete_selected_nodes();
         );
 
         band = NUM_BANDS;
