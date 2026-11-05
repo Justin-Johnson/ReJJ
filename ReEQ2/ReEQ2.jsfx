@@ -4912,6 +4912,32 @@ function ui_clip_glow(x, y, w, h, glow) (
 );
 
 /*
+ * A toolbar number field, dragged like the old number buttons (in this button's namespace): type 0 a
+ * gain in dB, 1 the Scale %; value v (its stepper id sv); the field is fw wide, of which the left hw
+ * drags; label, shown value and unit as ui_field. live: whether it takes the mouse.
+ */
+function ui_num_field(tp, fx, fy, fw, hw, fh, v, sv, lab, val, unit, live) instance(type, x, y, width, height, db, drag) local(nv) (
+  type = tp;
+  x = fx; y = fy; width = hw; height = fh;
+  db = v;
+  live ? (
+    nv = this.handle_number_button();
+    nv != v ? sv_put(sv, -1, nv);
+  );
+  ui_field(fx, fy, fw, fh, lab, val, unit, drag || ui_hover(fx, fy, hw, fh));
+);
+
+/*
+ * A field's polarity toggle (ø) at px, pw wide, lit when on. Returns 1 when clicked.
+ */
+function ui_pol(px, y, pw, h, on) (
+  ui_col(T_BORDER); gfx_line(px, y + 1, px, y + h - 2, 0);
+  ui_col(ui_hover(px, y, pw, h) || on ? (on ? T_ACCENT : T_TEXT) : T_TEXT_DIM);
+  gfx_setfont(FONT_BODY); ui_text_c(px, y, pw, h, "ø");
+  ui_clicked(px, y, pw, h);
+);
+
+/*
  * Bottom toolbar
  */
 function ui_draw_bar()
@@ -4979,28 +5005,14 @@ function ui_draw_bar()
 
   // Input trim with its peak meter
   x = xl;
-  button_in_gain.type = 0;
-  button_in_gain.x = x; button_in_gain.y = y; button_in_gain.width = w_in; button_in_gain.height = h;
-  button_in_gain.db = InGain;
-  can ? (
-    nv = button_in_gain.handle_number_button();
-    nv != InGain ? sv_put(SV_IN, -1, nv);
-  );
-  ui_field(x, y, w_in, h, labels ? "IN" : "", inv, units ? "dB" : "", button_in_gain.drag || ui_hover(x, y, w_in, h));
+  button_in_gain.ui_num_field(0, x, y, w_in, w_in, h, InGain, SV_IN, labels ? "IN" : "", inv, units ? "dB" : "", can);
   ui_clip_glow(x, y, w_in, h, ui_clip_in);
   ui_meter(x, y, w_in, h, mw, ui_ipk0, ui_ipk1);
 
   // Scale, then the stereo controls: L/R | M/S (Stereo_Mode 0 is M/S, 1 is L/R) and its two trims.
   // The fields drag like the old number buttons.
   x = xc;
-  button_scale.type = 1;
-  button_scale.x = x; button_scale.y = y; button_scale.width = w_sc; button_scale.height = h;
-  button_scale.db = Scale;
-  can ? (
-    nv = button_scale.handle_number_button();
-    nv != Scale ? sv_put(SV_SCALE, -1, nv);
-  );
-  ui_field(x, y, w_sc, h, labels ? "SCALE" : "", sc, "", button_scale.drag || ui_hover(x, y, w_sc, h));
+  button_scale.ui_num_field(1, x, y, w_sc, w_sc, h, Scale, SV_SCALE, labels ? "SCALE" : "", sc, "", can);
 
   x += w_sc + gap;
   nv = ui_seg2(x, y, h, w_lr, w_ms, "L/R", "M/S", Stereo_Mode ? 0 : 1);
@@ -5010,32 +5022,12 @@ function ui_draw_bar()
   );
 
   x += w_lr + w_ms + gap;
-  button_mid_gain.type = 0;
-  button_mid_gain.x = x; button_mid_gain.y = y; button_mid_gain.width = w_mid - pol; button_mid_gain.height = h;
-  button_mid_gain.db = MLGain;
-  can ? (
-    nv = button_mid_gain.handle_number_button();
-    nv != MLGain ? sv_put(SV_MID, -1, nv);
-  );
-  ui_field(x, y, w_mid, h, labels ? (Stereo_Mode ? "LEFT" : "MID") : "", midv, units ? "dB" : "", button_mid_gain.drag || ui_hover(x, y, w_mid - pol, h));
-  ui_col(T_BORDER); gfx_line(x + w_mid - pol, y + 1, x + w_mid - pol, y + h - 2, 0);
-  ui_col(ui_hover(x + w_mid - pol, y, pol, h) || MidPolarity ? (MidPolarity ? T_ACCENT : T_TEXT) : T_TEXT_DIM);
-  gfx_setfont(FONT_BODY); ui_text_c(x + w_mid - pol, y, pol, h, "ø");
-  ui_clicked(x + w_mid - pol, y, pol, h) ? (MidPolarity = !MidPolarity; slider_automate(MidPolarity));
+  button_mid_gain.ui_num_field(0, x, y, w_mid, w_mid - pol, h, MLGain, SV_MID, labels ? (Stereo_Mode ? "LEFT" : "MID") : "", midv, units ? "dB" : "", can);
+  ui_pol(x + w_mid - pol, y, pol, h, MidPolarity) ? (MidPolarity = !MidPolarity; slider_automate(MidPolarity));
 
   x += w_mid + gap;
-  button_side_gain.type = 0;
-  button_side_gain.x = x; button_side_gain.y = y; button_side_gain.width = w_side - pol; button_side_gain.height = h;
-  button_side_gain.db = SRGain;
-  can ? (
-    nv = button_side_gain.handle_number_button();
-    nv != SRGain ? sv_put(SV_SIDE, -1, nv);
-  );
-  ui_field(x, y, w_side, h, labels ? (Stereo_Mode ? "RIGHT" : "SIDE") : "", sidev, units ? "dB" : "", button_side_gain.drag || ui_hover(x, y, w_side - pol, h));
-  ui_col(T_BORDER); gfx_line(x + w_side - pol, y + 1, x + w_side - pol, y + h - 2, 0);
-  ui_col(ui_hover(x + w_side - pol, y, pol, h) || SidePolarity ? (SidePolarity ? T_ACCENT : T_TEXT) : T_TEXT_DIM);
-  gfx_setfont(FONT_BODY); ui_text_c(x + w_side - pol, y, pol, h, "ø");
-  ui_clicked(x + w_side - pol, y, pol, h) ? (SidePolarity = !SidePolarity; slider_automate(SidePolarity));
+  button_side_gain.ui_num_field(0, x, y, w_side, w_side - pol, h, SRGain, SV_SIDE, labels ? (Stereo_Mode ? "RIGHT" : "SIDE") : "", sidev, units ? "dB" : "", can);
+  ui_pol(x + w_side - pol, y, pol, h, SidePolarity) ? (SidePolarity = !SidePolarity; slider_automate(SidePolarity));
 
   // Output: Limit, Auto (right-click to apply its make-up to Out), Panel, Out with a peak meter
   x = xr;
@@ -5058,14 +5050,7 @@ function ui_draw_bar()
   ui_button(x, y, w_pan, h, "Panel", PanelEnabled ? 1 : 0) ? (PanelEnabled = !PanelEnabled; slider_automate(PanelEnabled));
   x += w_pan + gap;
 
-  button_gain.type = 0;
-  button_gain.x = x; button_gain.y = y; button_gain.width = w_out; button_gain.height = h;
-  button_gain.db = Gain;
-  can ? (
-    nv = button_gain.handle_number_button();
-    nv != Gain ? sv_put(SV_OUT, -1, nv);
-  );
-  ui_field(x, y, w_out, h, labels ? "OUT" : "", outv, units ? "dB" : "", button_gain.drag || ui_hover(x, y, w_out, h));
+  button_gain.ui_num_field(0, x, y, w_out, w_out, h, Gain, SV_OUT, labels ? "OUT" : "", outv, units ? "dB" : "", can);
 
   ui_clip_glow(x, y, w_out, h, ui_clip_out);
   ui_meter(x, y, w_out, h, mw, ui_pk0, ui_pk1);
@@ -5192,9 +5177,42 @@ function ui_pop_frame(px, pw, ph) local(s, ax, py, below, x, y, w, h, r, p, e) (
 );
 
 /*
+ * A tile lit in band b's colour: fill at alpha fa, then a full outline
+ */
+function ui_band_tile(x, y, w, h, r, b, fa) (
+  ui_band_col(b); gfx_a = fa; ui_fill_rrect(x, y, w, h, r); gfx_a = 1; gfx_roundrect(x, y, w - 1, h - 1, r, 1);
+);
+
+/*
+ * The ten slope chips from x, each cw wide and h high, 3pt apart: band b's slope lit, all dimmed unless
+ * the band is a cut. Returns the chip pressed (pr), or -1.
+ */
+function ui_slope_chips(x, y, cw, h, b, pr) local(s, cut, cur, k, chip, hov, hit) (
+  s = ui_pt(1);
+  cut = ui_is_cut(Band_Type[b]);
+  cur = cut ? ui_slope_index(Band_Slope[b]) : -1;
+  hit = -1;
+  k = 0;
+  loop(10,
+    chip = floor(x + k * (cw + 3 * s));
+    hov = cut && ui_in(chip, y, cw, h);
+    k == cur ? ui_band_tile(chip, y, cw, h, 4 * s, b, 0.14)
+             : (ui_col_a(hov ? T_CONTROL_HOVER : T_CONTROL, cut ? 1 : 0.35); ui_fill_rrect(chip, y, cw, h, 4 * s);
+                ui_col_a(T_BORDER, cut ? 1 : 0.35); gfx_roundrect(chip, y, cw - 1, h - 1, 4 * s, 1));
+    gfx_setfont(k == cur ? FONT_BODY_B : FONT_BODY);
+    ui_col_a(k == cur ? T_SELECTED : hov ? T_TEXT : T_TEXT_SECONDARY, k == cur || cut ? 1 : 0.35);
+    ui_text_c(chip, y, cw, h, sprintf(#, "%d", ui_slope_db(k)));
+    pr && hov ? hit = k;
+    k += 1;
+  );
+  gfx_a = 1;
+  hit;
+);
+
+/*
  * Shape picker: 7 x 2 icon tiles and, for cuts, a slope row
  */
-function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on, hov, ax, cut, cur, cx0, cw, k, dy, chip, inpop, pr) (
+function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on, hov, ax, cut, k, dy, inpop, pr) (
   s = ui_pt(1);
   // The press that opened the picker is not a pick
   pr = ui_press && !ui_pop_skip; ui_pop_skip = 0;
@@ -5213,7 +5231,7 @@ function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on,
     tx = floor(px + 8 * s + (i % 7) * (tw + 4 * s)); ty = floor(py + 8 * s + floor(i / 7) * (th + 4 * s));
     on = t == Band_Type[b];
     hov = ui_in(tx, ty, tw, th);
-    on ? (ui_band_col(b); gfx_a = 0.10; ui_fill_rrect(tx, ty, tw, th, 5 * s); gfx_a = 1; gfx_roundrect(tx, ty, tw - 1, th - 1, 5 * s, 1))
+    on ? ui_band_tile(tx, ty, tw, th, 5 * s, b, 0.10)
        : hov ? ui_box(tx, ty, tw, th, 5 * s, T_CONTROL_HOVER, 1, T_BORDER_HOVER);
     on ? ui_band_col(b) : ui_col(T_TEXT_SECONDARY);
     ui_shape_icon(t, tx + tw * 0.5 - 20 * s, ty + 7 * s, 1);
@@ -5232,30 +5250,16 @@ function ui_draw_shape_pop(b) local(s, pw, ph, px, py, tw, th, i, t, tx, ty, on,
   ui_col(T_BORDER_SUBTLE); gfx_line(px + 8 * s, dy, px + pw - 8 * s, dy, 0);
   dy += 1 + 8 * s;
   cut = ui_is_cut(Band_Type[b]);
-  cur = cut ? ui_slope_index(Band_Slope[b]) : -1;
   gfx_setfont(FONT_CAP); ui_col_a(T_TEXT_DIM, cut ? 1 : 0.35);
   ui_text_l(px + 8 * s, dy, 22 * s, "SLOPE");
   gfx_setfont(FONT_CAP); ui_col_a(T_TEXT_FAINT, cut ? 1 : 0.35);
   ui_text_r(px + pw - 48 * s, dy, 40 * s, 22 * s, "dB/oct");
-  cx0 = px + 56 * s; cw = (pw - 56 * s - 56 * s - 27 * s) / 10;
-  k = 0;
-  loop(10,
-    chip = floor(cx0 + k * (cw + 3 * s));
-    hov = cut && ui_in(chip, dy, cw, 22 * s);
-    k == cur ? (ui_band_col(b); gfx_a = 0.14; ui_fill_rrect(chip, dy, cw, 22 * s, 4 * s); gfx_a = 1; gfx_roundrect(chip, dy, cw - 1, 22 * s - 1, 4 * s, 1))
-             : (ui_col_a(hov ? T_CONTROL_HOVER : T_CONTROL, cut ? 1 : 0.35); ui_fill_rrect(chip, dy, cw, 22 * s, 4 * s);
-                ui_col_a(T_BORDER, cut ? 1 : 0.35); gfx_roundrect(chip, dy, cw - 1, 22 * s - 1, 4 * s, 1));
-    gfx_setfont(k == cur ? FONT_BODY_B : FONT_BODY);
-    ui_col_a(k == cur ? T_SELECTED : hov ? T_TEXT : T_TEXT_SECONDARY, k == cur || cut ? 1 : 0.35);
-    ui_text_c(chip, dy, cw, 22 * s, sprintf(#, "%d", ui_slope_db(k)));
-    pr && hov ? (
-      set_node_slope(b, ui_slope_db(k) / 6 - 1);
-      filters_to_sliders();
-      ui_popup = 0;
-    );
-    k += 1;
+  k = ui_slope_chips(px + 56 * s, dy, (pw - 56 * s - 56 * s - 27 * s) / 10, 22 * s, b, pr);
+  k >= 0 ? (
+    set_node_slope(b, ui_slope_db(k) / 6 - 1);
+    filters_to_sliders();
+    ui_popup = 0;
   );
-  gfx_a = 1;
 
   // Any press while open is the popover's: outside closes it
   pr ? (!inpop ? ui_popup = 0; ui_block = 1);
@@ -5295,7 +5299,7 @@ function ui_draw_stereo_pop(b) local(s, pw, ph, px, py, tw, th, g, tx, ty, on, h
     tx = floor(px + 8 * s + g * (tw + 4 * s)); ty = floor(py + 8 * s);
     on = g == Band_Group[b];
     hov = ui_in(tx, ty, tw, th);
-    on ? (ui_band_col(b); gfx_a = 0.10; ui_fill_rrect(tx, ty, tw, th, 5 * s); gfx_a = 1; gfx_roundrect(tx, ty, tw - 1, th - 1, 5 * s, 1))
+    on ? ui_band_tile(tx, ty, tw, th, 5 * s, b, 0.10)
        : hov ? ui_box(tx, ty, tw, th, 5 * s, T_CONTROL_HOVER, 1, T_BORDER_HOVER);
 
     on ? ui_band_col(b) : ui_col(T_TEXT_SECONDARY);
@@ -5322,7 +5326,7 @@ function ui_draw_stereo_pop(b) local(s, pw, ph, px, py, tw, th, g, tx, ty, on, h
  * the header and the highlights describe the band that was right-clicked.
  */
 function ui_draw_node_card()
-  local(s, b, pad, W, H, x0, y0, x, y, tw, th, i, t, m, tx, ty, on, hov, cut, cur, cw, k, chip, g, bw, bh, inpop, pr, skip, close, lab)
+  local(s, b, pad, W, H, x0, y0, x, y, tw, th, i, t, m, tx, ty, on, hov, cut, cw, k, g, bw, bh, inpop, pr, skip, close, lab)
 (
   s = ui_pt(1);
   b = ui_card_band;
@@ -5391,7 +5395,7 @@ function ui_draw_node_card()
     tx = floor(x + (i % 7) * (tw + 3 * s)); ty = floor(y + floor(i / 7) * (th + 3 * s));
     on = t == Band_Type[b];
     hov = ui_in(tx, ty, tw, th);
-    on ? (ui_band_col(b); gfx_a = 0.10; ui_fill_rrect(tx, ty, tw, th, 4 * s); gfx_a = 1; gfx_roundrect(tx, ty, tw - 1, th - 1, 4 * s, 1))
+    on ? ui_band_tile(tx, ty, tw, th, 4 * s, b, 0.10)
        : ui_box(tx, ty, tw, th, 4 * s, hov ? T_CONTROL_HOVER : T_TILE, 1, hov ? T_BORDER_HOVER : T_BORDER_SUBTLE);
     on ? ui_band_col(b) : ui_col(T_TEXT_SECONDARY);
     ui_shape_icon(t, tx + tw * 0.5 - 17 * s, ty + 4 * s, 0.85);
@@ -5410,26 +5414,12 @@ function ui_draw_node_card()
 
   // Slope row, for cuts
   cut = ui_is_cut(Band_Type[b]);
-  cur = cut ? ui_slope_index(Band_Slope[b]) : -1;
   gfx_setfont(FONT_CAP); ui_col_a(T_TEXT_DIM, cut ? 1 : 0.35);
   ui_text_l(x, y, 20 * s, "SLOPE");
   gfx_setfont(FONT_CAP); ui_col_a(T_TEXT_FAINT, cut ? 1 : 0.35);
   ui_text_r(x0 + W - pad - 40 * s, y, 40 * s, 20 * s, "dB/oct");
-  cw = (W - 2 * pad - 40 * s - 46 * s - 27 * s) / 10;
-  k = 0;
-  loop(10,
-    chip = floor(x + 40 * s + k * (cw + 3 * s));
-    hov = cut && ui_in(chip, y, cw, 20 * s);
-    k == cur ? (ui_band_col(b); gfx_a = 0.14; ui_fill_rrect(chip, y, cw, 20 * s, 4 * s); gfx_a = 1; gfx_roundrect(chip, y, cw - 1, 20 * s - 1, 4 * s, 1))
-             : (ui_col_a(hov ? T_CONTROL_HOVER : T_CONTROL, cut ? 1 : 0.35); ui_fill_rrect(chip, y, cw, 20 * s, 4 * s);
-                ui_col_a(T_BORDER, cut ? 1 : 0.35); gfx_roundrect(chip, y, cw - 1, 20 * s - 1, 4 * s, 1));
-    gfx_setfont(k == cur ? FONT_BODY_B : FONT_BODY);
-    ui_col_a(k == cur ? T_SELECTED : hov ? T_TEXT : T_TEXT_SECONDARY, k == cur || cut ? 1 : 0.35);
-    ui_text_c(chip, y, cw, 20 * s, sprintf(#, "%d", ui_slope_db(k)));
-    pr && hov ? set_slopes_selected_nodes(ui_slope_db(k) / 6 - 1);
-    k += 1;
-  );
-  gfx_a = 1;
+  k = ui_slope_chips(x + 40 * s, y, (W - 2 * pad - 40 * s - 46 * s - 27 * s) / 10, 20 * s, b, pr);
+  k >= 0 ? set_slopes_selected_nodes(ui_slope_db(k) / 6 - 1);
   y += 20 * s + 8 * s;
   ui_col(T_BORDER_SUBTLE); gfx_line(x, y, x0 + W - pad, y, 0);
   y += 1 + 8 * s;
@@ -5444,7 +5434,7 @@ function ui_draw_node_card()
     tx = floor(x + g * (cw + 3 * s));
     on = g == Band_Group[b];
     hov = ui_in(tx, y, cw, 34 * s);
-    on ? (ui_band_col(b); gfx_a = 0.10; ui_fill_rrect(tx, y, cw, 34 * s, 4 * s); gfx_a = 1; gfx_roundrect(tx, y, cw - 1, 34 * s - 1, 4 * s, 1))
+    on ? ui_band_tile(tx, y, cw, 34 * s, 4 * s, b, 0.10)
        : ui_box(tx, y, cw, 34 * s, 4 * s, hov ? T_CONTROL_HOVER : T_TILE, 1, hov ? T_BORDER_HOVER : T_BORDER_SUBTLE);
     on ? ui_band_col(b) : ui_col(T_TEXT_SECONDARY);
     ui_stereo_glyph(g, tx + cw * 0.5, y + 12 * s, 0.8);
@@ -6260,6 +6250,22 @@ function ui_draw_stepper() local(s, id, b, skip, pr, cwid, wpt, nsign, ncol, uw,
 );
 
 /*
+ * Select the next band in use in direction dir (1 or -1), wrapping round; listening follows it
+ */
+function ui_step_band(dir) local(done) (
+  done = 0;
+  while (
+    selected_node += dir;
+    selected_node >= NUM_BANDS ? selected_node = 0 : selected_node < 0 ? selected_node = NUM_BANDS - 1;
+    Band_Enabled[selected_node] != BAND_STATE_OFF ? (listen_node != -1 ? listen_node = selected_node; Dyn_Listen >= 0 ? Dyn_Listen = selected_node; done = 1);
+    !done;
+  );
+  ui_select_only(selected_node);
+  flag_filter_update(selected_node);
+  filters_to_sliders();
+);
+
+/*
  * Node panel for the selected band
  */
 function ui_draw_panel()
@@ -6336,44 +6342,22 @@ function ui_draw_panel()
   rx = x + w - 10 * s;
   hnarrow = le + 8 * s > rx - 220 * s;
   !hnarrow ? (
-  ui_text_button(rx - 22 * s, hy, 22 * s, hh, "›") ? (
-    done = 0;
-    while (
-      selected_node += 1;
-      selected_node >= NUM_BANDS ? selected_node = 0;
-      Band_Enabled[selected_node] != BAND_STATE_OFF ? (listen_node != -1 ? listen_node = selected_node; Dyn_Listen >= 0 ? Dyn_Listen = selected_node; done = 1);
-      !done;
+    ui_text_button(rx - 22 * s, hy, 22 * s, hh, "›") ? ui_step_band(1);
+
+    // k / N: this band's position among the bands in use
+    n = 0; k = 0; i = 0;
+    loop(NUM_BANDS,
+      Band_Enabled[i] != BAND_STATE_OFF ? (n += 1; i <= b ? k += 1);
+      i += 1;
     );
-    ui_select_only(selected_node);
-    flag_filter_update(selected_node);
-    filters_to_sliders();
-  );
+    gfx_setfont(FONT_BODY);
+    ui_col(T_TEXT_SECONDARY);
+    ui_text_c(rx - 58 * s, hy, 36 * s, hh, sprintf(#, "%d / %d", k, n));
 
-  // k / N: this band's position among the bands in use
-  n = 0; k = 0; i = 0;
-  loop(NUM_BANDS,
-    Band_Enabled[i] != BAND_STATE_OFF ? (n += 1; i <= b ? k += 1);
-    i += 1;
-  );
-  gfx_setfont(FONT_BODY);
-  ui_col(T_TEXT_SECONDARY);
-  ui_text_c(rx - 58 * s, hy, 36 * s, hh, sprintf(#, "%d / %d", k, n));
+    ui_text_button(rx - 80 * s, hy, 22 * s, hh, "‹") ? ui_step_band(-1);
 
-  ui_text_button(rx - 80 * s, hy, 22 * s, hh, "‹") ? (
-    done = 0;
-    while (
-      selected_node -= 1;
-      selected_node < 0 ? selected_node = NUM_BANDS - 1;
-      Band_Enabled[selected_node] != BAND_STATE_OFF ? (listen_node != -1 ? listen_node = selected_node; Dyn_Listen >= 0 ? Dyn_Listen = selected_node; done = 1);
-      !done;
-    );
-    ui_select_only(selected_node);
-    flag_filter_update(selected_node);
-    filters_to_sliders();
-  );
-
-  ui_col(T_BORDER);
-  gfx_line(rx - 86 * s, hy + 3 * s, rx - 86 * s, hy + hh - 3 * s, 0);
+    ui_col(T_BORDER);
+    gfx_line(rx - 86 * s, hy + 3 * s, rx - 86 * s, hy + hh - 3 * s, 0);
   );
 
   // Header right: solo (listen), bypass, duplicate, delete
