@@ -1,6 +1,6 @@
 desc: ReEQ2 - Parametric Graphic Equalizer
 tags filters
-version: 2.2.0  //<--- Make sure you change VERSION below if this changes!!
+version: 2.3.0  //<--- Make sure you change VERSION below if this changes!!
 author: Justin Johnson
 license: MIT
 
@@ -284,7 +284,7 @@ options:no_meter gmem=ReEQ2
 @init
 
 // This should be the same as in the comment header
-#VERSION = "2.2.0";
+#VERSION = "2.3.0";
 
 gfx_ext_retina  = 1;
 
