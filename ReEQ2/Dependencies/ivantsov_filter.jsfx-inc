@@ -487,24 +487,53 @@ function ivf_high_cut(freq, q, slope)
 );
 
 /*
- * Butterworth cuts
+ * A Butterworth cut's resonance for band Q q: the factor its highest-Q section's Q is multiplied by
+ * (q / (1/sqrt 2)), so the cut's level at its frequency is 20 log10(q) dB at any order, and at 12 dB/oct
+ * the section's Q is q. Q 0.7071 (within 0.0005) is plain Butterworth, 1. Kept so that section's Q
+ * stays at most 30, inside the analog fit; order 1 has none.
  */
-function ivf_cut_bw(t, freq, slope)
-  instance(op)
+function ivf_cut_r(q, order)
+  local(m, odd)
 (
-  this.ivf_put_butterworth(1, t, freq, slope + 1);
+  m = order >> 1; odd = order & 1;
+  m < 1 || abs(q - 0.7071) < 0.0005 ? 1 :
+    min(q * sqrt(2), 60 * cos($pi * (2*(m - 1 + odd) + 1 - odd) / (2*order)));
+);
+
+/*
+ * Butterworth cuts, the highest-Q section's Q multiplied by r (1: plain Butterworth)
+ */
+function ivf_cut_bw(t, freq, slope, r)
+  instance(op)
+  local(n)
+(
+  n = this.ivf_put_butterworth(1, t, freq, slope + 1) - 1;
+  r != 1 && n >= 1 ? this.ivf_put(n, t, freq, cos($pi * (2*(n - 1 + ((slope + 1) & 1)) + 1 - ((slope + 1) & 1)) / (2*(slope + 1))) / r, 1);
   !(slope & 1) ? op.ivf_op_calc(t, freq);
   this.ivf_commit((slope + 1) >> 1, !(slope & 1));
 );
 
 function ivf_low_cut_bw(freq, slope)
 (
-  this.ivf_cut_bw(0, freq, slope);
+  this.ivf_cut_bw(0, freq, slope, 1);
 );
 
 function ivf_high_cut_bw(freq, slope)
 (
-  this.ivf_cut_bw(1, freq, slope);
+  this.ivf_cut_bw(1, freq, slope, 1);
+);
+
+/*
+ * Butterworth cuts with resonance: band Q q, as the band's own filter (ivf_cut_r)
+ */
+function ivf_low_cut_bwq(freq, q, slope)
+(
+  this.ivf_cut_bw(0, freq, slope, ivf_cut_r(q, slope + 1));
+);
+
+function ivf_high_cut_bwq(freq, q, slope)
+(
+  this.ivf_cut_bw(1, freq, slope, ivf_cut_r(q, slope + 1));
 );
 
 /*
@@ -787,11 +816,15 @@ function ivf_sec_amag(f)
 );
 
 function ivf_op_amag(f)
-  instance(aT, aF)
+  instance(aT, aF, aG)
   local(o)
 (
   o = f / aF;
-  aT == 1 ? 1 / sqrt(1 + o*o) : o / sqrt(1 + o*o);
+  // First-order shelves (3 high, 4 low; aG is the gain's 4th root of power): the zero and pole aG either
+  // side of aF
+  aT == 4 ? sqrt((o*o + aG*aG) / (o*o + 1 / (aG*aG))) :
+    aT == 3 ? aG*aG * sqrt((o*o + 1 / (aG*aG)) / (o*o + aG*aG)) :
+      aT == 1 ? 1 / sqrt(1 + o*o) : o / sqrt(1 + o*o);
 );
 
 /*
