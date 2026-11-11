@@ -1,6 +1,6 @@
 -- @description ReEQ2: theme editor
 -- @author Justin Johnson
--- @version 1.1.0
+-- @version 1.2.0
 -- @about
 --   Edits ReEQ2's colours on a preview of ReEQ2, saves themes used by every ReEQ2, and sets the size
 --   new ReEQ2 windows open at and ReEQ2's default UI size. Open ReEQ2 windows follow the edits as you
@@ -24,7 +24,7 @@ local JSFX_FILE = RES .. "/Effects/ReJJ/ReEQ2/ReEQ2.jsfx"
 local GM_NAME, GM_MAGIC, GM_UI_SIZE, GM_TOKENS = "ReEQ2", 20261031, 4, 8
 
 -- The version of ReEQ2 the preview was translated from
-local PREVIEW_FROM = "2.2.0"
+local PREVIEW_FROM = "2.3.0"
 
 local EXT = "ReEQ2 Theme Editor"
 

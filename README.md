@@ -5,6 +5,12 @@ Reaper JSFX Plugins
 `ReEQ2/ReEQ2.jsfx` — a 16-band parametric equalizer with decramped filters up to 30 kHz, per-band dynamic
 EQ with sidechain inputs, and a built-in analyser.
 
+ReEQ² 2.3 adds slopes for bells (12 to 48 dB/oct; the steeper ones are flat-topped) and shelves (6 to
+36 dB/oct), picked from the slope chips or a node's menu. Dynamic bands stay at 12 dB/oct. Low Cut and High
+Cut gain resonance: drag a cut's node up or down, or set its Q. The older resonant cuts are kept as legacy
+types, so existing projects sound the same. ReEQ² 2.3 also compiles less than half the code 2.2 did and
+keeps its filter tables apart from the rest, for the slow loading reported with 2.2 on Windows.
+
 ReEQ² 2.2 fits the digital filters more closely to their analog curves near Nyquist, including when a
 band's frequency is set above it. Existing ReEQ² projects retain their band settings and automation.
 High-frequency bands can sound different with the updated filters.
@@ -24,6 +30,9 @@ edits themes on a preview of ReEQ², with open ReEQ² windows following along, a
 windows open at and the default UI size (kept in `Data/ReEQ2/settings.txt`). Themes are plain text files in
 REAPER's `Data/ReEQ2` folder: `theme.txt` is the one in use, and `Themes/` holds the 16 that come with ReEQ²
 (`ReEQ2/Themes` here) and any you save.
+
+Two of ReEQ²'s includes are built by script from readable sources in `Source/`; see `Source/README.md`
+before editing them.
 
 ## ReEQ 1.2
 `ReEQ/ReEQ.jsfx` — the original ReEQ, kept unchanged so existing projects sound as they did. To move a
