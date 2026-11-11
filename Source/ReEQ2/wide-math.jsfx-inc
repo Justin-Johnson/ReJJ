@@ -1,0 +1,241 @@
+// This file exists twice. Source/ReEQ2/wide-math.jsfx-inc is the one to edit: its numbers
+// are ordinary decimals. ReEQ2/Dependencies/wide-math.jsfx-inc is built from it by Source/build.py
+// with every integer in hex, and is the one REAPER loads. Source/README.md says why.
+@init
+function wf_tables_init(base)(
+wf_data_0(base);wf_data_1(base);wf_data_2(base);wf_data_3(base);wf_data_4(base);wf_data_5(base);wf_data_6(base);wf_data_7(base);wf_data_8(base);wf_data_9(base);wf_data_10(base);wf_data_11(base);wf_data_12(base);wf_data_13(base);wf_data_14(base);wf_data_15(base);wf_data_16(base);wf_data_17(base);wf_data_18(base);wf_data_19(base);wf_data_20(base);wf_data_21(base);wf_data_22(base);wf_data_23(base);wf_data_24(base);wf_data_25(base);wf_data_26(base);wf_data_27(base);wf_data_28(base);wf_data_29(base);wf_data_30(base);wf_data_31(base);wf_data_32(base);wf_data_33(base);wf_data_34(base);wf_data_35(base);wf_data_36(base);wf_data_37(base);wf_data_38(base);wf_data_39(base);wf_data_40(base);wf_data_41(base);wf_data_42(base);wf_data_43(base);wf_data_44(base);wf_data_45(base);wf_data_46(base);wf_data_47(base);wf_data_48(base);wf_data_49(base);wf_data_50(base);wf_data_51(base);wf_data_52(base);wf_data_53(base);wf_data_54(base);wf_data_55(base);wf_data_56(base);wf_data_57(base);wf_data_58(base);wf_data_59(base);wf_data_60(base);wf_data_61(base);wf_data_62(base);wf_data_63(base);wf_data_64(base);wf_data_65(base);wf_data_66(base);wf_data_67(base);wf_data_68(base);wf_data_69(base);wf_data_70(base);wf_data_71(base);wf_data_72(base);wf_data_73(base);wf_data_74(base);wf_data_75(base);wf_data_76(base);wf_data_77(base);wf_data_78(base);wf_data_79(base);wf_data_80(base);wf_data_81(base);wf_data_82(base);wf_data_83(base);wf_data_84(base);wf_data_85(base);wf_data_86(base);wf_data_87(base);wf_data_88(base);wf_data_89(base);wf_data_90(base);wf_data_91(base);wf_data_92(base);wf_data_93(base);wf_data_94(base);wf_data_95(base);wf_data_96(base);wf_data_97(base);wf_data_98(base);wf_data_99(base);wf_data_100(base);wf_data_101(base);wf_data_102(base);wf_data_103(base);wf_data_104(base);wf_data_105(base);wf_data_106(base);wf_data_107(base);wf_data_108(base);wf_data_109(base);wf_data_110(base);wf_data_111(base);wf_data_112(base);wf_data_113(base);base+45549;
+);
+
+// Continuous cell coordinates. The single-node axes are constant.
+function wf_axis(ptr,n,x) local(lo,hi,mid)(
+  lo=0;hi=n-1;
+  while(hi-lo>1)(mid=floor(.5*(lo+hi));x<ptr[mid]?hi=mid:lo=mid;);
+  n===1?0:lo+min(1,max(0,(x-ptr[lo])/(ptr[hi]-ptr[lo])));
+);
+function wf_feature(f,q) local(v)(
+  v=log(2*f)*max(1,2*q);
+  sign(v)*log(abs(v)+sqrt(1+v*v));
+);
+// A 48-bit word contains three signed, offset 16-bit calibrated corrections.
+function wf_lookup(tab,side,feature,logq,gain)
+ instance(h_shift,c_shift,f_shift)
+ local(nf,nq,ng,fx,qx,gx,fi,qi,gi,df,dq,dg,values,i,j,k,word,upper,mid,weight)(
+  nf=tab[0];nq=tab[1];ng=tab[2];values=tab+4+nf+nq+ng+side*nf*nq*ng;
+  fx=wf_axis(tab+4,nf,feature);qx=wf_axis(tab+4+nf,nq,logq);gx=wf_axis(tab+4+nf+nq,ng,gain);
+  fi=min(floor(fx),nf-2);qi=max(0,min(floor(qx),nq-2));gi=max(0,min(floor(gx),ng-2));
+  df=fx-fi;dq=qx-qi;dg=gx-gi;h_shift=c_shift=f_shift=0;i=0;
+  loop(2,j=0;loop(min(2,nq),k=0;loop(min(2,ng),
+    weight=(i?df:1-df)*(j?dq:1-dq)*(k?dg:1-dg);
+    word=values[((fi+i)*nq+qi+j)*ng+gi+k];upper=floor(word/4294967296);mid=floor((word-upper*4294967296)/65536);
+    h_shift+=weight*(word-upper*4294967296-mid*65536-32768);c_shift+=weight*(mid-32768);f_shift+=weight*(upper-32768);k+=1;);j+=1;);i+=1;);
+  h_shift*=tab[3];c_shift*=tab[3];f_shift*=tab[3];
+);
+function wf_one_minus_exp(x)(
+  x<.001?x*(1+x*(-.5+x*(.16666666666666667-x/24))):1-exp(-x);
+);
+// A physical quadratic factor, with pole damping measured from the Nyquist
+// endpoint when its oscillation lies above the sampled band.
+function wf_factor(f,q,order) instance(h,c,edge,real_scale)
+ local(w,z,v,a,b,r,t,lo,hi,d,x)(
+  w=2*$pi*f;x=.5/f;
+  order===1?(r=exp(-w);h=(1+r)/wf_one_minus_exp(w);c=1;edge=sqrt(1+x*x);):(
+    z=.5/q;
+    z>=1?(v=z+sqrt(z*z-1);a=w/v;b=w*v;lo=wf_one_minus_exp(a)*wf_one_minus_exp(b);hi=(1+exp(-a))*(1+exp(-b));d=wf_one_minus_exp(a+b);):(
+      a=w*z;t=w*sqrt((1-z)*(1+z));t>$pi?(a=sqrt(a*a+sqr(t-$pi));t=$pi;);
+      r=exp(-a);v=sqr(wf_one_minus_exp(a));lo=v+4*r*sqr(sin(.5*t));hi=v+4*r*sqr(cos(.5*t));d=wf_one_minus_exp(2*a);
+    );
+    h=hi/lo;c=2*d/lo;edge=sqrt(sqr(1-x*x)+sqr(x/q));
+  );real_scale=h/edge;
+);
+function wf_basis(kind,order,fc,q,g)
+ instance(amp,dc,hn,hd,cn,cd,az,edge,znf,pof,znq,poq)
+ local(z)(
+  amp=exp(g*.0575646273248511421);z=2*fc;znf=pof=fc;znq=poq=q;
+  kind===4?(order===1?(znf*=amp;pof/=amp;):(znf*=sqrt(amp);pof/=sqrt(amp);););
+  kind===7?(znq/=amp;poq*=amp;);
+  this.pole.wf_factor(pof,poq,order);hd=this.pole.h;cd=this.pole.c;az=this.pole.real_scale;
+  dc=kind===4?amp*amp:kind===0 || kind===5?0:1;
+  kind===4 || kind===7?(this.zero.wf_factor(znf,znq,order);hn=this.zero.h;cn=this.zero.c;edge=this.zero.edge/this.pole.edge;):
+  kind===0?(hn=order===1?1/z:.4052847345693511/(z*z);cn=order===1?1:0;edge=(order===1?1/z:1/(z*z))/this.pole.edge;):
+  kind===5?(hn=sqrt(.1894305308612978)/(z*q);cn=.63661977236758134/(z*q);edge=1/(z*q*this.pole.edge);):
+  (hn=1;cn=order===1?1:2;edge=1/this.pole.edge;);
+);
+function wf_weight(fc,q,g) local(t)(
+  t=min(1,max(0,max(max((abs(g)-24)/6,(q-30)/5),max((.25-q)/.05,max((fc-3.75)/.5,(.000026041666666666667-fc)/.000006510416666666667)))));
+  t*t*(3-2*t);
+);
+// Read the calibration of the validated model at the range seam. Transport it
+// on the physical pole/zero factors, so the requested Q/gain still participates.
+function wf_seam(bank,kind,order,fc,q,g)
+ instance(ehn,ehd,ecn,ecd,eaz) local(pp,qq,rr,dcgain,ny,high,denmid)(
+  this.edgecalc.cx_calc(this.old,bank,kind,order,fc,q,g);
+  this.edgebase.wf_basis(kind,order,fc,q,g);
+  rr=this.old.mr;pp=this.old.mp-rr;qq=this.old.mq-rr;dcgain=this.edgebase.dc;
+  order===1?(
+    ehd=log(((2-pp)/pp)/this.edgebase.hd);
+    ehn=log(max(.00000000000000000001,(2*this.old.md-dcgain*pp)/(pp*(dcgain===0?1:dcgain)))/this.edgebase.hn);
+    ecn=ecd=0;
+  ):(
+    ny=this.old.md*qq+this.old.mo1*rr;
+    ehd=log((qq/pp)/this.edgebase.hd);ehn=log(max(.00000000000000000001,ny/(pp*(dcgain===0?1:dcgain)))/this.edgebase.hn);
+    ecd=log(max(.00000000000000000001,(2-pp-qq)/pp)/this.edgebase.cd);
+    ecn=kind===0?0:log(max(.00000000000000000001,(2*this.old.md-dcgain*pp-ny)/(pp*(dcgain===0?1:dcgain)))/this.edgebase.cn);
+  );
+  eaz=log(((2*this.old.cd-this.old.cp)/this.old.cp)/this.edgebase.az);
+);
+// Third-degree power polynomials use X=tan²(pi*f). A positive blend of
+// numerator powers and denominator powers stays between the two responses at
+// every frequency. Factor once at control rate into a quadratic and a real pole.
+function wf_signed_cubic(y,a,b,c,d)((a*y-b)*y*y+c*y-d;);
+function wf_spectral_blend(low,h0,c0,z0,h1,c1,z1,t,guide) instance(h,c,z)
+ local(w,a,b,cc,d,p0,p1,disc,v,lo,hi,mid,r0,r1,temp,ratio,R,S,n0,n1)(
+ w=1-t;a=low*low;
+ b=w*(c0*c0-2*low*h0+a*z0*z0)+t*(c1*c1-2*low*h1+a*z1*z1);
+ cc=w*(h0*h0+(c0*c0-2*low*h0)*z0*z0)+t*(h1*h1+(c1*c1-2*low*h1)*z1*z1);
+ d=w*sqr(h0*z0)+t*sqr(h1*z1);
+ a===0?(
+   b===0?(h=sqrt(cc);z=sqrt(d/cc);c=0;):(
+     disc=cc*cc-4*b*d;
+     disc>0?(r1=(cc+sqrt(disc))/(2*b);r0=d/(b*r1);v=guide*guide;z=sqrt(v*v<r0*r1?r0:r1);):z=sqrt(sqrt(d/b));
+     h=sqrt(d)/z;c=sqrt(b);
+   );
+ ):(
+   lo=.00000000000000000000000000000000001;hi=100000000000000000000000000000000000;
+   disc=b*b-3*a*cc;
+   disc>0 && b>0 && cc>0?(
+     v=b+sqrt(disc);p0=cc/v;p1=v/(3*a);
+     r0=wf_signed_cubic(p0,a,b,cc,d);r1=wf_signed_cubic(p1,a,b,cc,d);
+     r0>=0 && r1<=0?(
+       guide*guide<=p0?hi=p0:guide*guide>=p1?lo=p1:(lo=p0;hi=p1;);
+     ):r0<0?lo=p1:hi=p0;
+   );
+   temp=wf_signed_cubic(lo,a,b,cc,d)<=0;
+   loop(49,mid=sqrt(lo*hi);((wf_signed_cubic(mid,a,b,cc,d)<=0)===temp)?lo=mid:hi=mid;);
+   z=sqrt(sqrt(lo*hi));h=sqrt(d)/z;
+   ratio=low/h;
+   n0=(sqr(low-h0*ratio)+c0*c0*ratio)*(1+z0*z0*ratio);
+   n1=(sqr(low-h1*ratio)+c1*c1*ratio)*(1+z1*z1*ratio);
+   c=sqrt((w*n0+t*n1)/(ratio*(1+z*z*ratio)));
+ );
+);
+
+function wf_design_normal(out*,bank,wide,kind,order,fc,q,db)
+ local(en,ed,ec,es,ez,ep,k,g,t,tab,lq,fsz,fsp,shn,shd,scn,scd,saz,hn,hd,cn,cd,az,ap,dc,g0,nl,nh,nm,dl,dh,dm,swap,scale,total,rr)(
+  k=kind===3?4:kind;g=abs(db);t=wf_weight(fc,q,g);
+  this.b.wf_basis(k,order,fc,q,g);tab=wide+wide[2*k+order-1];lq=log(q);
+  fsz=order===1?log(fc):wf_feature(this.b.znf,this.b.znq);fsp=order===1?log(fc):wf_feature(this.b.pof,this.b.poq);
+  this.z.wf_lookup(tab,0,fsz,lq,g);this.p.wf_lookup(tab,1,fsp,lq,g);
+  shn=this.z.h_shift*(order===2 && k!==0?min(1,this.b.cn/sqrt(this.b.hn)):1);
+  shd=this.p.h_shift*(order===2?min(1,this.b.cd/sqrt(this.b.hd)):1);
+  scn=this.z.c_shift;scd=this.p.c_shift;saz=.5*(this.z.f_shift+this.p.f_shift-shn+shd);
+  hn=this.b.hn*exp(shn);hd=this.b.hd*exp(shd);cn=this.b.cn*exp(scn);cd=this.b.cd*exp(scd);az=this.b.az*exp(saz);ap=az*hn/(this.b.edge*hd);
+  t<1?(
+    this.wf_seam(bank,k,order,min(max(fc,.000026041666666666667),3.75),min(max(q,.25),30),min(g,24));
+    order===2?(
+      en=this.b.hn*exp(this.ehn);ed=this.b.hd*exp(this.ehd);ec=this.b.cn*exp(this.ecn);es=this.b.cd*exp(this.ecd);ez=this.b.az*exp(this.eaz);ep=ez*en/(this.b.edge*ed);
+      this.sn.wf_spectral_blend(this.b.dc===0?0:1,en,ec,ez,hn,cn,az,t,exp((1-t)*log(ez)+t*log(az)));
+      this.sd.wf_spectral_blend(1,ed,es,ep,hd,cd,ap,t,exp((1-t)*log(ep)+t*log(ap)));
+      hn=this.sn.h;cn=this.sn.c;az=this.sn.z;hd=this.sd.h;cd=this.sd.c;ap=this.sd.z;
+    ):(
+      hn=this.b.hn*exp(this.ehn+t*(shn-this.ehn));hd=this.b.hd*exp(this.ehd+t*(shd-this.ehd));
+      az=this.b.az*exp(this.eaz+t*(saz-this.eaz));ap=az*hn/(this.b.edge*hd);
+    );
+  );
+  dc=this.b.dc;g0=dc===0?1:dc;nl=dc;nh=hn*g0;nm=cn*g0;dl=1;dh=hd;dm=cd;
+  (k===4 || k===7) && ((db<0)!==(kind===3))?(swap=nl;nl=dl;dl=swap;swap=nh;nh=dh;dh=swap;swap=nm;nm=dm;dm=swap;swap=ap;ap=az;az=swap;);
+  kind===3?(scale=exp(db*.1151292546497022842);nl*=scale;nh*=scale;nm*=scale;);
+  (k===4 || k===7) && db===0?(nl=dl;nh=dh;nm=dm;az=ap;);
+  order===1?(total=dl+dh;out.md=(nl+nh)/total;out.mp=2*dl/total;out.mr=out.mq=out.mo1=out.jq=0;out.jp=out.mp;out.mt=1;):(
+    total=dl+dh+dm;rr=sqrt(dl*dh);out.md=(nl+nh+nm)/total;out.jp=2*dl/total;out.jq=2*dh/total;out.mr=2*rr/total;
+    out.mp=out.jp+out.mr;out.mq=out.jq+out.mr;out.mo1=(nh-dh*out.md)/rr;out.mt=dh/rr;
+  );out.mo0=nl/dl-out.md;out.cp=2/(1+ap);out.cd=(1+az)/(1+ap);out.co=1-out.cd;
+);
+function wf_notch_edge_hi(out*,bank,tablebase,fc,q)
+ instance(en_iqready,en_iqvalue,en_logq,en_nready,en_nq,en_nb,en_nt,en_du,en_dd,en_dk,en_scale,en_iq,v0,v1,v2,v3,v4,v5,m0,m1,m2,ma1,ma2,c0,c1,c2,ca1,ca2,used,pv)
+ local(az,asp,aa1,aa2,ar,as,pd,pk,pr,apny,root,ir,invden,irho,offset,rny,bny,delta,r,e,u,d,k,rho,shape,x,dr,ny,nn,nd,phi,iv)(
+ (!en_iqready || en_iqvalue!==q)?(en_iqready=1;en_iqvalue=q;en_iq=1/q;en_logq=log(q)*1.4426950408889634074;);
+ fc<.5 && (!en_nready || en_nq!==q || en_nb!==bank || en_nt!==tablebase)?(
+  en_nready=1;en_nq=q;en_nb=bank;en_nt=tablebase;
+  this.na_anchor(AF_Anchor,en_logq);
+ );
+ delta=fc-.5;this.en_table.en_lookup(tablebase,fc,en_logq);
+ r=abs(delta)*50;delta<0?(e=r*r;e*=e;e*=e;u=exp(this.en_table.v0+e*en_du);d=exp(this.en_table.v1+e*en_dd);k=exp(this.en_table.v2+e*en_dk);x=en_scale*delta;):(
+ u=exp(this.en_table.v0);d=exp(this.en_table.v1);k=exp(this.en_table.v2);x=$pi*delta;
+ );
+ rho=max(.0000000001,sqrt(x*x+.00000000000000000001)/(1+r)*exp(this.en_table.v3));
+ delta<0?(phi=max(1-(delta*1000000000)*(delta*1000000000),0);shape=phi*phi;x=tan($pi*delta);nn=u*x*x;):(
+ shape=exp(this.en_table.v4);dr=4*delta*(1+delta);x=(1+2*delta)*en_iq;ny=abs(dr)/sqrt(dr*dr+x*x);nn=ny*rho/k;
+ );
+ out.wu=u;out.wd=d;out.wk=k;out.wrho=rho;out.wnn=nn;out.wshape=shape;nd=.5*u*rho*shape;iv=1/(u+1+2*d);ma1=2*(u-1)*iv;ma2=(u+1-2*d)*iv;
+ m0=(u+nn+2*nd)*iv;irho=1/(1+rho);c0=(1+k)*irho;ca1=(1-rho)*irho;
+ invden=1/(u*rho*rho+1-2*d*rho);
+ offset=(rho-k)*irho*(u*rho*rho*(1-shape)+nn)*invden;
+ out.md=m0*c0+offset;root=sqrt(u);ir=1/root;
+ out.mr=2*root*iv;out.mp=2*(u+root)*iv;out.mq=2*(1+root)*iv;
+ out.mo0=1-out.md;
+ rny=(nn*(1-2*k*d+k*u*rho)+u*rho*(rho-k)*(1-shape))*invden;
+ out.mo1=(rny-out.md)*ir;
+ out.cp=ca1;out.nv_k=-offset;
+ );
+function wf_notch_edge_lo(out*,bank,fc,q) instance(nl_ready,nl_f,nl_q,nl_iq,nl_logq,nl_z,nl_sp,nl_w,nl_dr,nl_x,nl_t2,ma1,ma2,m0,c0,ca1)
+ local(r,v,aa1,aa2,pd,pny,u,d,k,rho,shape,nn,nd,iv,irho,invden,offset,root,ir,rny)(
+ fc=min(max(fc,.000013020833333333333),.48);q=min(max(q,.25),30);
+ (!nl_ready || q!==nl_q)?(nl_q=q;nl_iq=1/q;nl_logq=log(q)*1.4426950408889634074;nl_z=.5*nl_iq;nl_sp=sqrt(abs(nl_z*nl_z-1)););
+ (!nl_ready || fc!==nl_f)?(nl_f=fc;nl_w=6.2831853071795864769*fc;nl_x=2*fc;nl_dr=1-nl_x*nl_x;nl_t2=tan($pi*(.5-fc));nl_t2*=nl_t2;);nl_ready=1;
+ this.nl_lut.cl_6(bank,max(fc,.0010000000474974513),nl_logq,0);
+ nl_z>=1?(r=exp(nl_w*(-nl_z+nl_sp));v=exp(nl_w*(-nl_z-nl_sp));aa1=-r-v;aa2=r*v;):(
+ r=exp(-nl_w*nl_z);aa1=-2*r*cos(nl_w*nl_sp);aa2=r*r;);
+ pd=(1-aa2)/(1-aa1+aa2);v=nl_x*nl_iq;pny=nl_dr/sqrt(nl_dr*nl_dr+v*v);
+ k=(1-this.nl_lut.v5)/(1+this.nl_lut.v5);rho=(1-this.nl_lut.v4)/(1+this.nl_lut.v4);
+ nn=pny*rho/k;u=nn/nl_t2;d=pd*this.nl_lut.v1;shape=0;
+ out.wu=u;out.wd=d;out.wk=k;out.wrho=rho;out.wnn=nn;out.wshape=shape;nd=.5*u*rho*shape;iv=1/(u+1+2*d);ma1=2*(u-1)*iv;ma2=(u+1-2*d)*iv;
+ m0=(u+nn+2*nd)*iv;irho=1/(1+rho);c0=(1+k)*irho;ca1=(1-rho)*irho;
+ invden=1/(u*rho*rho+1-2*d*rho);
+ offset=(rho-k)*irho*(u*rho*rho*(1-shape)+nn)*invden;
+ out.md=m0*c0+offset;root=sqrt(u);ir=1/root;
+ out.mr=2*root*iv;out.mp=2*(u+root)*iv;out.mq=2*(1+root)*iv;
+ out.mo0=1-out.md;
+ rny=(nn*(1-2*k*d+k*u*rho)+u*rho*(rho-k)*(1-shape))*invden;
+ out.mo1=(rny-out.md)*ir;
+ out.cp=ca1;out.nv_k=-offset;
+ );
+
+function wf_notch(out*,bank,notch,wide,fc,q)
+ local(table,nf,nq,fj,qj,i,j,df,dq,a,b,u,d,k,rho,shape,nn,delta,ny,ct,rv,fac,t,w,weight,inv,iroot,root,offset,ivrho,nd,nygain)(
+  table=wide+wide[20];nf=table[0];nq=table[1];fj=wf_axis(table+2,nf,log(fc));qj=wf_axis(table+2+nf,nq,log(q));
+  i=min(floor(fj),nf-2);j=min(floor(qj),nq-2);df=fj-i;dq=qj-j;a=table+2+nf+nq+5*(i*nq+j);
+  u=d=k=rho=shape=0;i=0;loop(2,j=0;loop(2,b=a+5*(i*nq+j);weight=(i?df:1-df)*(j?dq:1-dq);u+=weight*b[0];d+=weight*b[1];k+=weight*b[2];rho+=weight*b[3];shape+=weight*b[4];j+=1;);i+=1;);
+  this.nbase.wf_factor(fc,q,2);u=exp(u)/this.nbase.h;d=exp(d)*this.nbase.c/(2*this.nbase.h);k=exp(k);
+  delta=fc-.5;rv=abs(4*delta*(1+delta));ny=rv/sqrt(rv*rv+sqr(2*fc/q));ct=sqr(tan($pi*(.5-fc)));
+  delta<0?(nn=u*ct;rv=nn*k/ny;rho=sqrt(rv*rv+.00000000000000000001);shape=sqr(max(0,1-sqr(delta*1000000000)));):(
+    rho=max(.0000000001,sqrt(sqr($pi*delta)+.00000000000000000001)*exp(rho)/(1+50*abs(delta)));shape=exp(shape);nn=ny*rho/k;);
+  t=wf_weight(fc,q,0);
+  t<1?(fc<.48?this.edge.wf_notch_edge_lo(this.ne,bank,fc,min(max(q,.25),30)):this.edge.wf_notch_edge_hi(this.ne,bank,notch,fc,min(max(q,.25),30));
+    this.sn.wf_spectral_blend(1,this.ne.wnn/this.ne.wu,this.ne.wrho*this.ne.wshape,this.ne.wk,nn/u,rho*shape,k,t,exp((1-t)*log(this.ne.wk)+t*log(k)));
+    this.sd.wf_spectral_blend(1,1/this.ne.wu,2*this.ne.wd/this.ne.wu,this.ne.wrho,1/u,2*d/u,rho,t,exp((1-t)*log(this.ne.wrho)+t*log(rho)));
+    u=1/this.sd.h;d=.5*u*this.sd.c;k=this.sn.z;rho=this.sd.z;nn=u*this.sn.h;
+    shape=this.ne.wshape===0 && shape===0?0:this.sn.c/rho;
+
+  );
+  // Normalized geometry keeps the correction in output units.
+  nd=.5*u*rho*shape;inv=1/(u+1+2*d);ivrho=1/(1+rho);
+  fac=1/(u*rho*rho+1-2*d*rho);offset=(rho-k)*ivrho*(u*rho*rho*(1-shape)+nn)*fac;
+  root=sqrt(u);iroot=1/root;out.md=(u+nn+2*nd)*inv*(1+k)*ivrho+offset;out.mr=2*root*inv;out.mp=2*(u+root)*inv;out.mq=2*(1+root)*inv;
+  nygain=(nn*(1-2*k*d+k*u*rho)+u*rho*(rho-k)*(1-shape))*fac;out.mo1=(nygain-out.md)*iroot;out.mo0=1-out.md;out.cp=(1-rho)*ivrho;out.nv_k=-offset;
+);
+function wf_allpass(out*,order,fc,q) local(total,r,h,d)(
+  this.ap.wf_factor(fc,q,order);h=this.ap.h;d=this.ap.c;
+  order===1?(total=1+h;out.mp=2/total;out.md=(1-h)/total;out.mr=out.mq=out.mo1=0;out.jp=out.mp;out.jq=0;out.mt=1;):(
+    total=1+h+d;r=sqrt(h);out.jp=2/total;out.jq=2*h/total;out.mr=2*r/total;out.mp=out.jp+out.mr;out.mq=out.jq+out.mr;
+    out.md=(1+h-d)/total;out.mo1=h*(1-out.md)/r;out.mt=r;);out.mo0=1-out.md;out.cp=out.cd=1;out.co=0;
+);
+function wf_in_core(kind,order,fc,q,db)(
+ fc>=.000026041666666666667 && fc<=3.75 && q>=.25 && q<=30 && abs(db)<=24;
+);
+function wf_design(out*,bank,notch,wide,kind,order,fc,q,db) local(core_ok)(
+  (kind!==3 && kind!==4 && kind!==7)?db=0;order===1?q=1;
+  core_ok=wf_in_core(kind,order,fc,q,db);
+  kind===6 && q>=.25 && q<=30 && fc<.000026041666666666667?this.n.wf_notch_edge_lo(out,bank,fc,q):kind===6?(core_ok?(fc<.48?this.n.nl_calc(out,bank,fc,q):this.n.na_calc(out,bank,notch,fc,q);):this.wf_notch(out,bank,notch,wide,fc,q);):
+  kind===2?this.wf_allpass(out,order,fc,q):
+  core_ok?this.normal.cx_calc(out,bank,kind,order,fc,q,db):this.wf_design_normal(out,bank,wide,kind,order,fc,q,db);
+);
