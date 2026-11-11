@@ -258,6 +258,7 @@ slider231:Node16_DynAttack=5<0.1,200,0.1>-Filter16 Dynamic Attack
 slider232:Node16_DynRelease=80<5,2000,1>-Filter16 Dynamic Release
 slider233:Lookahead_Value=0<0,3,1{Off,1 ms,5 ms,10 ms}>-Lookahead
 
+import Dependencies/analog-tables.jsfx-inc
 import Dependencies/spectrum.jsfx-inc
 import Dependencies/ivantsov_filter.jsfx-inc
 import Dependencies/analog-fast.jsfx-inc
