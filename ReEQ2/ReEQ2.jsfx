@@ -941,7 +941,7 @@ function band_set_visual(t,f,g,qval,slope)
 function band_set_meter(t,f,g,qval,slope)
   instance(type,frequency,gain,q,filter)(
   type=t;frequency=f;gain=g;q=qval;
-  ri_recipe(filter.plan,t,f,qval,g,slope,0);AF_meter.ri_compute(filter.plan,-1,1);
+  ri_recipe(filter.plan,t,f,qval,g,slope,0);AF_audio.ri_compute(filter.plan,-1,1);
 );
 function band_dyn_section(t, f, qval, db)
   instance (filter) (

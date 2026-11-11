@@ -10,6 +10,8 @@ function ri_bind(plan_address, curve_address, band_index, role)
 function ri_record(plan,slot,kind,ord,hz,q,db) local(r)(
   r=plan+4+slot*24;r[0]=kind;r[1]=ord;r[2]=hz/srate;r[3]=q;r[4]=db;
 );
+// Notch (6), band-pass (5) and all-pass (2) sections go in the first slot only: ri_section_rest, which
+// runs slots 2 to 10, has no processors for them
 function ri_recipe(plan,type,hz,q,db,slope,dynamic) local(n,i,ord,k,qq,cut,t)(
   n=0;
   type===0 || type===3 || type===4 ? (
@@ -72,7 +74,7 @@ function ri_compute(plan,curve,graphics) local(n,r,k,o,f,q,g,prev)(
     n>1?loop(n-1,
       prev=r;r+=24;k=r[0];o=r[1];f=r[2];q=r[3];g=r[4];
       k===prev[0] && o===prev[1] && f===prev[2] && q===prev[3] && g===prev[4]?memcpy(r+5,prev+5,graphics?17:10):
-        this.following.ri_target(r,curve,k,o,f,q,g,graphics);
+        this.ri_target(r,curve,k,o,f,q,g,graphics);
     );
   );
 );
@@ -134,23 +136,34 @@ function ri_load(r,steps,reset_state)
   );
  );
 );
+// A section's ri_load, run on the shared AF_load (see ri_swap_in in analog-fast)
+function ri_load_section(r,steps,reset_state)(
+ this.ri_swap_in();AF_load.ri_load(r,steps,reset_state);this.ri_swap_out();
+);
 function ri_section(io*) instance(kind,first)(
  first?(kind===0?this.ip_zero2(io):this.ip_unity2(io)):
  kind===6?this.ip_notch_parallel(io):kind===2?this.ip_allpass2(io):kind===4?this.ip_gain3(io):
  kind===0 || kind===5?this.ip_zero3(io):this.ip_unity3(io);
 );
+// Sections 2 to 10: ri_recipe puts notch (6), band-pass (5) and all-pass (2) sections only in the
+// first slot, so the later ones leave those processors out (each is compiled once per section)
+function ri_section_rest(io*) instance(kind,first)(
+ first?(kind===0?this.ip_zero2(io):this.ip_unity2(io)):
+ kind===4?this.ip_gain3(io):
+ kind===0 || kind===5?this.ip_zero3(io):this.ip_unity3(io);
+);
 function ri_commit(reset_state) instance(plan,nrun,tag,steps,ramp_left)(
  nrun=plan[0];tag=plan[1];ramp_left=reset_state?0:steps;
- nrun>0?this.s1.ri_load(plan+4,steps,reset_state);
- nrun>1?this.s2.ri_load(plan+28,steps,reset_state);
- nrun>2?this.s3.ri_load(plan+52,steps,reset_state);
- nrun>3?this.s4.ri_load(plan+76,steps,reset_state);
- nrun>4?this.s5.ri_load(plan+100,steps,reset_state);
- nrun>5?this.s6.ri_load(plan+124,steps,reset_state);
- nrun>6?this.s7.ri_load(plan+148,steps,reset_state);
- nrun>7?this.s8.ri_load(plan+172,steps,reset_state);
- nrun>8?this.s9.ri_load(plan+196,steps,reset_state);
- nrun>9?this.s10.ri_load(plan+220,steps,reset_state);
+ nrun>0?this.s1.ri_load_section(plan+4,steps,reset_state);
+ nrun>1?this.s2.ri_load_section(plan+28,steps,reset_state);
+ nrun>2?this.s3.ri_load_section(plan+52,steps,reset_state);
+ nrun>3?this.s4.ri_load_section(plan+76,steps,reset_state);
+ nrun>4?this.s5.ri_load_section(plan+100,steps,reset_state);
+ nrun>5?this.s6.ri_load_section(plan+124,steps,reset_state);
+ nrun>6?this.s7.ri_load_section(plan+148,steps,reset_state);
+ nrun>7?this.s8.ri_load_section(plan+172,steps,reset_state);
+ nrun>8?this.s9.ri_load_section(plan+196,steps,reset_state);
+ nrun>9?this.s10.ri_load_section(plan+220,steps,reset_state);
  );
 function ri_fade(value) instance(wet,goal,fade_left,mix_step)(
  goal!==value || fade_left<=0?(goal=value;fade_left=max(16,ceil(.015*srate));mix_step=(goal-wet)/fade_left;);
@@ -163,6 +176,8 @@ function ri_accept(interval) instance(plan,domain,tag,nrun,wet,fade_left,goal,st
   this.ri_fade(0);
  );
 );
+// Every design runs on AF_audio: all of them happen on the audio thread (@block, @sample), and EEL2
+// compiles a separate copy of the designer for every namespace that calls it.
 function ri_config(type,hz,db,q,slope,dynamic) instance(plan,curve,domain,idx,last_base,last_span) local(req,k,lo,hi,g0,span,f,single)(
  single=domain===1 && dynamic && (type===0 || type===3 || type===4);single?(
    k=type===0?7:type===3?4:3;f=hz/srate;plan[0]=1;plan[1]=(type+1)*32;
@@ -183,7 +198,7 @@ function ri_config(type,hz,db,q,slope,dynamic) instance(plan,curve,domain,idx,la
      );
     ):(req[0]=0;AF_Pending=AF_Pending & (65535-(1<<idx)););
    single?AF_audio.ri_target(plan+4,curve,k,2,f,q,db,0):AF_audio.ri_compute(plan,dynamic?curve:-1,0);this.ri_accept(dynamic?16:32);
- ):domain===2?this.ri_prepare_visual():AF_meter.ri_compute(plan,-1,1);
+ ):domain===2?this.ri_prepare_visual():AF_audio.ri_compute(plan,-1,1);
 );
 function ri_off() instance(plan,idx,domain)(
  domain===1?(AF_Requests[idx*8]=0;AF_Pending=AF_Pending & (65535-(1<<idx)););plan[0]=plan[1]=0;this.ri_accept(32);
@@ -196,15 +211,15 @@ function ri_fast_kind() instance(nrun,fade_left,s1)(
 function ri_process(io*) instance(nrun,plan,tag,wet,goal,fade_left,mix_step,ramp_left)
  local(l,r)(
  fade_left>0?(l=io.l;r=io.r;);
- nrun>0?(this.s1.ri_section(io);nrun>1?(this.s2.ri_section(io);
- nrun>2?this.s3.ri_section(io);
- nrun>3?this.s4.ri_section(io);
- nrun>4?this.s5.ri_section(io);
- nrun>5?this.s6.ri_section(io);
- nrun>6?this.s7.ri_section(io);
- nrun>7?this.s8.ri_section(io);
- nrun>8?this.s9.ri_section(io);
- nrun>9?this.s10.ri_section(io);
+ nrun>0?(this.s1.ri_section(io);nrun>1?(this.s2.ri_section_rest(io);
+ nrun>2?this.s3.ri_section_rest(io);
+ nrun>3?this.s4.ri_section_rest(io);
+ nrun>4?this.s5.ri_section_rest(io);
+ nrun>5?this.s6.ri_section_rest(io);
+ nrun>6?this.s7.ri_section_rest(io);
+ nrun>7?this.s8.ri_section_rest(io);
+ nrun>8?this.s9.ri_section_rest(io);
+ nrun>9?this.s10.ri_section_rest(io);
  ););
 
  fade_left>0?(
